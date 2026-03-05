@@ -1,0 +1,3 @@
+nativna: #6c63ff
+
+amber: #dc7702
