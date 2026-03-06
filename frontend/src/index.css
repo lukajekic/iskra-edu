@@ -179,3 +179,51 @@ Retrieved 2026-03-05, License - CC BY-SA 4.0
   -ms-user-select: none;
   user-select: none;
 }
+
+
+
+/*klase za rich textove*/
+
+/* Root klasa za prikaz teksta iz editora */
+.iskra-rich-text h1 {
+    @apply text-3xl font-bold mb-4 mt-2;
+}
+
+.iskra-rich-text h2 {
+    @apply text-2xl font-semibold mb-3 mt-2;
+}
+
+.iskra-rich-text h3 {
+    @apply text-xl font-semibold mb-3 mt-2;
+}
+
+.iskra-rich-text p {
+    @apply mb-3;
+}
+
+.iskra-rich-text ul {
+    @apply list-disc ml-6 mb-3;
+}
+
+.iskra-rich-text ol {
+    @apply list-decimal ml-6 mb-3;
+}
+
+.iskra-rich-text strong {
+    @apply font-bold;
+}
+
+.iskra-rich-text a {
+    @apply text-blue-600 underline hover:text-blue-800;
+}
+
+
+.draft-box {
+  border: 2px dashed #cecece;
+  background-color: #f5f4f4;
+}
+
+ol {
+  list-style: decimal;
+  padding-left: 2rem;
+}

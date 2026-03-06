@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Spinner } from '@/components/ui/spinner';
 
 import confetti from "canvas-confetti"
+import Footer from '@/components/custom/Footer';
+import EmptyStudents from './EmptyStudents';
 
 type props = {
   openPicker: {
@@ -64,7 +66,7 @@ const StudentHome = () => {
     <div id="sa-left">
       <Tooltip>
         <TooltipTrigger>
-          <Button variant={'ghost'} className='text-green-600 hover:bg-green-600 hover:text-white'><Play></Play>Pokreni kod</Button>
+          <Button variant={'ghost'} className='text-green-600 hover:bg-green-600 hover:text-white' onClick={()=>{setOpenInputAlert(true)}}><Play></Play>Pokreni kod</Button>
         </TooltipTrigger>
 
         <TooltipContent>
@@ -114,6 +116,14 @@ defaultLanguage='python'
     </div>
    </div>
    )}
+
+{!taskID && (
+  <>
+  <EmptyStudents></EmptyStudents>
+  <div className="h-5"></div>
+  </>
+)}
+   <Footer></Footer>
 
 
 <Dialog   >

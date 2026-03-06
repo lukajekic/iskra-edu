@@ -67,7 +67,7 @@ Odabir zadatka
 
      <div className="w-full flex flex-wrap h-[300px] overflow-y-auto gap-2 justify-center">
        {Array.from({length: 15}).map((item,index)=>(
-        <div key={index} className='noselect h-fit w-[200px] border-1 rounded-xl active:border-2 active:border-blue-500 hover:cursor-pointer flex flex-col items-center p-3'>
+        <div key={index} className='noselect h-fit w-[200px] border-1 m-px rounded-xl active:border-2 active:border-blue-500 active:m-0 hover:cursor-pointer flex flex-col items-center p-3'>
           <img className='w-[40px]' src={py_icon}></img>
           <span className="break-all mt-2 text-center">Zadatk 1 python vebz aobuka za tesirnaje platofmr eiskar a uceniek</span>
         </div>

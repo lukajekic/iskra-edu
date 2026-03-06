@@ -1,0 +1,24 @@
+:root {
+    --input-radius: calc(var(--radius) - 2px);
+    --input-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
+}
+/* Glavni kontejner */
+.quill-wrapper {
+    overflow: hidden;
+    height: 250px;
+    width: 100%;
+    border-radius: var(--input-radius);
+    
+}
+
+.quill {
+    border: none !important;
+}
+
+.ql-toolbar {
+    border: none !important;
+}
+
+.ql-container {
+    border: none !important;
+}
