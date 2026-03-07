@@ -1,0 +1,55 @@
+import mongoose from "mongoose";
+
+const schema = new mongoose.Schema({
+    name: String,
+    type: String,
+    username: String,
+    password: String,
+    activegroup: {
+    type: {
+        expiry: Date,
+        code: String
+    },
+    default: undefined,
+    required: false
+},
+
+    institution: {
+        type: String,
+        required: false
+    },
+
+    teacherRef: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: false
+    },
+
+    userExpiry: {
+        type: Date,
+        required: false
+    },
+
+    groupCodeRef: String,
+
+    solutions: {
+        type: [{
+            solutionID: String,
+            status: String,
+            code: String,
+            stderr: String,
+            taskID: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Task"
+            }
+        }],
+        default: undefined,
+        required: false
+    }
+
+
+})
+
+
+export const UserModel = mongoose.model("User", schema)
+
