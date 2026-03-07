@@ -1,1 +1,1 @@
-Iskra edu frontend
+Welcome to Iskra.
