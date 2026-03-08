@@ -23,7 +23,12 @@ const schema = new mongoose.Schema({
     },
 
     published: Boolean,
-
+    storeOriginID: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Task",
+        required: false
+    },
+    
     tests: {
         type: [
             {
