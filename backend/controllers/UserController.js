@@ -3,6 +3,8 @@ import { BuildValidationReturn } from "../utilities/ReturnValidationError.js";
 import { UserModel } from "../models/UserModel.js";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import { DocumentModel } from "../models/DocumentModel.js";
+import { MessageModel } from "../models/MessageModel.js";
 
 export const createAccount = async (req, res) => {
     let body = req.body || {}
@@ -166,33 +168,85 @@ export const MyProfile = async (req, res) => {
 }  //ISPRAVNO - 9. 3. 2026.
 
 
-export const RedirectMe = async (req, res)=>{
+export const RedirectMe = async (req, res) => {
     try {
         const token = req.cookies.token
 
-    if (!token) {
-        return res.status(200).json({"redirect": "/auth/onboarding"})
-    }
+        if (!token) {
+            return res.status(200).json({ "redirect": "/auth/onboarding" })
+        }
 
-    const verify = jwt.verify(token, process.env.JWT_SECRET)
-    
+        const verify = jwt.verify(token, process.env.JWT_SECRET)
+
         if (verify) {
             const user = await UserModel.findById(verify.id)
-    
+
             if (!user) {
-            return res.status(200).json({"redirect": "/auth/onboarding"})
+                return res.status(200).json({ "redirect": "/auth/onboarding" })
             }
-    
+
             if (user.type === "student_permanent" || user.type === "student_temp") {
-                return res.status(200).json({"redirect": "/app/student/home"})
+                return res.status(200).json({ "redirect": "/app/student/home" })
             } else if (user.type === "teacher") {
-return res.status(200).json({"redirect": "/app/teacher"})
+                return res.status(200).json({ "redirect": "/app/teacher" })
             }
         } else {
-                    return res.status(200).json({"redirect": "/auth/onboarding"})
+            return res.status(200).json({ "redirect": "/auth/onboarding" })
         }
 
     } catch (error) {
         return res.status(500).json(BuildValidationReturn("server error on redirect endpoint", "error", "We cannot find where to redirect you."))
+    }
+}
+
+
+export const Documentation = async (req, res) => {
+    try {
+        let items = await DocumentModel.find();
+        return res.status(200).json(items)
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn("error on fetching docs", "error", "Cannot get documentation."))
+    }
+}
+
+export const getMessages = async (req, res) => {
+    try {
+        const userType = req.user.type
+
+        if (userType === "teacher") {
+            let messages = await MessageModel.find().sort({ date: -1 })
+
+            return res.status(200).json(messages)
+        }
+
+        return res.status(400).json(BuildValidationReturn("lacking role", "error", "You are not allowed to access messages."))
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Cannot get messages."))
+    }
+}
+
+export const readMessage = async (req, res) => {
+    try {
+        const userid = req.user._id
+        const { message } = req.body || {}
+
+        if (!userid || !message) {
+            return res.status(400).json(BuildValidationReturn("missing data", "error", "Missing either User or Message ID"))
+        }
+
+        const userType = req.user.type
+
+        if (userType === "teacher") {
+            await MessageModel.findByIdAndUpdate(message, { $push: { read: userid } }, { new: true })
+            return res.status(200).json({ "message": "OK" })
+        }
+
+        return res.status(400).json(BuildValidationReturn("lacking role", "error", "You are not allowed to access messages."))
+
+
+
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Cannot read message."))
+
     }
 }
