@@ -4,8 +4,12 @@ import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import http from 'http'
+import { connectMongoDB } from './utilities/mongodb.js'
+import userrouter from './routes/UserRoutes.js'
+import MyFolderRoutes from './routes/MyFolderRoutes.js'
 dotenv.config()
 const app = express()
+connectMongoDB()
 app.use(cors({
     origin: "http://localhost:8123",
     credentials: true
@@ -32,6 +36,11 @@ app.get("/run", async (req, res)=>{
 
 //kraj demo api-ja
 
+
+//rute
+
+app.use("/user", userrouter)
+app.use("/my/folders", MyFolderRoutes)
 async function runPythonCode(index) {
   const url = "https://lukajekic-python-judge.hf.space/run";
   

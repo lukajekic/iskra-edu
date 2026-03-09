@@ -1,17 +1,17 @@
 import mongoose from "mongoose";
-import { BuildValidationReturn } from "../utilities/ReturnValidationError";
-import { UserModel } from "../models/UserModel";
+import { BuildValidationReturn } from "../utilities/ReturnValidationError.js";
+import { UserModel } from "../models/UserModel.js";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
-export const createAccount = async(req, res)=>{
+export const createAccount = async (req, res) => {
     let body = req.body || {}
-    let {name, type, username, password, institution, ref, code} = body
+    let { name, type, username, password, institution, ref, code } = body
     if (!name || !type || !username || !password) {
         return res.status(400).json(BuildValidationReturn("Missing required Account data.", "error", "Make sure all required data is entered."))
     }
 
-    let users_with_username = await UserModel.countDocuments({username})
+    let users_with_username = await UserModel.countDocuments({ username })
     if (users_with_username > 0) {
         username = `${username}${users_with_username + 1}`
     }
@@ -41,29 +41,29 @@ export const createAccount = async(req, res)=>{
         toInsert.teacherRef = new mongoose.Types.ObjectId(ref)
         toInsert.solutions = []
     } else if (type === "student_temp") {
-       
+
 
         if (!code) {
             return res.status(400).json(BuildValidationReturn("Missing access code", "error", "Make sure you have entered correct Class code."))
         }
 
-        let teacher = await UserModel.findOne({"activegroup.code": code})
+        let teacher = await UserModel.findOne({ "activegroup.code": code })
         if (!teacher) {
-                    return res.status(400).json(BuildValidationReturn("Teacher not in DB, queried by code, maybe teacher disabled the group", "error", "We cannot find your Teacher in our records."))
-                }
+            return res.status(400).json(BuildValidationReturn("Teacher not in DB, queried by code, maybe teacher disabled the group", "error", "We cannot find your Teacher in our records."))
+        }
         toInsert.teacherRef = new mongoose.Types.ObjectId(teacher._id)
         toInsert.solutions = []
         toInsert.username = "temp"
-        toInsert.password = "temp"
+        toInsert.password = await bcrypt.hash("temp", salt)
 
-        
-        
+
+
 
         if (teacher.activegroup.code != code) {
             return res.status(400).json(BuildValidationReturn("teacher.activegroup.code != code", "error", "Invalid Class code."))
         }
 
-        
+
 
         toInsert.userExpiry = teacher.activegroup.expiry
         toInsert.groupCodeRef = teacher.activegroup.code
@@ -75,8 +75,8 @@ export const createAccount = async(req, res)=>{
         const finalMaxAge = difference > 0 ? difference : 0;
 
         let toSave = new UserModel(toInsert)
-    await toSave.save()
-    
+        await toSave.save()
+
         res.cookie("token", generatejwt(toSave._id, jwtexpiry), {
             maxAge: finalMaxAge, //dinamicno
             secure: true,
@@ -84,7 +84,7 @@ export const createAccount = async(req, res)=>{
             sameSite: "none"
         })
 
-        return res.status(200).json(BuildValidationReturn("LOGIN OK", "success", "Successful Login.")) 
+        return res.status(200).json(BuildValidationReturn("LOGIN OK", "success", "Successful Login."))
 
     }
 
@@ -94,17 +94,17 @@ export const createAccount = async(req, res)=>{
     let toSave = new UserModel(toInsert)
     await toSave.save()
     return res.status(201).json(BuildValidationReturn("User created.", "success", "New User created successfully."))
-}
+}  //ISPRAVNO - 9. 3. 2026.
 
 
-export const Login = async(req, res)=>{
-    let {username, password} = req.body || {}
+export const Login = async (req, res) => {
+    let { username, password } = req.body || {}
 
     if (!username || !password) {
         return res.status(400).json(BuildValidationReturn("Missing credentials.", "error", "Please enter both username and password."))
     }
 
-    let user = await UserModel.findOne({username})
+    let user = await UserModel.findOne({ username })
     if (!user) {
         return res.status(401).json(BuildValidationReturn("Invalid credentials.", "error", "Your login credentials aren't valid."))
     }
@@ -127,11 +127,11 @@ export const Login = async(req, res)=>{
     }
 
     return res.status(200).json(BuildValidationReturn("LOGIN OK", "success", "Successful Login."))
-}
+}  //ISPRAVNO - 9. 3. 2026.
 
-export const Logout = async(req,res)=>{
+export const Logout = async (req, res) => {
     try {
-       res.cookie("token", "", {
+        res.cookie("token", "", {
             maxAge: 0, //odjava
             secure: true,
             httpOnly: true,
@@ -142,15 +142,15 @@ export const Logout = async(req,res)=>{
     } catch (error) {
         return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
     }
-}
+}  //ISPRAVNO - 9. 3. 2026.
 
 
 function generatejwt(userid, expiresin) {
-    return jwt.sign({id: userid}, process.env.JWT_SECRET, {expiresIn: expiresin})
-}
+    return jwt.sign({ id: userid }, process.env.JWT_SECRET, { expiresIn: expiresin })
+}  //ISPRAVNO - 9. 3. 2026.
 
 
-export const MyProfile = async(req, res)=>{
+export const MyProfile = async (req, res) => {
     const useriD = req.user._id
     if (!useriD) {
         return res.status(400).json(BuildValidationReturn("no user id in req.user", "error", "Our server cannot recognize your User ID"))
@@ -163,4 +163,36 @@ export const MyProfile = async(req, res)=>{
 
 
     return res.status(200).json(user)
+}  //ISPRAVNO - 9. 3. 2026.
+
+
+export const RedirectMe = async (req, res)=>{
+    try {
+        const token = req.cookies.token
+
+    if (!token) {
+        return res.status(200).json({"redirect": "/auth/onboarding"})
+    }
+
+    const verify = jwt.verify(token, process.env.JWT_SECRET)
+    
+        if (verify) {
+            const user = await UserModel.findById(verify.id)
+    
+            if (!user) {
+            return res.status(200).json({"redirect": "/auth/onboarding"})
+            }
+    
+            if (user.type === "student_permanent" || user.type === "student_temp") {
+                return res.status(200).json({"redirect": "/app/student/home"})
+            } else if (user.type === "teacher") {
+return res.status(200).json({"redirect": "/app/teacher"})
+            }
+        } else {
+                    return res.status(200).json({"redirect": "/auth/onboarding"})
+        }
+
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn("server error on redirect endpoint", "error", "We cannot find where to redirect you."))
+    }
 }

@@ -1,0 +1,62 @@
+import mongoose, { mongo } from "mongoose";
+import { Foldermodel } from "../models/FolderModel.js";
+import { BuildValidationReturn } from "../utilities/ReturnValidationError.js";
+
+export const getFolders = async (req, res) =>{
+    try {
+        let filters = {
+            teacherRef: req.user._id
+        }
+
+        let items = await Foldermodel.find(filters)
+        return res.status(200).json(items)
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn("error on myfolders controller, func: getFolders", "error", "We cannot fetch your folders."))
+    }
+}
+
+export const createFolder = async (req, res)=>{
+    try {
+
+        let {title} = req.body || {}
+        if (!title) {
+            return res.status(400).json(BuildValidationReturn("no folder title", "error", "You must provide folder title."))
+        }
+        let toInsert = {
+            title: title,
+            open: true,
+            teacherRef: new mongoose.Types.ObjectId(req.user._id)
+        }
+
+        const toSave = new Foldermodel(toInsert)
+        await toSave.save()
+
+        return res.status(201).json(BuildValidationReturn("OK", "success", "New folder created."))
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn("error on myfolders controller, func: createFolder", "error", "We cannot create new folder."))
+    }
+}
+
+export const editFolder = async(req, res)=>{
+    try {
+        const {_id, title, open} = req.body || {}
+
+        if (!title && open === undefined) {
+            return res.status(400).json(BuildValidationReturn("no update values", "error", "You must provide at least one edit."))
+        }
+
+        let folder = await Foldermodel.findById(_id)
+        if (title) {
+            folder.title = title
+        }
+
+        if (open !== undefined) {  //jer je bool pa ce praviti problem sa if open
+            folder.open = open
+        }
+
+        await folder.save()
+        return res.status(200).json(BuildValidationReturn("OK", "success", "Updated folder successfully."))
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
+    }
+}

@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
-import { UserModel } from '../models/UserModel'
+import { UserModel } from '../models/UserModel.js'
 import mongoose from 'mongoose'
-import { BuildValidationReturn } from '../utilities/ReturnValidationError'
+import { BuildValidationReturn } from '../utilities/ReturnValidationError.js'
 
 export const protect = async(req, res, next) =>{
  try {
@@ -17,7 +17,7 @@ export const protect = async(req, res, next) =>{
         const user = await UserModel.findById(verify.id)
 
         if (!user) {
-        return res.status(401).json(BuildValidationReturn("User ID located through cookie token but no user found with that ID.", null, null))
+        return res.status(401).json(BuildValidationReturn("User ID located through cookie token but no user found with that ID. If account is temporary, maybe teacher ended workhour.", null, null))
         }
 
         req.user = user
