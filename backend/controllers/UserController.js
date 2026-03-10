@@ -250,3 +250,164 @@ export const readMessage = async (req, res) => {
 
     }
 }
+
+export const MyWorkhourGroup = async(req,res)=>{
+    try {
+        const userID = req.user._id
+        if (!userID) {
+            return res.status(400).json(BuildValidationReturn("no user id", "error", "We cannot detect your User ID."))
+        }
+
+        let user = await UserModel.findById(userID)
+
+        if (user.type !== "teacher") {
+            return res.status(400).json(BuildValidationReturn("lacking role", "error", "You are not allowed to access workhour groups."))
+        }
+        return res.status(200).json(user.activegroup)
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
+    }
+}
+
+
+export const createWorkhourGroup = async(req, res)=>{
+    try {
+        const userid = req.user._id
+        if (!userid) {
+            return res.status(400).json(BuildValidationReturn("no user id", "error", "We cannot detect your User ID."))
+        }
+
+
+        let user = await UserModel.findById(userid)
+
+
+//brisanje ucenika prethodne grupe
+if (user.activegroup?.code) {
+    await UserModel.deleteMany({type: "student_temp", groupCodeRef: user.activegroup.code})
+}
+
+        let now = Date.now()
+        let due = new Date(now + 45 * 60 * 1000)
+        let due_iso = due.toISOString()
+        let classcode = await createClassCode()
+
+        user.activegroup = {
+            code: classcode,
+            expiry: due_iso
+        }
+
+        await user.save()
+
+        return res.status(200).json(BuildValidationReturn("new group created", "success", "New Worhour group is created successfully."))
+
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
+    }
+}
+
+
+const createClassCode = async ()=>{
+    let code = ""
+    let characters = "23456789QWERTYUPASDFGHJKLZXCVBNM" //bez slova poput I i O
+
+    for (let index = 0; index < 8; index++) {
+        const letterindex = Math.floor(Math.random() * characters.length)
+        code += characters.charAt(letterindex)
+        
+    }
+
+    let any = await UserModel.countDocuments({"activegroup.code": code})
+    if (any > 0) {
+        return await createClassCode()
+    } else {
+        return code
+    }
+
+}
+
+export const WorkhourTimer = async(req,res)=>{
+    try {
+        const userid = req.user._id
+        if (!userid) {
+            return res.status(400).json(BuildValidationReturn("no user id", "error", "We cannot detect your User ID."))
+        }
+
+
+        let user = await UserModel.findById(userid)
+        if (user.type !== "teacher") {
+            return res.status(400).json(BuildValidationReturn("lacking role", "error", "You are not allowed to access workhour groups."))
+        }
+
+        if (user.activegroup?.expiry) {
+            return res.status(200).json(new Date(user.activegroup.expiry))
+        }
+
+        return res.status(404).json(BuildValidationReturn("no timer", "warning", "You have no active workhour groups."))
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
+    }
+}
+
+export const endWorkhour = async(req, res)=>{
+    try {
+        const userid = req.user._id
+        if (!userid) {
+            return res.status(400).json(BuildValidationReturn("no user id", "error", "We cannot detect your User ID."))
+        }
+
+        let user = await UserModel.findById(userid)
+        if (user.type !== "teacher") {
+            return res.status(400).json(BuildValidationReturn("lacking role", "error", "You are not allowed to access workhour groups."))
+        }
+
+        //brisanje ucenika prethodne grupe
+if (user.activegroup?.code) {
+    await UserModel.deleteMany({type: "student_temp", groupCodeRef: user.activegroup.code})
+}
+
+user.activegroup = {
+    expiry: null,
+    code: null
+}
+
+await user.save()
+
+return res.status(200).json(BuildValidationReturn("ok", "success", "Ended workhour successfully."))
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
+    }
+}
+
+export const WorkhourPorgress = async(req,res) =>{
+    try {
+        const userid = req.user._id
+        if (!userid) {
+            return res.status(400).json(BuildValidationReturn("no user id", "error", "We cannot detect your User ID."))
+        }
+
+        let user = await UserModel.findById(userid)
+        if (user.type !== "teacher") {
+            return res.status(400).json(BuildValidationReturn("lacking role", "error", "You are not allowed to access workhour groups."))
+        }
+
+        let students = await UserModel.find({teacherRef: userid, type: "student_temp"})
+        let toreturn = students.reduce((acc, curr)=>{
+            let correctansers = curr.solutions.filter(item => item.status === "accepted") || []
+            let studentprogress = {
+                name: curr.name,
+                studentid: curr._id,
+                correct: correctansers.length || 0
+            }
+            acc.push(studentprogress)
+            return acc
+
+
+        }, [])
+
+        return res.status(200).json(toreturn)
+
+
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
+    }
+}

@@ -15,16 +15,25 @@ import { TooltipProvider } from './components/ui/tooltip';
 import Empty from './pages/Teacher/Empty';
 import StudentDashboardWrapper from './pages/Teacher/StudentDashboardWrapper';
 import Editor from './pages/Teacher/Editor/Editor';
+import Maintenance from './pages/Maintenance';
+import MaintenanceGuard from './components/logic/MaintenanceGuard';
 export function App() {
 
   const router = createBrowserRouter([
-    {
+   {
+    element: <MaintenanceGuard></MaintenanceGuard>,
+    children: [
+       {
 path: "*",
 element: <NotFound></NotFound>
     },
     {
       path: "/",
       element: <Navigate to={"/auth/onboarding"} replace></Navigate>
+    },
+    {
+      path: "/maintenance",
+      element: <Maintenance></Maintenance>
     },
     {
       path: "/auth",
@@ -98,6 +107,8 @@ element: <NotFound></NotFound>
         }
       ]
     }
+    ]
+   }
   ])
 return (
  <>
