@@ -2,7 +2,12 @@ import mongoose from "mongoose";
 
 const schema = new mongoose.Schema({
     title: String,
-    richText: String,
+    richText: {
+        type: String,
+        required: false
+    },
+
+    language: String,
     outputType: String,
     author: {
         type: mongoose.Schema.Types.ObjectId,
