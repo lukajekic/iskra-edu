@@ -43,6 +43,11 @@ const schema = new mongoose.Schema({
         ],
 
     required: false
+    },
+
+    grade: {
+        type: String,
+        required: false
     }
 })
 
