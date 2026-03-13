@@ -118,7 +118,7 @@ const Onboarding = () => {
                     <CardDescription>
                       Unesite kredencijale za prijavu i pristupite stalno dostupnim zadacima sa časova.
                       <br></br>
-                      .
+                      <br />
                     </CardDescription>
                   </CardHeader>
                   <CardFooter>
