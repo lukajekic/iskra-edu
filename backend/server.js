@@ -9,6 +9,7 @@ import userrouter from './routes/UserRoutes.js'
 import MyFolderRoutes from './routes/MyFolderRoutes.js'
 import MyTasksRouter from './routes/MyTasksRoutes.js'
 import StoreRoutes from './routes/StoreRoutes.js'
+import MyStudentsRoutes from './routes/MyStudentsRoutes.js'
 dotenv.config()
 const app = express()
 connectMongoDB()
@@ -45,6 +46,7 @@ app.use("/user", userrouter)
 app.use("/my/folders", MyFolderRoutes)
 app.use('/my/tasks', MyTasksRouter)
 app.use('/store', StoreRoutes)
+app.use('/my/students', MyStudentsRoutes)
 async function runPythonCode(index) {
   const url = "https://lukajekic-python-judge.hf.space/run";
   
