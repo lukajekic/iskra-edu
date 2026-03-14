@@ -300,7 +300,7 @@ for (const test of tests) {
             
         } else {
         let expected_output = test.output[0]
-        let graph = data.image_b64.replace("---IMG_START---", "").replace("---IMG_END---", "")
+        let graph = data.stdout //data.image_b64.replace("---IMG_START---", "").replace("---IMG_END---", "")
 
 
         if (expected_output !== graph) {
