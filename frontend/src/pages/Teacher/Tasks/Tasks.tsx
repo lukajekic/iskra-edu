@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Switch } from '@/components/ui/switch'
 
 
 type ModalStatus = {
@@ -48,6 +49,7 @@ async function getData(): Promise<Payment[]> {
   ]
 }
 const Tasks =   () => {
+  const [proposedFolderView, setProposedFolderView] = useState<boolean|null>(null)
      const [modalStatus, setModalState] = useState<ModalStatus>({
       newtask: false,
       newfolder: false,
@@ -184,11 +186,45 @@ const [data, setData] = useState<Payment[]>([])
 <Dialog open={modalStatus.folderinfo} onOpenChange={(val)=>setModalState(prev => ({...prev, folderinfo: val}))} >
   <DialogContent showCloseButton={true}>
 <DialogHeader>Folder: foldername</DialogHeader>
+
+
+<div className="flex items-center space-x-2">
+      <Switch id="airplane-mode" />
+      <Label htmlFor="airplane-mode">Sakrij folder od učenika</Label>
+    </div>
 <div className="p-2 border-b-1 active:border-2 active:border-blue-400 rounded-lg flex items-center gap-2 hover:cursor-pointer">
   <img src={py_icon} className='size-6' alt="" />
   <span className="flex-1 break-all">fdgihjyortejfdogbhoefjgornjfdogrbjdrdojfognbjnohtrgjew3pojfgebhgerfjg</span>
 </div>
+
+
+
   </DialogContent>
+</Dialog>
+
+<Dialog open={proposedFolderView !== null}>
+  <DialogContent>
+    <DialogHeader>Izmeni folder</DialogHeader>
+    {proposedFolderView ? (
+<>
+<div className="flex flex-col items-center gap-2">
+  <img src="/undraw_private-files_m2bw.svg" className='size-30' alt="" />
+  <p className="text-xl font-bold text-center">Da li želite da prikažete ovaj folder i sve njegove zadatke učenicima?</p>
+</div>
+</>
+    ) : (<>
+    <div className="flex flex-col items-center gap-2">
+  <img src="/undraw_private-files_m2bw.svg" className='size-30' alt="" />
+  <p className="text-xl font-bold text-center">Da li želite da sakrijete ovaj folder i sve njegove zadatke od učenika?</p>
+</div>
+</>)}
+    <DialogFooter>
+      <Button variant={'outline'}>Odustani</Button>
+      <Button>Nastavi</Button>
+      </DialogFooter>
+  </DialogContent>
+
+
 </Dialog>
     <Footer></Footer>
     </>
