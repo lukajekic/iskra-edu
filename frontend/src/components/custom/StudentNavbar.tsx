@@ -23,6 +23,7 @@ import { Field, FieldGroup } from '../ui/field'
 import { Label } from '../ui/label'
 import { Input } from '../ui/input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
+import { toast } from 'sonner'
 
 type ModalStatus = {
   my_profile: boolean,

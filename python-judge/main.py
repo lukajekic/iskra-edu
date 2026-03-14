@@ -83,8 +83,11 @@ async def run_python_code(req: CodeRequest):
             image_data = None
             if "---IMG_START---" in stdout:
                 parts = stdout.split("---IMG_START---")
-                stdout = parts[0]
-                image_data = parts[1].split("---IMG_END---")[0]
+                pre_img_stdout = parts[0]
+                img_and_rest = parts[1].split("---IMG_END---")
+                image_data = img_and_rest[0]
+                post_img_stdout = img_and_rest[1] if len(img_and_rest) > 1 else ""
+                stdout = pre_img_stdout + post_img_stdout
 
             # Ako je proces "ubijen" zbog memorije, stderr će često biti prazan ili javiti MemoryError
             return {

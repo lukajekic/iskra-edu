@@ -2,6 +2,7 @@ import mongoose from "mongoose"
 import { Foldermodel } from "../models/FolderModel.js"
 import { BuildValidationReturn } from "../utilities/ReturnValidationError.js"
 import { TaskModel } from "../models/TaskModel.js"
+import { UserModel } from "../models/UserModel.js"
 
 const allowed_users = ['student_temp', 'student_permanent']
 
@@ -122,12 +123,231 @@ export const getSolution = async(req, res)=>{
     }
 }
 
+let activeInstance = -1
+let instances = {
+    0: "https://lukajekic-python-judge.hf.space",
+    1: "https://lukajekic-python-judge-2.hf.space"
+}
+let determineInstance = ()=>{
+    let keys = Object.keys(instances)
+    let new_active = -1
+    if (activeInstance + 1 === keys.length) {
+        new_active = 0
+    } else {
+        new_active = activeInstance + 1
+    }
+    activeInstance = new_active
 
+    return instances[activeInstance]
+}
 export const sendSolution = async(req,res)=>{
-    const io = req.app.get('socketio')
-    io.to("dev").emit("message", {
-        message: "zdravo developeri"
-    })
+    const {solutionID, code, taskID} = req.body || {}
+    if (!code || !taskID) {
+        return res.status(400).json(BuildValidationReturn("validation failed.", "error", "Please send all required data."))
+    }
 
-    return res.status(200)
+    let student = await UserModel.findById(req.user._id)
+    if (!allowed_users.includes(student.type)) {
+            return res.status(400).json(BuildValidationReturn("lacking role.", "error", "You are not authorized to access this data."))
+        }
+
+        let studentid = student._id
+        let task = await TaskModel.findById(taskID)
+
+            const io = req.app.get('socketio')
+
+        if (!task) {
+            return res.status(400).json(BuildValidationReturn("not found. (task)", "error", "Task not found."))
+        }
+
+
+        if (solutionID) {
+            student.solutions = student.solutions.filter(item => item.solutionID !== solutionID) // brisanje
+        }
+
+
+let new_id = crypto.randomUUID()
+        if (!task.tests || task.tests.length === 0) {
+            student.solutions.push({
+                solutionID: new_id,
+                status: "revise",
+                stderr: "Zadatak nije ispravno kreiran, molimo Vas obratite se Vasem predmetnom profesoru. (zadatak nema unete testove za proveru)",
+                code: code,
+                taskID: taskID
+            })
+
+            await student.save()
+            io.to(studentid).emit("solution_status_update", {
+                task: taskID,
+                status: "grading"
+            })
+
+            return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution is graded, results will be listed here."))
+        } else {
+            if (task.language === "python") {
+                let stderr = ""
+                if (task.outputType === "standard") {
+                    let tests = task.tests
+
+for (const test of tests) {
+    let stdin = test.input.join("\\n");
+    let testing_instance = determineInstance()
+
+    try {
+        const response = await fetch(`${testing_instance}/run`, {
+            method: 'POST',
+            body: JSON.stringify({ code, input_data: stdin, timeout: 5 }),
+            headers: { 'Content-Type': 'application/json' }
+        })
+        const data = await response.json()
+
+        if (data.stderr) {
+            stderr = data.stderr
+            student.solutions.push({
+                solutionID: new_id,
+                status: "revise",
+                stderr: `❌ Python nije mogao razumeti tvoj kod: ${stderr}`,
+                code: code,
+                taskID: taskID
+            })
+
+            await student.save()
+            io.to(studentid).emit("solution_status_update", {
+                task: taskID,
+                status: "server" //pozvace status sa servera
+            })
+            return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
+            
+        } else {
+        let expected_output = test.output.join("\\n")
+        if (expected_output !== data.stdout) {
+            stderr = "Tvoj kod nije ispravan. Sintaksa tvog koda je u redu, međutim krajnji odgovor tvog programa nije. Proveri kako primaš i ispisuješ podatke. ✨"
+            student.solutions.push({
+                solutionID: new_id,
+                status: "revise",
+                stderr: stderr,
+                code: code,
+                taskID: taskID
+            })
+
+            await student.save()
+            io.to(studentid).emit("solution_status_update", {
+                task: taskID,
+                status: "server" //pozvace status sa servera
+            })
+            return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
+            
+        }
+        }
+    } catch (error) {
+        console.error("Greška pri testiranju:", error);
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Your solution cannot be checked due to an error."))
+    }
+}
+    
+student.solutions.push({
+                solutionID: new_id,
+                status: "accepted",
+                stderr: "",
+                code: code,
+                taskID: taskID
+            })
+
+            await student.save()
+            io.to(studentid).emit("solution_status_update", {
+                task: taskID,
+                status: "server" //pozvace status sa servera
+            })
+            return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
+                }
+
+
+
+
+//matplotlib
+
+else if (task.outputType === "matplotlib") {
+                    let tests = task.tests
+
+for (const test of tests) {
+    let stdin = test.input.join("\\n");
+    let testing_instance = determineInstance()
+
+    try {
+        const response = await fetch(`${testing_instance}/run`, {
+            method: 'POST',
+            body: JSON.stringify({ code, input_data: stdin, timeout: 5 }),
+            headers: { 'Content-Type': 'application/json' }
+        })
+        const data = await response.json()
+
+        if (data.stderr) {
+            stderr = data.stderr
+            student.solutions.push({
+                solutionID: new_id,
+                status: "revise",
+                stderr: `❌ Python nije mogao razumeti tvoj kod: ${stderr}`,
+                code: code,
+                taskID: taskID
+            })
+
+            await student.save()
+            io.to(studentid).emit("solution_status_update", {
+                task: taskID,
+                status: "server" //pozvace status sa servera
+            })
+            return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
+            
+        } else {
+        let expected_output = test.output[0]
+        let graph = data.image_b64.replace("---IMG_START---", "").replace("---IMG_END---", "")
+
+
+        if (expected_output !== graph) {
+            stderr = "Tvoj kod nije ispravan. Sintaksa tvog koda je u redu, međutim krajnji odgovor tvog programa nije. Proveri kako primaš i ispisuješ podatke i grafikone. ✨"
+            student.solutions.push({
+                solutionID: new_id,
+                status: "revise",
+                stderr: stderr,
+                code: code,
+                taskID: taskID
+            })
+
+            await student.save()
+            io.to(studentid).emit("solution_status_update", {
+                task: taskID,
+                status: "server" //pozvace status sa servera
+            })
+            return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
+            
+        }
+        }
+    } catch (error) {
+        console.error("Greška pri testiranju:", error);
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Your solution cannot be checked due to an error."))
+    }
+}
+    
+student.solutions.push({
+                solutionID: new_id,
+                status: "accepted",
+                stderr: "",
+                code: code,
+                taskID: taskID
+            })
+
+            await student.save()
+            io.to(studentid).emit("solution_status_update", {
+                task: taskID,
+                status: "server" //pozvace status sa servera
+            })
+            return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
+                }
+
+
+
+            }
+        }
+
+
 }
