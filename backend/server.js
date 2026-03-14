@@ -11,6 +11,7 @@ import MyTasksRouter from './routes/MyTasksRoutes.js'
 import StoreRoutes from './routes/StoreRoutes.js'
 import MyStudentsRoutes from './routes/MyStudentsRoutes.js'
 import StudentAppRoutes from './routes/StudentAppRoutes.js'
+import { Server } from 'socket.io'
 dotenv.config()
 const app = express()
 connectMongoDB()
@@ -79,6 +80,32 @@ async function runPythonCode(index) {
   }
 }
 
-app.listen(process.env.PORT || 7860, ()=>{
+const server = http.createServer(app)
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+})
+
+io.on('connection', (socket)=>{
+  socket.emit('message', 'konektovano')
+
+  socket.on('test', (data) => {
+    console.log("poslao:", data);
+    socket.emit('message', 'Primljeno');
+  })
+
+
+  socket.on('join_room', (roomName) => {
+  socket.join(roomName)
+  console.log(`Socket ${socket.id} je ušao u sobu: ${roomName}`);
+  
+  socket.emit('message', `Usao si ušao u sobu: ${roomName}`);
+})
+})
+
+app.set('socketio', io)
+server.listen(process.env.PORT || 7860, ()=>{
     console.log("Server je pokrenut na portu", process.env.PORT || 7860)
 })

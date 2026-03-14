@@ -1,6 +1,6 @@
 import PageTitle from '@/components/custom/PageTitle'
 import { Button } from '@/components/ui/button'
-import { Info, PlusSquare, Users } from 'lucide-react'
+import { Fullscreen, Info, PlusSquare, Users } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import Footer from '@/components/custom/Footer'
 import { DataTable } from '@/components/custom/data-table'
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table"
 const Group =   () => {
 const [groupActive, setGroupActive] = useState(true)
+const [codeFullScreen, setCodeFullScreen] = useState(false)
 const invoices = [
   {
     invoice: "INV001",
@@ -98,8 +99,11 @@ useEffect(()=>{
     ) : (
       <>
       <div>
-        <span className="font-bold text-2xl">Pristup za kod</span>
-        <div className="p-5 border-1 text-5xl font-bold text-orange-700 w-fit rounded-2xl mt-2">AG23-3HSE</div>
+        <span className="font-bold text-2xl">Kod za pristup</span>
+        <div className="border-1  text-orange-700 w-fit rounded-2xl mt-2 flex ">
+          <span className="p-5 text-5xl font-bold">AG23-3HSE</span>
+          <Button onClick={()=>{setCodeFullScreen(true)}} variant={'outline'} className='h-auto text-gray-500 border-1 border-transparent border-l-1 border-l-[var(--border)] rounded-r-2xl rounded-l-none'><Fullscreen className='size-6'></Fullscreen></Button>
+        </div>
       </div>
       <Separator className='my-5'></Separator>
       <div>
@@ -197,6 +201,15 @@ useEffect(()=>{
     </DialogContent>
 </Dialog>
     <Footer></Footer>
+
+    <Dialog open={codeFullScreen} onOpenChange={(val)=>{setCodeFullScreen(val)}} >
+      <DialogContent className='min-w-fit'>
+          <div className='w-fit'>
+        <span className="font-bold text-2xl">Kod za pristup</span>
+        <div className="p-5 border-1 text-7xl font-bold text-orange-700 w-fit rounded-2xl mt-2">AG23-3HSE</div>
+      </div>
+      </DialogContent>
+    </Dialog>
     </>
   )
 }

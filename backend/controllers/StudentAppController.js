@@ -121,3 +121,13 @@ export const getSolution = async(req, res)=>{
         return res.status(500).json(BuildValidationReturn(error.message, 'error', "Cannot get your Solution."))
     }
 }
+
+
+export const sendSolution = async(req,res)=>{
+    const io = req.app.get('socketio')
+    io.to("dev").emit("message", {
+        message: "zdravo developeri"
+    })
+
+    return res.status(200)
+}
