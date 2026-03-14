@@ -10,6 +10,7 @@ import MyFolderRoutes from './routes/MyFolderRoutes.js'
 import MyTasksRouter from './routes/MyTasksRoutes.js'
 import StoreRoutes from './routes/StoreRoutes.js'
 import MyStudentsRoutes from './routes/MyStudentsRoutes.js'
+import StudentAppRoutes from './routes/StudentAppRoutes.js'
 dotenv.config()
 const app = express()
 connectMongoDB()
@@ -47,6 +48,7 @@ app.use("/my/folders", MyFolderRoutes)
 app.use('/my/tasks', MyTasksRouter)
 app.use('/store', StoreRoutes)
 app.use('/my/students', MyStudentsRoutes)
+app.use('/app/student', StudentAppRoutes)
 async function runPythonCode(index) {
   const url = "https://lukajekic-python-judge.hf.space/run";
   
@@ -77,6 +79,6 @@ async function runPythonCode(index) {
   }
 }
 
-app.listen(3000, ()=>{
-    console.log("Server je pokrenut na portu 3000")
+app.listen(process.env.PORT || 7860, ()=>{
+    console.log("Server je pokrenut na portu", process.env.PORT || 7860)
 })

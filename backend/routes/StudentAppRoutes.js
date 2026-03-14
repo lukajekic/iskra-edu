@@ -1,0 +1,11 @@
+import express from 'express'
+import { getFolders, getSolution, getTask } from '../controllers/StudentAppController.js'
+import { protect } from '../middleware/protect.js'
+const router = express.Router()
+
+router.get('/folders', protect, getFolders)
+router.get('/task', protect, getTask)
+router.get('/solution', protect, getSolution)
+
+const StudentAppRoutes = router
+export default StudentAppRoutes
