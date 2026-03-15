@@ -110,6 +110,8 @@ className='rounded-2xl'
 height={500}
 theme='vs-dark'
 defaultLanguage='python'
+onChange={(e)=>{console.log(JSON.stringify(e))}}
+defaultValue={`ime = input()\nprint(f\"Zdravo, {ime} - imas {input()} godina.\")\n\nprint(\"ISKRA\")`}
 
 ></Editor>
 </div>

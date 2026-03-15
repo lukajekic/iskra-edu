@@ -16,7 +16,7 @@ dotenv.config()
 const app = express()
 connectMongoDB()
 app.use(cors({
-    origin: "http://localhost:8123",
+    origin: "http://localhost:5173",
     credentials: true
 }))
 app.use(bodyParser.json())

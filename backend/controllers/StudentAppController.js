@@ -162,6 +162,11 @@ export const sendSolution = async(req,res)=>{
 
 
         if (solutionID) {
+            let existing_solution = student.solutions.find(item => item.solutionID === solutionID)
+
+            if (existing_solution && existing_solution.status === 'accepted') {
+                return res.status(400).json(BuildValidationReturn('already correct.', 'error', 'You cannot submit already accepted answers.'))
+            }
             student.solutions = student.solutions.filter(item => item.solutionID !== solutionID) // brisanje
         }
 
@@ -177,20 +182,24 @@ let new_id = crypto.randomUUID()
             })
 
             await student.save()
-            io.to(studentid).emit("solution_status_update", {
+            io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
-                status: "grading"
+                status: "revise"
             })
 
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution is graded, results will be listed here."))
         } else {
+             io.to(studentid.toString()).emit("solution_status_update", {
+                task: taskID,
+                status: "grading"
+            })
             if (task.language === "python") {
                 let stderr = ""
                 if (task.outputType === "standard") {
                     let tests = task.tests
 
 for (const test of tests) {
-    let stdin = test.input.join("\\n");
+    let stdin = test.input.join("\n");
     let testing_instance = determineInstance()
 
     try {
@@ -212,26 +221,29 @@ for (const test of tests) {
             })
 
             await student.save()
-            io.to(studentid).emit("solution_status_update", {
+            io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
                 status: "server" //pozvace status sa servera
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
             
         } else {
-        let expected_output = test.output.join("\\n")
-        if (expected_output !== data.stdout) {
+        let expected_output = test.output.join("\n")
+        let output_real = data.stdout.replace(/\n$/, "")
+        if (expected_output !== output_real) {
             stderr = "Tvoj kod nije ispravan. Sintaksa tvog koda je u redu, međutim krajnji odgovor tvog programa nije. Proveri kako primaš i ispisuješ podatke. ✨"
             student.solutions.push({
                 solutionID: new_id,
                 status: "revise",
                 stderr: stderr,
                 code: code,
-                taskID: taskID
+                taskID: taskID,
+                dev_ocekivani_output: expected_output,
+                dev_output: output_real
             })
 
             await student.save()
-            io.to(studentid).emit("solution_status_update", {
+            io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
                 status: "server" //pozvace status sa servera
             })
@@ -254,7 +266,7 @@ student.solutions.push({
             })
 
             await student.save()
-            io.to(studentid).emit("solution_status_update", {
+            io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
                 status: "server" //pozvace status sa servera
             })
@@ -270,7 +282,7 @@ else if (task.outputType === "matplotlib") {
                     let tests = task.tests
 
 for (const test of tests) {
-    let stdin = test.input.join("\\n");
+    let stdin = test.input.join("\n");
     let testing_instance = determineInstance()
 
     try {
@@ -292,29 +304,32 @@ for (const test of tests) {
             })
 
             await student.save()
-            io.to(studentid).emit("solution_status_update", {
+            io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
                 status: "server" //pozvace status sa servera
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
             
         } else {
-        let expected_output = test.output[0]
+        let expected_output = test.output[0].replace(/\n$/, "")
+        let output_real = data.stdout.replace(/\n$/, "")
         let graph = data.stdout //data.image_b64.replace("---IMG_START---", "").replace("---IMG_END---", "")
 
 
-        if (expected_output !== graph) {
+        if (expected_output !== output_real) {
             stderr = "Tvoj kod nije ispravan. Sintaksa tvog koda je u redu, međutim krajnji odgovor tvog programa nije. Proveri kako primaš i ispisuješ podatke i grafikone. ✨"
             student.solutions.push({
                 solutionID: new_id,
                 status: "revise",
                 stderr: stderr,
                 code: code,
-                taskID: taskID
+                taskID: taskID,
+                dev_ocekivani_output: expected_output,
+                dev_output: output_real
             })
 
             await student.save()
-            io.to(studentid).emit("solution_status_update", {
+            io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
                 status: "server" //pozvace status sa servera
             })
@@ -337,7 +352,7 @@ student.solutions.push({
             })
 
             await student.save()
-            io.to(studentid).emit("solution_status_update", {
+            io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
                 status: "server" //pozvace status sa servera
             })

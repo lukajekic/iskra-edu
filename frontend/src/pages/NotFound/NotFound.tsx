@@ -1,7 +1,23 @@
 import { Button } from '@/components/ui/button'
 import React from 'react'
-
+import axios from 'axios'
+type redirectObj = {
+  redirect: string
+}
 const NotFound = () => {
+
+  const handleRedirect = async()=>{
+    try {
+      const response = await axios.get<redirectObj>(`${import.meta.env.VITE_BACKEND}/user/me/redirect`)
+      if (response.data) {
+        
+        console.log(response.data)
+        location.href = response.data.redirect
+      }
+    } catch (error) {
+      location.href = '/auth/onboarding'
+    }
+  }
   return (
     <>
     <div className="w-full h-screen fixed top-0 left-0 overflow-hidden flex justify-between">
@@ -15,7 +31,7 @@ const NotFound = () => {
       <p className='color-gray-700 text-2xl mt-5'>Stranica koju tražiš nije pronađena, klikni na dugme kako bi bio preumseren autoamtski na stranicu za prijavu ili ako si već prijavljen na odgovarajuć portal.</p>
 
 
-      <Button className='px-7 h-15 rounded-2xl text-xl mt-10'>Preusmeri me</Button>
+      <Button onClick={()=>{handleRedirect()}} className='px-7 h-15 rounded-2xl text-xl mt-10'>Preusmeri me</Button>
       </div>
 
 

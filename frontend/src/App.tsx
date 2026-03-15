@@ -113,7 +113,7 @@ element: <NotFound></NotFound>
 return (
  <>
  <TooltipProvider>
-  <Toaster></Toaster>
+  <Toaster position='top-center'></Toaster>
  <RouterProvider router={router}>
   
  </RouterProvider>

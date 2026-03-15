@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,7 +30,77 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp"
 import Footer from '@/components/custom/Footer'
+import axios from 'axios'
+import { toast } from 'sonner'
 const Onboarding = () => {
+const usernameField = useRef<HTMLInputElement>(null)
+const passwordField = useRef<HTMLInputElement>(null)
+const nameField = useRef<HTMLInputElement>(null)
+const codeField = useRef<HTMLInputElement>(null)
+  const handleOnboarding = async()=>{
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/redirect`)
+      if (response.data) {
+        if (response.data.redirect !== '/auth/onboarding') {
+          location.href = response.data.redirect
+        }
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  //onready
+
+  useEffect(()=>{
+handleOnboarding()
+  }, [])
+
+
+  const handleCredentialLogin = async()=>{
+    try {
+      if (!usernameField || !passwordField || !usernameField.current || !passwordField.current || !usernameField.current.value || !passwordField.current.value) {
+        toast.error("Unesite korisnicko ime i lozinku.");
+        return;
+      }
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/login`, {
+        username: usernameField.current.value,
+        password: passwordField.current.value
+      });
+
+      if (response.status === 200) {
+        const redirectresponse = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/redirect`);
+        if (redirectresponse.data.redirect) {
+          location.href = redirectresponse.data.redirect;
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const handleCodeLogin = async()=>{
+    try {
+      if (!nameField || !nameField.current || !nameField.current.value || !accesscode || accesscode.length < 8) {
+        toast.error("Unesite ime i pristupni kod.");
+        return;
+      }
+
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/create`, {
+        name: nameField.current.value,
+        type: "student_temp",
+        username: "temp_temp",
+        password: "temp_temp",
+        code: accesscode
+      })
+
+      if (response.status === 200) {
+        location.href = '/app/student/home'
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
     const [accesscode, setaccesscode] = useState<string>("")
   return (
@@ -63,7 +133,7 @@ const Onboarding = () => {
     }
   }}
 >
-          <form className='w-full'>
+          <form className='w-full' onSubmit={(e)=>{e.preventDefault()}}>
         <DialogTrigger className='w-full' asChild>
           <Button className="w-full">Prijava kodom</Button>
         </DialogTrigger>
@@ -75,7 +145,21 @@ const Onboarding = () => {
             </DialogDescription>
           </DialogHeader>
           <FieldGroup>
-            <InputOTP id='otp' value={accesscode} maxLength={8} onChange={(e)=>{console.log(e), setaccesscode(e)}}>
+              <Field>
+      <FieldLabel htmlFor="input-field-username">Tvoje ime i prezime</FieldLabel>
+      <Input
+      ref={nameField}
+        id="name"
+        type="text"
+        placeholder="Unesi svoje ime"
+      />
+
+    </Field>
+
+        <Field>
+            <FieldLabel htmlFor="otp">Pristupni kod</FieldLabel>
+
+            <InputOTP  id='otp' value={accesscode} maxLength={8} onChange={(e)=>{console.log(e), setaccesscode(e)}}>
       <InputOTPGroup>
         <InputOTPSlot index={0} />
         <InputOTPSlot index={1} />
@@ -90,12 +174,13 @@ const Onboarding = () => {
         <InputOTPSlot index={7} />
       </InputOTPGroup>
     </InputOTP>
+        </Field>
           </FieldGroup>
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline" onClick={()=>{setaccesscode("")}}>Odustani</Button>
             </DialogClose>
-            <Button type="submit">Prijavi se</Button>
+            <Button onClick={()=>{handleCodeLogin()}} type="submit">Prijavi se</Button>
           </DialogFooter>
         </DialogContent>
       </form>
@@ -147,6 +232,7 @@ const Onboarding = () => {
            <Field>
       <FieldLabel htmlFor="input-field-username">Korisničko ime</FieldLabel>
       <Input
+      ref={usernameField}
         id="username"
         type="text"
         placeholder="Unesi korisničko ime"
@@ -158,6 +244,7 @@ const Onboarding = () => {
      <Field>
       <FieldLabel htmlFor="input-field-username">Lozinka</FieldLabel>
       <Input
+      ref={passwordField}
         id="password"
         type="password"
         placeholder="Unesi lozinku"
@@ -171,7 +258,7 @@ const Onboarding = () => {
             <DialogClose asChild>
               <Button variant="outline" onClick={()=>{setaccesscode("")}}>Odustani</Button>
             </DialogClose>
-            <Button type="submit">Prijavi se</Button>
+            <Button onClick={()=>{handleCredentialLogin()}} type="submit">Prijavi se</Button>
           </DialogFooter>
         </DialogContent>
       </form>

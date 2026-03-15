@@ -22,6 +22,7 @@ import usericon from '../../assets/user.png'
 import { Field, FieldGroup } from '../ui/field'
 import { Label } from '../ui/label'
 import { Input } from '../ui/input'
+import { HandleLogout } from '@/utils/logout'
 
 type ModalStatus = {
   my_profile: boolean,
@@ -106,7 +107,7 @@ const TeacherNavbar = () => {
                           <DropdownMenuSeparator />
 
              <DropdownMenuGroup>
-                <DropdownMenuItem variant='destructive'>
+                <DropdownMenuItem onClick={()=>{HandleLogout()}} variant='destructive'>
                 <PowerOff></PowerOff>
                 Odjava
               </DropdownMenuItem>

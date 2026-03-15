@@ -41,7 +41,16 @@ const schema = new mongoose.Schema({
             taskID: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Task"
-            }
+            },
+
+            dev_ocekivani_output: {
+                type: String,
+                required: false
+            },
+    dev_output: {
+        type: String,
+        required: false
+    }
         }],
         default: undefined,
         required: false

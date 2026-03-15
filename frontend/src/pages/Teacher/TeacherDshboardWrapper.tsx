@@ -1,10 +1,31 @@
 import TeacherNavbar from '@/components/custom/TeacherNavbar'
 import { AppSidebar } from '@/components/ui/app-sidebar'
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import React from 'react'
+import axios from 'axios'
+import React, { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 
 const TeacherDshboardWrapper = () => {
+
+
+      const handleOnboarding = async()=>{
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/redirect`)
+      if (response.data) {
+        if (response.data.redirect !== '/app/teacher') {
+          location.href = response.data.redirect
+        }
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  //onready
+
+  useEffect(()=>{
+handleOnboarding()
+  }, [])
   return (
     <div className="">
       <TeacherNavbar></TeacherNavbar>

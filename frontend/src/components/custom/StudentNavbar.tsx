@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +24,9 @@ import { Label } from '../ui/label'
 import { Input } from '../ui/input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import { toast } from 'sonner'
+import { HandleLogout } from '@/utils/logout'
+import axios from 'axios'
+import StudentTimer from './StudentTimer'
 
 type ModalStatus = {
   my_profile: boolean,
@@ -32,11 +35,25 @@ type ModalStatus = {
 }
 const StudentNavbar = () => {
 
+
   const [modalStatus, setModalStatus] = useState<ModalStatus>({
     my_profile: false,
     messages: false,
     documents: false
   })
+const [myProfile, setMyProfile] = useState()
+  const getProfile = async()=>{
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me`)
+      if (response.status === 200) setMyProfile(response.data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(()=>{
+    getProfile()
+  }, [])
   return (
     <>
       <div id='height_manager' className="h-[62px] mt-2 w-full flex justify-center" />
@@ -64,11 +81,11 @@ const StudentNavbar = () => {
               <User className='size-5 mr-2' />
               Predmetni profesor:
             </span>
-            <span>Jovan Jovanovic</span>
+            <span>{myProfile?.teacherRef?.name}</span>
           </div>
             </TooltipTrigger>
             <TooltipContent>
-              Gimazija „Svetozar Markovic“ Novi Sad
+              {myProfile?.teacherRef?.institution}
             </TooltipContent>
           </Tooltip>
         </div>
@@ -81,10 +98,12 @@ const StudentNavbar = () => {
       <div className="flex items-center gap-2">
         <UserCircle className='size-[30px] mr-2 text-gray-700'></UserCircle>
         <div className="flex flex-col">
-          <span className="text-gray-700 uppercase break-all">Jednokratna prijava (99:99)</span>
-          <span className='break-all'>Ime i preyime</span>
+          <span className="text-gray-700 uppercase break-all">{
+            myProfile?.type === 'student_permanent' ? (<>Trajni nalog</>) : myProfile?.type === 'student_temp' ? (<><StudentTimer date={myProfile?.userExpiry}></StudentTimer></>) : (<>/</>)
+            }</span>
+          <span className='break-all'>{myProfile?.name}</span>
         </div>
-        <Button variant={'destructive'}><PowerOff></PowerOff>Odjava</Button>
+        <Button onClick={()=>{ HandleLogout()}} variant={'destructive'}><PowerOff></PowerOff>Odjava</Button>
       </div>
     </div>
       </div>
@@ -274,6 +293,9 @@ const StudentNavbar = () => {
 {/* --kraj nested izmena profila */}
         </DialogContent>
       </Dialog>
+
+
+      
     </>
   )
 }

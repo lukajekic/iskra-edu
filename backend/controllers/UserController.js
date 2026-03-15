@@ -108,13 +108,13 @@ export const Login = async (req, res) => {
 
     let user = await UserModel.findOne({ username })
     if (!user) {
-        return res.status(401).json(BuildValidationReturn("Invalid credentials.", "error", "Your login credentials aren't valid."))
+        return res.status(400).json(BuildValidationReturn("Invalid credentials.", "error", "Your login credentials aren't valid."))
     }
 
     let verified = await bcrypt.compare(password, user.password)
 
     if (!verified) {
-        return res.status(401).json(BuildValidationReturn("Invalid credentials.", "error", "Your login credentials aren't valid."))
+        return res.status(400).json(BuildValidationReturn("Invalid credentials.", "error", "Your login credentials aren't valid."))
     }
 
     if (user.type === "student_temp") {
@@ -158,9 +158,14 @@ export const MyProfile = async (req, res) => {
         return res.status(400).json(BuildValidationReturn("no user id in req.user", "error", "Our server cannot recognize your User ID"))
     }
 
-    let user = await UserModel.findById(useriD)
+    let user = await UserModel.findById(useriD).select('-password').populate('teacherRef', 'name institution').lean()
     if (!user) {
         return res.status(400).json(BuildValidationReturn("no user in db, queried by req.user._id", "error", "We couldn't locate your Account on our end."))
+    }
+
+    if (user.type === 'student_temp' || user.type === 'student_permanent') {
+        delete user.solutions
+
     }
 
 
