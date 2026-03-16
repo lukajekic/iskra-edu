@@ -59,7 +59,7 @@ return res.status(200).json(results)
 
 export const getTask = async(req, res)=>{
     try {
-        const {id} = req.body || {}
+        const {id} = req.params || {}
         if (!id) {
             return res.status(400).json(BuildValidationReturn("no task id", "error", "Please provide Task ID."))
         }
@@ -96,7 +96,7 @@ return res.status(200).json(task)
 export const getSolution = async(req, res)=>{
     try {
         const studentid = req.user._id
-        const {taskID} = req.body || {} 
+        const {taskID} = req.params || {} 
         if (!studentid) {
             return res.status(400).json(BuildValidationReturn("no req.user._id", "error", "We cannot determine your Student ID."))
         }
@@ -184,7 +184,7 @@ let new_id = crypto.randomUUID()
             await student.save()
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
-                status: "revise"
+                status: "server"
             })
 
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution is graded, results will be listed here."))
@@ -268,7 +268,7 @@ student.solutions.push({
             await student.save()
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
-                status: "server" //pozvace status sa servera
+                status: "accepted" //nema sta novo osim statusa
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
                 }
@@ -354,7 +354,7 @@ student.solutions.push({
             await student.save()
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
-                status: "server" //pozvace status sa servera
+                status: "accepted" //svakako je jedino sto novo vidi status pa da ne fetchuje ponovo
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
                 }

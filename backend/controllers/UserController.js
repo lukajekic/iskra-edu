@@ -191,9 +191,9 @@ export const RedirectMe = async (req, res) => {
             }
 
             if (user.type === "student_permanent" || user.type === "student_temp") {
-                return res.status(200).json({ "redirect": "/app/student/home" })
+                return res.status(200).json({ "redirect": "/app/student/home", "userID": verify.id })
             } else if (user.type === "teacher") {
-                return res.status(200).json({ "redirect": "/app/teacher" })
+                return res.status(200).json({ "redirect": "/app/teacher", "userID": verify.id })
             }
         } else {
             return res.status(200).json({ "redirect": "/auth/onboarding" })

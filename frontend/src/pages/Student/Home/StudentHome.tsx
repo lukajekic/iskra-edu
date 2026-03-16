@@ -1,8 +1,8 @@
 import StudentNavbar from '@/components/custom/StudentNavbar'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Editor from '@monaco-editor/react';
 import { loader } from '@monaco-editor/react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useOutletContext, useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Play, Send } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -12,6 +12,8 @@ import { Spinner } from '@/components/ui/spinner';
 import confetti from "canvas-confetti"
 import Footer from '@/components/custom/Footer';
 import EmptyStudents from './EmptyStudents';
+import axios from 'axios';
+import { toast } from 'sonner';
 
 type props = {
   openPicker: {
@@ -19,10 +21,79 @@ type props = {
     open: boolean
   }
 }
+
+type Task = {
+    _id:        string;
+    language:   string;
+    outputType: string;
+    folder:     string;
+    title:      string;
+    ownerRef:   string;
+    richText?:   string;
+}
 const StudentHome = () => {
-  const [gradeStatus, setGradeStatus] = useState<"none" | "accepted" | "revise" | "grading">("accepted")
+  const socket_data = useOutletContext()
+const [disableSend, setDisableSend] = useState(false)
+
+
+const handleSolutionSend = async()=>{
+  try {
+    if(!code) {
+      toast.error("Morate napisati program kako biste poslali resenje.")
+      return
+    }
+
+    setDisableSend(true)
+
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND}/app/student/solution/create`, {
+      solutionID: solution.solutionID,
+      code: code,
+      taskID: searchParams.get('task')
+    })
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+
+  useEffect(() => {
+    if (socket_data) {
+      console.log("!!! Primljen update preko socketa u Child-u:", socket_data);
+      
+      // Ovde mapiraj podatke sa socketa na tvoj lokalni state
+      // Na primer, ako socket šalje: { status: "accepted", solutionID: "..." }
+      if (socket_data?.task === searchParams.get('task')) {
+        if (socket_data?.status) {
+        setGradeStatus(socket_data?.status);
+      }
+
+      // Ovde možeš dodati i druge akcije, npr. ako je "accepted" baci konfete
+      if (socket_data?.status === "accepted" || socket_data?.status === 'grading') {
+        
+        setDisableSend(true)
+      }  else {
+        setTimeout(() => {
+          setDisableSend(false)
+        }, 10000);
+      }
+
+      if (socket_data?.status === 'accepted') {
+        handleConfetti();
+        setSolution(prev => ({...prev, stderr: ""}))
+      }
+
+      if (socket_data?.status === 'server') {
+        getSolution();
+      }
+      }
+    }
+  }, [socket_data])
+  const [gradeStatus, setGradeStatus] = useState<"none" | "accepted" | "revise" | "grading">("none")
   const [params] = useSearchParams()
   const [openInputAlert, setOpenInputAlert] = useState(false)
+  const [task, setTask] = useState<Task>()
+  const [solution, setSolution] = useState()
+  const [code, setCode] = useState("")
   const taskID = params.get("task")
   const handleConfetti = () => {
     const end = Date.now() + 3 * 1000 // 3 seconds
@@ -49,7 +120,53 @@ const StudentHome = () => {
     }
     frame()
   }
+  const [searchParams, setSearchParams] = useSearchParams();
 
+const getTask = async()=>{
+  try {
+    const response = await axios.get<Task>(`${import.meta.env.VITE_BACKEND}/app/student/task/${searchParams.get('task')}`)
+    if (response.data) {
+      setTask(response.data)
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+
+const getSolution = async()=>{
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND}/app/student/solution/${searchParams.get('task')}`)
+    if (response.data) {
+      setSolution(response.data)
+      setGradeStatus(response.data.status)
+      setCode(response?.data?.code)
+
+      if (response.data.status === 'accepted') {
+        setDisableSend(true)
+      } else {
+        setDisableSend(false)
+      }
+    } else {
+      setSolution({
+        status: "none",
+        code: ""
+      })
+
+      setGradeStatus("none")
+      setCode("")
+      setDisableSend(false)
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+    useEffect(()=>{
+      console.log(`Promena task parametra (main): ${searchParams.get('task')}`)
+      getTask()
+      getSolution()
+    }, [searchParams])
 
 
   return (
@@ -57,8 +174,11 @@ const StudentHome = () => {
    {taskID && (
     <div className="w-full max-w-full min-w-full flex items-start gap-0">
     <div id="student-task-details" className='p-4 basis-1/2'>
-      <p className="text-4xl font-bold">Naziv zadatka</p>
-   <p className='mt-2'>Ovde ide <strong>rich text</strong> opis.</p>
+      <p className="text-4xl font-bold">{task?.title}</p>
+    <div
+  className="iskra-rich-text  max-w-full mt-3"
+  dangerouslySetInnerHTML={{ __html: task?.richText ?? ""}}
+/>
     </div>
     <div id="student-solution-editor" className='p-4 basis-1/2'>
 <div className=" w-full overflow-hidden rounded-lg flex flex-col">
@@ -66,7 +186,7 @@ const StudentHome = () => {
     <div id="sa-left">
       <Tooltip>
         <TooltipTrigger>
-          <Button variant={'ghost'} className='text-green-600 hover:bg-green-600 hover:text-white' onClick={()=>{setOpenInputAlert(true)}}><Play></Play>Pokreni kod</Button>
+          <Button disabled variant={'ghost'} className='text-green-600 hover:bg-green-600 hover:text-white' onClick={()=>{setOpenInputAlert(true)}}><Play></Play>Pokreni kod</Button>
         </TooltipTrigger>
 
         <TooltipContent>
@@ -76,18 +196,21 @@ const StudentHome = () => {
       </Tooltip>
     </div>
     <div id="sa-right">
-      <Button variant={'default'} onClick={()=>{handleConfetti()}}><Send></Send>Pošalji na pregled</Button>
+      <Button disabled={disableSend} variant={'default'} onClick={()=>{handleSolutionSend()}}><Send></Send>Pošalji na pregled</Button>
     </div>
   </div>
   <div id="grading-status" className={`mt-5 rounded-t-lg flex items-center px-5 py-4 justify-between gap-2 h-fit   ${gradeStatus == "none" ? "bg-[#e6e6e6]" : gradeStatus == "accepted" ? "bg-[#2db32d] text-white" : gradeStatus == "revise" ? "bg-[#ff5959] text-white" : gradeStatus == "grading" ? "bg-[#ffdb4d]" : "bg-white" }`}>
-    <div className='flex gap flex-col' id="send-info">
-      <span className='text-2xl font-bold'>ID 148721908</span>
-      <span className='text-sm'>00. 00. 0000. 00:00</span>
+    <div className='flex gap flex-col flex-1' id="send-info">
+      <span className='text-2xl font-bold' hidden>ID 148721908</span>
+      <span className='text-sm hidden'>00. 00. 0000. 00:00</span>
+      {solution?.stderr && (
+        <span className="text-md">{solution?.stderr}</span>
+      )}
     </div>
 
       <div className='flex gap flex-col' id="grade-info">
-      <span className='text-2xl font-bold'>Pokusaj ponovo</span>
-      <span className='text-sm'>00. 00. 0000. 00:00</span>
+      <span className='text-2xl font-bold'>{gradeStatus === 'accepted' ? "Prihvaćeno" : gradeStatus === 'grading' ? 'Ocenjivanje u toku...' : gradeStatus === 'revise' ? 'Pokušaj ponovo' : "Nije urađeno"}</span>
+      <span className='text-sm hidden'>00. 00. 0000. 00:00</span>
     </div>
   </div>
   <div className="h-5 bg-[#1e1e1e]"></div>
@@ -110,9 +233,8 @@ className='rounded-2xl'
 height={500}
 theme='vs-dark'
 defaultLanguage='python'
-onChange={(e)=>{console.log(JSON.stringify(e))}}
-defaultValue={`ime = input()\nprint(f\"Zdravo, {ime} - imas {input()} godina.\")\n\nprint(\"ISKRA\")`}
-
+onChange={(e)=>{console.log(JSON.stringify(e)), setCode(e)}}
+value={code}
 ></Editor>
 </div>
     </div>

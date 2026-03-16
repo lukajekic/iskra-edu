@@ -106,6 +106,14 @@ io.on('connection', (socket)=>{
 })
 
 app.set('socketio', io)
+app.post('/devstatus', (req, res) => {
+  io.to('69af08bb9e31852b60dad191').emit('solution_status_update', {
+    task: "69b5b9b48c66c60fbb8121e0",
+    status: "accepted"
+  });
+
+  return res.sendStatus(200); // Koristi sendStatus za čist 200 OK
+});
 server.listen(process.env.PORT || 7860, ()=>{
     console.log("Server je pokrenut na portu", process.env.PORT || 7860)
 })

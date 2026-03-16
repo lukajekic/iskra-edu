@@ -71,6 +71,9 @@ handleOnboarding()
       if (response.status === 200) {
         const redirectresponse = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/redirect`);
         if (redirectresponse.data.redirect) {
+          if (redirectresponse.data.redirect === '/app/teacher') {
+            sessionStorage.setItem('teacher_id', redirectresponse.data.userID)
+          }
           location.href = redirectresponse.data.redirect;
         }
       }
@@ -91,7 +94,7 @@ handleOnboarding()
         type: "student_temp",
         username: "temp_temp",
         password: "temp_temp",
-        code: accesscode
+        code: accesscode.toUpperCase()
       })
 
       if (response.status === 200) {

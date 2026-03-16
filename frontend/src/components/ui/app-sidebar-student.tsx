@@ -18,22 +18,48 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu" // Popravljena putanja
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Badge } from "./badge";
 import { Separator } from "./separator";
 import foldericon from "../../assets/folder.png"
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+type Folder = {
+    zadaci:     Task[];
+    folderName: string;
+    folderId:   string;
+}
 
-const items = [
-  { title: "Učenici", url: "/app/teacher/students", icon: Users },
-  { title: "Napredak", url: "/app/teacher/progress", icon: ChartSpline },
-  { title: "Zadaci", url: "/app/teacher/tasks", icon: CircleCheck },
-  { title: "Zbirka zadataka", url: "/app/teacher/store", icon: BookCheck },
-];
+type Task = {
+  _id: string,
+  language: "python",
+  title: string
+}
 export function AppSidebarStudent() {
     const [openTaskPicker, setOpenTaskPicker] = useState(false)
+    let [folders, setFolders] = useState<Folder[]>()
+let [tasks, setTasks] = useState<Task[]>()
+    const getFolders = async()=>{
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND}/app/student/folders`)
+        if (response.data) {
+          setFolders(response.data)
+        }
+      } catch (error) {
+        console.error(error)
+      }
+    }
+  const [searchParams, setSearchParams] = useSearchParams();
+
+    useEffect(()=>{
+      getFolders()
+      console.log(searchParams.get('task'))
+    }, [])
+
+    useEffect(()=>{
+      console.log(`Promena task parametra: ${searchParams.get('task')}`)
+    }, [searchParams])
   
-  const location = useLocation();
   return (
     <Sidebar variant="floating" className="top-[70px] pl-5 pb-[75px]">
       <SidebarContent >
@@ -41,11 +67,11 @@ export function AppSidebarStudent() {
           <SidebarMenu className="mt-2">
 
            
-{Array.from({length: 20}).map((item ,index)=>{
+{folders?.map((item ,index)=>{
   return (
-    <div onClick={()=>{setOpenTaskPicker(true)}} key={index} className="noselect w-full h-fit p-2 flex items-center rounded-lg border-2 border-transparent active:border-blue-500 gap-2 hover:cursor-pointer">
+    <div onClick={()=>{setTasks(item.zadaci), setOpenTaskPicker(true)}} key={index} className="noselect w-full h-fit p-2 flex items-center rounded-lg border-2 border-transparent active:border-blue-500 gap-2 hover:cursor-pointer">
       <img src={foldericon} className="w-[20px]" alt="" />
-      <span className="flex-1 text-gray-500 break-all">{index}: Ime folderaIme folderaIme folderaIme folderaIme foldera</span>
+      <span className="flex-1 text-gray-500 break-all">{item.folderName}</span>
     </div>
   )
 })}
@@ -66,10 +92,10 @@ Odabir zadatka
       </DialogHeader>
 
      <div className="w-full flex flex-wrap h-[300px] overflow-y-auto gap-2 justify-center">
-       {Array.from({length: 15}).map((item,index)=>(
-        <div key={index} className='noselect h-fit w-[200px] border-1 m-px rounded-xl active:border-2 active:border-blue-500 active:m-0 hover:cursor-pointer flex flex-col items-center p-3'>
+       {tasks?.map((item,index)=>(
+        <div key={index} onClick={()=>{setSearchParams({task: item._id}), setOpenTaskPicker(false)}} className='noselect h-fit w-[200px] border-1 m-px rounded-xl active:border-2 active:border-blue-500 active:m-0 hover:cursor-pointer flex flex-col items-center p-3'>
           <img className='w-[40px]' src={py_icon}></img>
-          <span className="break-all mt-2 text-center">Zadatk 1 python vebz aobuka za tesirnaje platofmr eiskar a uceniek</span>
+          <span className="break-all mt-2 text-center">{item.title}</span>
         </div>
       ))}
      </div>

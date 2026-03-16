@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { act, useEffect, useState } from 'react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from '../ui/button'
-import { Building, File, FileText, MessageCircle, Pencil, PowerOff, SquareUserRound, Users } from 'lucide-react'
+import { Building, File, FileText, MessageCircle, Pencil, Phone, PowerOff, SquareUserRound, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '../ui/dialog'
 import { Separator } from '../ui/separator'
@@ -23,19 +23,127 @@ import { Field, FieldGroup } from '../ui/field'
 import { Label } from '../ui/label'
 import { Input } from '../ui/input'
 import { HandleLogout } from '@/utils/logout'
+import axios from 'axios'
+import { toast } from 'sonner'
 
 type ModalStatus = {
   my_profile: boolean,
   messages: boolean,
-  documents: boolean
+  documents: boolean,
+support: boolean
+}
+
+type Document = {
+    _id:   string;
+    title: string;
+    link:  string;
+}
+
+type Message = {
+    _id:         string;
+    title:       string;
+    description: string;
+    read:        string[];
+    date:        Date;
 }
 const TeacherNavbar = () => {
+  const [documents, setDocuments] = useState<Document[]>([])
+const [messages, setMessages] = useState<Message[]>()
+const [activeMessage, setActiveMessage] = useState<Message>()
+
+const sendReadStatus = async(messageid:string)=>{
+  try {
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/me/messages/read`, {
+      message: messageid //iz cookia ce procitati user id tako da session storage ne utice mngoo osim na ui prikaz unread
+    })
+
+    if (response.status === 200) {
+      return 
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+const determineReadCall = (message:Message, dontcall:boolean=false)=>{
+try {
+  if (message) {
+    let read = message.read.find(item => item === sessionStorage.getItem('teacher_id'))
+    if (!read) {
+      
+      if (dontcall) {
+        return false
+      } else {
+console.log('procatiti ovu poruku na serveru', message._id)
+sendReadStatus(message._id)
+return
+      }
+    } else {
+      return true
+    }
+  }
+} catch (error) {
+  
+}
+}
+  const getDocuments = async()=>{
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/documents`)
+      if (response.status === 200) {
+setDocuments(response.data ?? [])
+      }
+    } catch (error) {
+      
+    }
+  }
+
+
+  const getMessages = async()=>{
+    try {
+      const response = await axios.get<Message[]>(`${import.meta.env.VITE_BACKEND}/user/me/messages`)
+      if (response.status === 200) {
+setMessages(response.data ?? [])
+let unread = response.data.filter(item => !item.read.includes(sessionStorage.getItem('teacher_id') ?? ""))
+if (unread.length > 0) {
+  toast.info("Imate neprocitane poruke.")
+}
+
+if (response.data.length > 0) {
+  let first_message = response.data[0]
+  setActiveMessage(first_message)
+ 
+  
+}
+      }
+    } catch (error) {
+      
+    }
+  }
+  useEffect(()=>{
+getDocuments()
+getMessages()
+  }, [])
 
   const [modalStatus, setModalStatus] = useState<ModalStatus>({
     my_profile: false,
     messages: false,
-    documents: false
+    documents: false,
+    support: false
   })
+
+
+  //za citanje poruke index
+  useEffect(()=>{
+if (messages && messages?.length  > 0 && modalStatus.messages === true) {
+  let first_message = messages[0]
+  setActiveMessage(first_message)
+  if (!first_message.read.includes(sessionStorage.getItem('teacher_id') ?? "")) {
+    console.log("index poruku read-ovati", first_message._id)
+    sendReadStatus(first_message._id)
+  }
+  
+}
+  }, [modalStatus.messages])
   return (
     <>
       <div className="h-[62px]" />
@@ -81,6 +189,12 @@ const TeacherNavbar = () => {
               <DropdownMenuItem onClick={()=>{setModalStatus(prev=>({...prev, messages: true}))}}>
                 <MessageCircle></MessageCircle> Poruke
               </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={()=>{setModalStatus(prev=>({...prev, support: true}))}}>
+                <Phone></Phone> Tehnička podrška
+              </DropdownMenuItem>
+
+
             <DropdownMenuSeparator />
              </DropdownMenuGroup>
 
@@ -135,79 +249,31 @@ const TeacherNavbar = () => {
 <div className="border-1 w-full h-full overflow-hidden flex items-start">
     <div className=" w-[30%] h-full flex flex-col gap-0 items-start overflow-y-auto">
 
-     {Array.from({ length: 5 }, (_, index) => ({
-  unread: index === 1 || index === 2,
-})).map((item, index) => (
+     {messages?.map((item, index) => (
   <div
+  onClick={()=>{setActiveMessage(item),  determineReadCall(item)}}
     key={index}
     className={`w-full h-fit p-2 border-b-1 
-      ${item.unread ? "bg-white" : "bg-[#cecece]/15"} 
+      ${determineReadCall(item, true) ? "bg-white" : "bg-[#cecece]/15"} 
       hover:bg-white hover:border-l-2 hover:border-l-blue-400 hover:cursor-pointer`}
   >
-    <p className={`text-xs text-gray-500`}>00. 00. 0000. 00:00</p>
-    <p className={`text-[16px] ${item.unread ? "text-[#194872] font-bold" : "text-gray-500"}`}>
-      Nadogradnja sistema
+    <p className={`text-xs text-gray-500`}>{new Date(item.date).toLocaleString("sr-RS")}</p>
+    <p className={`text-[16px] ${!determineReadCall(item, true) ? "text-[#194872] font-bold" : "text-gray-500"}`}>
+      {item.title}
     </p>
   </div>
 ))}
     </div>
   <div className="p-5 w-[70%] h-full border-[2px] border-[#194872] flex flex-col">
     <p className="text-[20px] text-[#194872]">
-      Najavljivanje nadogradnje sistema
+      {activeMessage?.title}
     </p>
-        <p className={`text-xs text-gray-500`}>00. 00. 0000. 00:00</p>
+        <p className={`text-xs text-gray-500`}>{new Date(activeMessage?.date ?? "").toLocaleString("sr-RS")}</p>
 
 <Separator className='my-2'></Separator>
 
 <div className="flex-1 overflow-y-auto">
-  <p className='text-[15px] text-gray-700'>Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-  Ovde postaviti rezultate rich text editora.
-
-<br></br>
-  -----Kraj poruke.-----
+  <p dangerouslySetInnerHTML={{ __html: activeMessage?.description ?? "" }} className='text-[15px] text-gray-700'>
 </p>
 </div>
   </div>
@@ -230,11 +296,11 @@ const TeacherNavbar = () => {
             Uputstva za korisnike
           </DialogHeader>
 <div className="overflow-y-auto flex-1">
-  {Array.from({length: 10}).map((item, index)=>(
-  <div className="w-full  p-3 border-b-1 flex gap-2 text-[#194872] hover:text-[#c55258] hover:cursor-pointer items-center">
+  {documents.map((item, index)=>(
+  <a key={index} target='_blank' href={item.link}  className="w-full  p-3 border-b-1 flex gap-2 text-[#194872] hover:text-[#c55258] hover:cursor-pointer items-center">
     <FileText className='w-[24px]'></FileText>
-<span className='text-[16px] flex-1'>Naziv uputstva za korisnike.pdf</span>
-  </div>
+<span className='text-[16px] flex-1'>{item.title}</span>
+  </a>
 ))}
 </div>
 
@@ -307,6 +373,28 @@ const TeacherNavbar = () => {
 {/* --kraj nested izmena profila */}
         </DialogContent>
       </Dialog>
+
+
+
+
+
+      {/*podrska*/}
+
+<Dialog open={modalStatus.support} onOpenChange={(val)=>{setModalStatus(prev => ({...prev, support: val}))}}>
+  <DialogContent className='min-w-fit p-5'>
+    <DialogHeader className='text-lg font-bold'>Tehnička podrška</DialogHeader>
+    <div className="flex items-center gap-5">
+      <img src="/undraw_calling_d6vk.svg" className='w-[250px]' alt="" />
+      <span className='w-[350px] text-lg text-right'>Molimo Vas da podršku kontaktirate na mejl ispod. Vaš mejl biće zaveden kao slučaj u sistemu za tehničku podršku.
+        <br />
+        <br />
+        <span className='font-bold'>podrska@iskraedu.zohodesk.eu</span>
+      </span>
+    </div>
+  </DialogContent>
+</Dialog>
+
+
     </>
   )
 }

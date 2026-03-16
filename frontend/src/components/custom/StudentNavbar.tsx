@@ -33,6 +33,23 @@ type ModalStatus = {
   messages: boolean,
   documents: boolean
 }
+
+export type ProfileType = {
+    _id:          string;
+    name:         string;
+    type:         string;
+    username:     string;
+    teacherRef:   TeacherRef;
+    userExpiry?:   Date;
+    groupCodeRef?: string;
+    __v:          number;
+}
+
+export type TeacherRef = {
+    _id:         string;
+    name:        string;
+    institution: string;
+}
 const StudentNavbar = () => {
 
 
@@ -41,7 +58,7 @@ const StudentNavbar = () => {
     messages: false,
     documents: false
   })
-const [myProfile, setMyProfile] = useState()
+const [myProfile, setMyProfile] = useState<ProfileType>()
   const getProfile = async()=>{
     try {
       const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me`)
