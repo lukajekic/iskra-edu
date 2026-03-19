@@ -19,6 +19,7 @@ import Maintenance from './pages/Maintenance';
 import MaintenanceGuard from './components/logic/MaintenanceGuard';
 import { UserProvider } from './context/UserContext';
 import AboutUsModular from './pages/About';
+import Privacy from './pages/Legal/Privacy';
 export function App() {
 
   const router = createBrowserRouter([
@@ -57,6 +58,10 @@ element: <NotFound></NotFound>
         {
           path: "terms",
           element: <Terms></Terms>
+        },
+        {
+          path: "privacy",
+          element: <Privacy></Privacy>
         }
       ]
     },

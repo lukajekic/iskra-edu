@@ -143,7 +143,12 @@
 /* md dokumentacija typography */
 .markdown-container h1 { border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; font-size: 2em; }
 .markdown-container h2 { border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; font-size: 1.5em; margin-top: 24px; }
-.markdown-container ul { padding-left: 2em; }
+.markdown-container ul { padding-left: 2em; list-style-type: disc; list-style-position: outside; }
+.markdown-container ul ul {
+  padding-left: 2em;
+  list-style-type: circle;
+  
+}
 .markdown-container li { margin-bottom: 8px; }
 .markdown-container a { color: #0366d6; text-decoration: none; }
 .markdown-container a:hover { text-decoration: underline; }

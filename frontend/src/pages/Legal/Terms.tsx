@@ -1,56 +1,51 @@
 import ReactMarkdown from 'react-markdown';
 
 const termsContent = `
-# Uslovi korišćenja platforme Iskra
 
-**Poslednja izmena:** 26. februar 2026.
+# Uslovi upotrebe
 
-Dobrodošli na platformu **Iskra**. Korišćenjem naših usluga, prihvatate pravila navedena u nastavku. Molimo vas da ih pažljivo pročitate.
+## 1. Prihvatanje uslova
+Korišćenjem platforme Iskra, korisnik (učenik ili profesor) u potpunosti prihvata ove uslove. Ukoliko se ne slažete sa bilo kojim delom, molimo Vas da odmah prestanete sa korišćenjem sistema.
 
----
+## 2. Opis usluge
+Iskra je edukativna platforma namenjena automatizaciji testiranja koda i upravljanju nastavnim procesom. Autor zadržava pravo da u bilo kom trenutku izmeni, suspenduje ili prekine rad bilo kog dela platforme bez prethodne najave.
 
-### 1. Prihvatanje uslova
-Pristupanjem i korišćenjem platforme Iskra, potvrđujete da ste pročitali, razumeli i prihvatili ove Uslove korišćenja. Ukoliko se ne slažete sa bilo kojom odredbom, molimo vas da odmah prestanete sa korišćenjem platforme.
-
-### 2. Opis usluge
-Iskra je digitalni alat namenjen unapređenju produktivnosti u učionicama tokom obrade lekcija programiranja. Iskra zadržava pravo da u bilo kom trenutku izmeni, suspenduje ili privremeno prekine bilo koji deo usluge radi održavanja ili unapređenja sistema, bez prethodne najave.
-
-### 3. Registracija i bezbednost naloga
-* **Tačnost podataka:** Korisnik je dužan da prilikom registracije unese tačne i važeće podatke.
-* **Odgovornost:** Vi ste isključivo odgovorni za poverljivost svoje lozinke i sve aktivnosti koje se izvrše pod vašim nalogom.
-* **Pristup:** Strogo je zabranjeno deljenje pristupnih podataka sa trećim licima, kao i neovlašćeni pristup tuđim nalozima. Svaka sumnja na kompromitovan nalog mora biti odmah prijavljena administraciji.
-
-### 4. Pravila ponašanja i zabranjene aktivnosti
+## 3. Pravila ponašanja i zloupotreba
 Korisnicima je strogo zabranjeno:
-* Korišćenje platforme u svrhe koje nisu u skladu sa zakonom.
-* Postavljanje ili distribucija uvredljivog, pretećeg, diskriminatorskog ili neprikladnog sadržaja.
-* Sajber napadi, pokušaji ometanja rada servera (DDoS) ili neovlašćeno prikupljanje (*scraping*) podataka drugih korisnika.
-* Bilo koji vid uznemiravanja drugih korisnika ili slanje neželjenih komercijalnih poruka (*spam*).
+- Slanje zlonamernog koda (malware, fork bombs, beskonačne petlje) koji može ugroziti stabilnost servera.
+- Pokušaj neovlašćenog pristupa tuđim nalozima ili bazi podataka (XSS, DDoS,...).
+- Korišćenje tuđih pristupnih kodova za privremene naloge.
+- Automatizovano "preopterećenje" servera zahtevima (DDoS).
 
-### 5. Intelektualna svojina i Open Source transparentnost
-* **Vlasništvo:** Vizuelni identitet, logotip, dizajn i tekstovi su vlasništvo platforme Iskra.
-* **Izvorni kod:** Iako je izvorni kod platforme javno dostupan radi transparentnosti i uviđaja u način obrade podataka, **zabranjeno je repliciranje (kloniranje) platforme u komercijalne svrhe** ili kreiranje konkurentskih servisa bez izričite pismene dozvole autora.
-* **Distribucija:** Neovlašćeno kopiranje i distribucija delova platforme koji nisu obuhvaćeni javnom licencom je kažnjivo.
+> **Napomena:** Svaki pokušaj ugrožavanja integriteta sistema može rezultirati trajnom blokadom naloga i prijavom nadležnim organima škole.
 
-### 6. Ograničenje odgovornosti
-* **"As-is" model:** Iskra pruža usluge u viđenom stanju ("onakve kakve jesu"). Ne garantujemo da će rad platforme biti neprekidan i bez tehničkih grešaka.
-* **Korisnički sadržaj:** Iskra ne vrši prethodnu kontrolu sadržaja zadataka, koda ili poruka koje generišu korisnici. Ti sadržaji ne predstavljaju stavove autora platforme, te Iskra ne snosi odgovornost za njihovu tačnost ili prirodu.
-* **Šteta:** U maksimalnoj meri dozvoljenoj zakonom, Iskra se odriče odgovornosti za bilo kakvu direktnu ili indirektnu štetu nastalu korišćenjem ili nemogućnošću korišćenja platforme.
+## 4. Intelektualna svojina
+- **Platforma:** Sav izvorni kod Iskra sistema je javno dostupan, ali je njegova reprodukcija i implementacija zabranjena bez odobrenja autora. Autor Iskre objavljuje kod platforme javno kao podsticaj učenicima naprednog znanja da imaju ideju o funkcionisanju sistema i toku podataka. 
+- **Korisnički sadržaj:** Učenici zadržavaju autorska prava na kôd koji pošalju, ali Iskra ima pravo da taj kôd skladišti i obrađuje u svrhu ocenjivanja i provere plagijata.
 
-### 7. Prekid saradnje
-Iskra zadržava diskreciono pravo da suspenduje ili trajno obriše nalog korisnika koji krši ove Uslove, bez prethodne opomene, ukoliko se proceni da je došlo do ozbiljnog ugrožavanja platforme ili drugih korisnika.
+## 5. Ograničenje odgovornosti
+Iskra se isporučuje "u viđenom stanju". Autor ne garantuje:
+- Da će sistem raditi bez prekida.
+- Da su automatski generisane ocene i povratne informacije uvek tačne.
+- Da neće doći do gubitka podataka usled tehničkih kvarova trećih lica ili od strane autora (Render, MongoDB, itd.).
 
-### 8. Izmene uslova
-Zadržavamo pravo na izmenu ovih Uslova u bilo kom trenutku. Svaka izmena stupa na snagu momentom objavljivanja na ovoj stranici. Nastavak korišćenja platforme nakon objavljenih izmena smatra se vašim pristankom na nove uslove.
+**Korisnik prihvata da autor nije odgovoran za bilo kakvu štetu (gubitak ocene, propušten rok) nastalu usled tehničkih problema platforme.**
 
-### 9. Kontakt
-Za sva pitanja, primedbe ili prijave problema, možete nas kontaktirati putem e-pošte:
-**Email:** [lukajekic913@gmail.com](mailto:lukajekic913@gmail.com)
+## 6. Nalozi i bezbednost
+- Korisnici su odgovorni za čuvanje svojih pristupnih podataka.
+- Privremeni nalozi su ograničenog trajanja i biće automatski obrisani nakon isteka predviđenog perioda i kreiranjem nove nastavne grupe ili prevremenim prekidom važenja grupe.
+
+## 7. Izmene uslova
+Autor zadržava pravo da izmeni ove uslove u bilo kom trenutku. Nastavak korišćenja platforme nakon izmena smatra se prihvatanjem novih uslova. Očekuje se da korisnik periodično posećuje ovu stranicu kako bi posedovao ažurne informacije o uslovima upotrebe.
+
+**Hvala Vam što koristite Iskra edukativni sistem.**
+
+Poslednja izmena: 19. mart 2026.
 `;
 
 function Terms() {
   return (
-    <div className='markdown-container' style={{ maxWidth: '800px', margin: '0 auto', padding: '40px', fontFamily: 'sans-serif', lineHeight: '1.6' }}>
+    <div className='markdown-container' style={{ maxWidth: '800px', margin: '0 auto', padding: '40px', lineHeight: '1.6' }}>
       <ReactMarkdown >
         {termsContent}
       </ReactMarkdown>

@@ -245,11 +245,13 @@ if (myProfile?._id) {
                 <File></File> Uputstva za korisnike
               </DropdownMenuItem>
 
+               <Link target='_blank' to={'/legal/privacy'}>
                <DropdownMenuItem>
                 Politika privatnosti
               </DropdownMenuItem>
+              </Link>
 
-               <Link to={'/legal/terms'}>
+               <Link target='_blank' to={'/legal/terms'}>
                <DropdownMenuItem>
                 Uslovi upotrebe
               </DropdownMenuItem>
