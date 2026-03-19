@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from '@/components/ui/switch'
+import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 
 
 type ModalStatus = {
@@ -31,38 +33,114 @@ type ModalStatus = {
   newfolder: boolean,
   folderinfo: boolean
 }
-async function getData(): Promise<Payment[]> {
-  // Fetch data from your API here.
-  return [
-    {
-      id: "728ed52f",
-       status: "pending",
-     done: [10, 4, 70],
-    },
 
-    {
-      id: "sadefr",
-      status: "success",
-     done: [55, 2, 27],
-    },
-    // ...
-  ]
+type Folder = {
+    zadaci:     Zadaci[];
+    folderName: string;
+    folderId:   string;
+    visible: boolean
 }
+
+ type Zadaci = {
+    _id:      string;
+    language: string;
+    title:    string;
+}
+
+type NewTask = {
+  title: string,
+  folder: string,
+  language: string,
+  outputType: "standard" | "matplotlib"
+}
+
 const Tasks =   () => {
+  const navigate = useNavigate()
   const [proposedFolderView, setProposedFolderView] = useState<boolean|null>(null)
+  const[newFolderName, setNewFodlerName] = useState<string>("")
+  const createFodler = async()=>{
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND}/my/folders/create`, {
+        title: newFolderName
+      })
+
+      if (response.status === 201) {
+        getFolders()
+        setModalState(prev => ({...prev, newfolder: false}))
+        setNewFodlerName("")
+      }
+    } catch (error) {
+      
+    }
+  }
      const [modalStatus, setModalState] = useState<ModalStatus>({
       newtask: false,
       newfolder: false,
       folderinfo: false
+      
     })
-const [data, setData] = useState<Payment[]>([])
-  useEffect(() => {
-    const loadData = async () => {
-      const result = await getData()
-      setData(result)
-    }
 
-    loadData()
+
+
+// forma novog zadatka
+ const [newTaskForm, setNewTaskForm] = useState<NewTask>({
+  title: "",
+  folder: "",
+  language: "python",
+  outputType: "standard"
+})
+
+const initializeTask = async()=>{
+  try {
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND}/my/tasks/initialize`, newTaskForm)
+    if (response.status === 200) {
+      setModalState(prev => ({...prev, newtask: false}))
+      setNewTaskForm({
+  title: "",
+  folder: "",
+  language: "python",
+  outputType: "standard"
+})
+navigate(`/app/teacher/editor/${response.data._id}`)
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+const [data, setData] = useState<Folder[]>([])
+const [activeFolder, setActiveFolder] = useState<Folder>()
+
+const publishVisibility = async()=>{
+  try {
+    const response = await axios.put(`${import.meta.env.VITE_BACKEND}/my/folders/edit`, {
+      _id: activeFolder?.folderId,
+      open: proposedFolderView
+    })
+
+    if (response.status === 200) {
+      setProposedFolderView(null)
+      setModalState(prev => ({...prev, folderinfo: false}))
+      getFolders()
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+
+const getFolders = async ()=>{
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND}/my/folders/tasks`)
+    if (response.status === 200) {
+      setData(response.data)
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+  useEffect(() => {
+    getFolders()
   }, [])
 
   return (
@@ -96,13 +174,16 @@ const [data, setData] = useState<Payment[]>([])
         <div className="h-2"></div>
 
 <div className="w-full flex gap-2 flex-wrap py-2">
-  <button onClick={()=>{setModalState(prev => ({...prev, folderinfo: true}))}} id="folder" className="border border-gray-200 rounded-lg w-35 min-h-30 active:border-[2px] active:border-blue-400 px-2 flex flex-col gap-2 items-center pt-2 pb-2 hover:cursor-pointer"><img src={foldericon} className='h-[80px]' alt="" />
-  <p className='break-all'>Naziv foldera naziv folderadsfgfhfgdsfdghnggefgdb</p></button>
+  {data.map((item, index)=>(
+    <button key={index} onClick={()=>{setActiveFolder(item), setModalState(prev => ({...prev, folderinfo: true}))}} id="folder" className="border border-gray-200 rounded-lg w-35 min-h-30 active:border-[2px] active:border-blue-400 px-2 flex flex-col gap-2 items-center pt-2 pb-2 hover:cursor-pointer"><img src={foldericon} className='h-[80px]' alt="" />
+  <p className='break-all'>{item?.folderName}</p></button>
+  ))}
 </div>
 
 
 <Dialog open={modalStatus.newtask} onOpenChange={(val)=>setModalState(prev => ({...prev, newtask: val}))}>
-  <DialogContent>
+ <form onSubmit={(e)=>{e.preventDefault()}} action="">
+   <DialogContent>
     <DialogHeader>
       Dodaj zadatak
     </DialogHeader>
@@ -111,7 +192,7 @@ const [data, setData] = useState<Payment[]>([])
         <Label>
           Naziv zadatka
         </Label>
-        <Input>
+        <Input value={newTaskForm?.title} onChange={(e)=>{setNewTaskForm(prev => ({...prev, title: e.target.value}))}} name='title' type='text' required>
         </Input>
       </Field>
 
@@ -120,7 +201,7 @@ const [data, setData] = useState<Payment[]>([])
         <Label>
           Programski jezik
         </Label>
-        <Select>
+        <Select value={newTaskForm?.language} onValueChange={(e)=>{setNewTaskForm(prev => ({...prev, language: e}))}} name='language' required>
       <SelectTrigger className="w-full">
         <SelectValue placeholder="" />
       </SelectTrigger>
@@ -135,20 +216,40 @@ const [data, setData] = useState<Payment[]>([])
       </Field>
 
 
-      <Field>
+        <Field>
         <Label>
-          Folder
+          Vrsta ispisa
         </Label>
-        <Select>
+        <Select value={newTaskForm?.outputType} onValueChange={(e)=>{setNewTaskForm(prev => ({...prev, outputType: e}))}} name='outputType' required>
       <SelectTrigger className="w-full">
         <SelectValue placeholder="" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <SelectLabel>Folders</SelectLabel>
-          <SelectItem value="apple1"><img src={foldericon} className='w-4'></img>Apple 1</SelectItem>
-          <SelectItem value="apple2"><img src={foldericon} className='w-4'></img>Apple 2</SelectItem>
-          <SelectItem value="apple3"><img src={foldericon} className='w-4'></img>Apple 3</SelectItem>
+          <SelectLabel>Dostupni jezici</SelectLabel>
+          <SelectItem value="standard">Standardni ispis</SelectItem>
+          <SelectItem value="matplotlib">Biblioteka matplotlib</SelectItem>
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+      </Field>
+
+
+      <Field>
+        <Label>
+          Folder
+        </Label>
+        <Select value={newTaskForm?.folder} onValueChange={(e)=>{console.log(e), setNewTaskForm(prev => ({...prev, folder: e}))}} name='folder' required >
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder="" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          <SelectLabel>Folderi</SelectLabel>
+{data.map((item, index)=>(
+            <SelectItem key={index} value={item.folderId}><img src={foldericon} className='w-4'></img>{item?.folderName}</SelectItem>
+
+))}
 
         </SelectGroup>
       </SelectContent>
@@ -157,10 +258,16 @@ const [data, setData] = useState<Payment[]>([])
     </FieldGroup>
  
     <DialogFooter>
-      <Button onClick={()=>{setModalState(prev => ({...prev, newtask: false}))}} variant={'outline'}>Odustani</Button>
-      <Button>Sacuvaj</Button>
+      <Button type='button' onClick={()=>{setModalState(prev => ({...prev, newtask: false})), setNewTaskForm({
+  title: "",
+  folder: "",
+  language: "python",
+  outputType: "standard"
+})}} variant={'outline'}>Odustani</Button>
+      <Button type='submit' onClick={()=>{initializeTask()}}>Sacuvaj</Button>
     </DialogFooter>
     </DialogContent>
+ </form>
 </Dialog>
 
 
@@ -172,12 +279,12 @@ const [data, setData] = useState<Payment[]>([])
     <Label>Imenujte folder</Label>
     <div className="flex flex-col items-center gap-2">
       <img src={foldericon} className='w-[75px]' alt="" />
-      <Input className='text-center'></Input>
+      <Input value={newFolderName} onChange={(e)=>{setNewFodlerName(e.target.value)}} className='text-center'></Input>
     </div>
 
     <DialogFooter>
-      <Button onClick={()=>{setModalState(prev => ({...prev, newfolder: false}))}} variant={'outline'}>Odustani</Button>
-      <Button>Sacuvaj</Button>
+      <Button type='button' onClick={()=>{setModalState(prev => ({...prev, newfolder: false}))}} variant={'outline'}>Odustani</Button>
+      <Button type='submit' onClick={()=>{createFodler()}}>Sacuvaj</Button>
     </DialogFooter>
   </DialogContent>
 </Dialog>
@@ -185,16 +292,20 @@ const [data, setData] = useState<Payment[]>([])
 
 <Dialog open={modalStatus.folderinfo} onOpenChange={(val)=>setModalState(prev => ({...prev, folderinfo: val}))} >
   <DialogContent showCloseButton={true}>
-<DialogHeader>Folder: foldername</DialogHeader>
+<DialogHeader><span>Folder: <strong>{activeFolder?.folderName}</strong></span></DialogHeader>
 
 
 <div className="flex items-center space-x-2">
-      <Switch id="airplane-mode" />
+      <Switch checked={!activeFolder?.visible} onCheckedChange={(val)=>{setActiveFolder(prev => ({...prev, visible: !val})), console.log(!val), setProposedFolderView(!val)}} id="airplane-mode" />
       <Label htmlFor="airplane-mode">Sakrij folder od učenika</Label>
     </div>
-<div className="p-2 border-b-1 active:border-2 active:border-blue-400 rounded-lg flex items-center gap-2 hover:cursor-pointer">
+<div className="flex flex-col gap-2">
+  {activeFolder?.zadaci.map((item, index)=>(
+  <div className="p-2 border-b-1 active:border-2 active:border-blue-400 rounded-lg flex items-center gap-2 hover:cursor-pointer">
   <img src={py_icon} className='size-6' alt="" />
-  <span className="flex-1 break-all">fdgihjyortejfdogbhoefjgornjfdogrbjdrdojfognbjnohtrgjew3pojfgebhgerfjg</span>
+  <span key={index} className="flex-1 break-all">{item.title}</span>
+</div>
+))}
 </div>
 
 
@@ -219,8 +330,15 @@ const [data, setData] = useState<Payment[]>([])
 </div>
 </>)}
     <DialogFooter>
-      <Button variant={'outline'}>Odustani</Button>
-      <Button>Nastavi</Button>
+      <Button onClick={()=>{
+    setActiveFolder(prev => ({
+      ...prev, 
+      visible: !proposedFolderView 
+    }));
+
+    setProposedFolderView(null);
+  }} variant={'outline'}>Odustani</Button>
+      <Button onClick={()=>{publishVisibility()}}>Nastavi</Button>
       </DialogFooter>
   </DialogContent>
 

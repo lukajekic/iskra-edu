@@ -15,6 +15,44 @@ export const getFolders = async (req, res) =>{
     }
 }
 
+export const getFoldersAndTasks = async(req, res)=>{
+    try {
+         let results = await Foldermodel.aggregate([
+            // 1. Filtriraj foldere za određenog nastavnika koji su otvoreni
+            {
+                $match: {
+                    teacherRef: new mongoose.Types.ObjectId(req.user._id)
+                }
+            },
+            // 2. Spoji sa kolekcijom "tasks" (pazi da je name u bazi tačan, npr. "tasks")
+            {
+                $lookup: {
+                    from: "tasks", // Ime kolekcije u bazi (obično množina)
+                    localField: "_id", // Polje u Folderu (po kojem tražiš taskove)
+                    foreignField: "folder", // Polje u Tasku koje drži naziv foldera
+                    as: "zadaci" // Kako će se zvati niz sa taskovima u rezultatu
+                }
+            },
+            // 3. Selektuj samo polja koja ti trebaju
+            {
+                $project: {
+                    folderName: "$title",
+                    folderId: "$_id",
+                    visible: "$open",
+                    "zadaci.title": 1,
+                    "zadaci.language": 1,
+                    "zadaci._id": 1,
+                    _id: 0 // Isključi originalni _id ako ti smeta dupla struktura
+                }
+            }
+        ])
+
+        return res.status(200).json(results)
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
+    }
+}
+
 export const createFolder = async (req, res)=>{
     try {
 

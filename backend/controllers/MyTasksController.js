@@ -42,8 +42,10 @@ export const CreateTask = async(req,res)=>{
 
         await newitem.save()
 
-        return res.status(200).json(BuildValidationReturn("ok", "success", "Create new Task successfully."))
-    } catch (error) {
+return res.status(200).json({
+    ...BuildValidationReturn("ok", "success", "Create new Task successfully."),
+    _id: newitem._id
+});    } catch (error) {
         return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
     }
 }

@@ -25,6 +25,7 @@ import { Input } from '../ui/input'
 import { HandleLogout } from '@/utils/logout'
 import axios from 'axios'
 import { toast } from 'sonner'
+import { useUserId } from '@/context/UserContext'
 
 type ModalStatus = {
   my_profile: boolean,
@@ -46,11 +47,29 @@ type Message = {
     read:        string[];
     date:        Date;
 }
+
+type Profile = {
+    _id:            string;
+    name:           string;
+    type:           string;
+    username:       string;
+    activegroup?:    Activegroup;
+    institution:    string;
+    __v:            number;
+    students_count?: number;
+}
+
+type Activegroup = {
+    expiry: Date;
+    code:   string;
+    _id:    string;
+}
 const TeacherNavbar = () => {
+  const {setUserID} = useUserId()
   const [documents, setDocuments] = useState<Document[]>([])
 const [messages, setMessages] = useState<Message[]>()
 const [activeMessage, setActiveMessage] = useState<Message>()
-
+const [myProfile, setMyProfile] = useState<Profile>()
 const sendReadStatus = async(messageid:string)=>{
   try {
     const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/me/messages/read`, {
@@ -98,6 +117,19 @@ setDocuments(response.data ?? [])
   }
 
 
+
+    const getProfile = async()=>{
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me?count=true`)
+      if (response.status === 200) {
+setMyProfile(response.data ?? {})
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+
   const getMessages = async()=>{
     try {
       const response = await axios.get<Message[]>(`${import.meta.env.VITE_BACKEND}/user/me/messages`)
@@ -120,8 +152,10 @@ if (response.data.length > 0) {
     }
   }
   useEffect(()=>{
+    getProfile()
 getDocuments()
 getMessages()
+
   }, [])
 
   const [modalStatus, setModalStatus] = useState<ModalStatus>({
@@ -144,6 +178,12 @@ if (messages && messages?.length  > 0 && modalStatus.messages === true) {
   
 }
   }, [modalStatus.messages])
+
+  useEffect(()=>{
+if (myProfile?._id) {
+  setUserID(myProfile._id)
+}
+  }, [myProfile])
   return (
     <>
       <div className="h-[62px]" />
@@ -161,7 +201,7 @@ if (messages && messages?.length  > 0 && modalStatus.messages === true) {
               <Building className='size-5 mr-2' />
               Obrazovna institucija:
             </span>
-            <span>Gimazija „Svetozar Markovic“ Novi Sad</span>
+            <span>{myProfile?.institution}</span>
           </div>
         </div>
 
@@ -174,7 +214,7 @@ if (messages && messages?.length  > 0 && modalStatus.messages === true) {
             >
               <span className="font-bold">Profesor</span>
               <span className='text-lg font-light'>
-                Jovan Jovanovic
+                {myProfile?.name}
               </span>
             </Button>
           </DropdownMenuTrigger>
@@ -316,18 +356,18 @@ if (messages && messages?.length  > 0 && modalStatus.messages === true) {
           <div className="w-full flex items-center gap-3">
             <img src={usericon} className='w-[100px] rounded-[50%] shadow-sm' alt="" />
             <div id="profileinfo">
-              <p className="text-xl font-bold">Ime i prezime</p>
-              <p className="text-gray-700">@lukajekic</p>
+              <p className="text-xl font-bold">{myProfile?.name}</p>
+              <p className="text-gray-700">@{myProfile?.username}</p>
               <br></br>
-              <p className="text-gray-700 inline-flex items-center gap-2"><Building></Building>Gimazija „Svetozar Markovic“ Novi Sad</p>
+              <p className="text-gray-700 inline-flex items-center gap-2"><Building></Building>{myProfile?.institution}</p>
               <br></br>
-              <p className="text-gray-700 inline-flex items-center gap-2"><Users></Users><strong>Ukupno ucenika:</strong>309</p>
+              <p className="text-gray-700 inline-flex items-center gap-2"><Users></Users><strong>Ukupno ucenika:</strong>{myProfile?.students_count || 0}</p>
 
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant={'outline'}><Pencil></Pencil>Izmeni profil</Button>
+            <Button className='hidden' variant={'outline'}><Pencil></Pencil>Izmeni profil</Button>
             <Button onClick={()=>{setModalStatus(prev=>({...prev, my_profile: false}))}}>Zatvori</Button>
           </DialogFooter>
 

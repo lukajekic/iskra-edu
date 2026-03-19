@@ -3,6 +3,7 @@ import { Foldermodel } from "../models/FolderModel.js"
 import { BuildValidationReturn } from "../utilities/ReturnValidationError.js"
 import { TaskModel } from "../models/TaskModel.js"
 import { UserModel } from "../models/UserModel.js"
+import crypto from "crypto";
 
 const allowed_users = ['student_temp', 'student_permanent']
 
@@ -146,6 +147,9 @@ export const sendSolution = async(req,res)=>{
         return res.status(400).json(BuildValidationReturn("validation failed.", "error", "Please send all required data."))
     }
 
+                        const io = req.app.get('socketio')
+
+
     let student = await UserModel.findById(req.user._id)
     if (!allowed_users.includes(student.type)) {
             return res.status(400).json(BuildValidationReturn("lacking role.", "error", "You are not authorized to access this data."))
@@ -154,7 +158,6 @@ export const sendSolution = async(req,res)=>{
         let studentid = student._id
         let task = await TaskModel.findById(taskID)
 
-            const io = req.app.get('socketio')
 
         if (!task) {
             return res.status(400).json(BuildValidationReturn("not found. (task)", "error", "Task not found."))
@@ -193,6 +196,8 @@ let new_id = crypto.randomUUID()
                 task: taskID,
                 status: "grading"
             })
+
+
             if (task.language === "python") {
                 let stderr = ""
                 if (task.outputType === "standard") {
@@ -264,6 +269,8 @@ student.solutions.push({
                 code: code,
                 taskID: taskID
             })
+
+            sendRealtimeProgressUpdate(io, student.teacherRef, student._id)
 
             await student.save()
             io.to(studentid.toString()).emit("solution_status_update", {
@@ -351,6 +358,8 @@ student.solutions.push({
                 taskID: taskID
             })
 
+            sendRealtimeProgressUpdate(io, student.teacherRef, student._id)
+
             await student.save()
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
@@ -365,4 +374,24 @@ student.solutions.push({
         }
 
 
+}
+
+
+function sendRealtimeProgressUpdate(io, teacherID, studentID){
+    try {
+        if (!teacherID || !studentID) {
+            console.log("funkciji za progress update fali nesto od parametara.")
+            return
+        }
+
+
+        io.to(teacherID.toString()).emit("increment_progress",{
+            studentid: studentID.toString()
+        })
+
+        return
+    } catch (error) {
+        console.log(error)
+        return 
+    }
 }

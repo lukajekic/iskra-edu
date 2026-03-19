@@ -79,6 +79,15 @@ export const createAccount = async (req, res) => {
         let toSave = new UserModel(toInsert)
         await toSave.save()
 
+        const io = req.app.get('socketio')
+        console.log("salje se profesoru:", teacher?._id.toString())
+        io.to(teacher?._id.toString()).emit("join_student", {
+            studentid: toSave._id,
+            name: toSave.name,
+            createdAt: toSave.createdAt,
+            correct: 0
+        })
+
         res.cookie("token", generatejwt(toSave._id, jwtexpiry), {
             maxAge: finalMaxAge, //dinamicno
             secure: true,
@@ -154,6 +163,10 @@ function generatejwt(userid, expiresin) {
 
 export const MyProfile = async (req, res) => {
     const useriD = req.user._id
+    const count_studenbts = req.query.count === "true"
+    console.log(count_studenbts)
+
+    
     if (!useriD) {
         return res.status(400).json(BuildValidationReturn("no user id in req.user", "error", "Our server cannot recognize your User ID"))
     }
@@ -161,6 +174,11 @@ export const MyProfile = async (req, res) => {
     let user = await UserModel.findById(useriD).select('-password').populate('teacherRef', 'name institution').lean()
     if (!user) {
         return res.status(400).json(BuildValidationReturn("no user in db, queried by req.user._id", "error", "We couldn't locate your Account on our end."))
+    }
+
+    if (count_studenbts && user.type === 'teacher') {
+        let count = await UserModel.countDocuments({type: "student_permanent", teacherRef: new mongoose.Types.ObjectId(user._id)})
+        user.students_count = count
     }
 
     if (user.type === 'student_temp' || user.type === 'student_permanent') {
@@ -347,7 +365,7 @@ export const WorkhourTimer = async(req,res)=>{
             return res.status(200).json(new Date(user.activegroup.expiry))
         }
 
-        return res.status(404).json(BuildValidationReturn("no timer", "warning", "You have no active workhour groups."))
+            return res.status(200).json(new Date("1970-01-01T00:00:00Z"))
     } catch (error) {
         return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
     }
@@ -401,7 +419,8 @@ export const WorkhourPorgress = async(req,res) =>{
             let studentprogress = {
                 name: curr.name,
                 studentid: curr._id,
-                correct: correctansers.length || 0
+                correct: correctansers.length || 0,
+                createdAt: curr.createdAt
             }
             acc.push(studentprogress)
             return acc

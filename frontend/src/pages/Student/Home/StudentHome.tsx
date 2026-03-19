@@ -74,7 +74,7 @@ const handleSolutionSend = async()=>{
       }  else {
         setTimeout(() => {
           setDisableSend(false)
-        }, 10000);
+        }, 15000);
       }
 
       if (socket_data?.status === 'accepted') {
@@ -83,7 +83,7 @@ const handleSolutionSend = async()=>{
       }
 
       if (socket_data?.status === 'server') {
-        getSolution();
+        getSolution(true);
       }
       }
     }
@@ -134,33 +134,42 @@ const getTask = async()=>{
 }
 
 
-const getSolution = async()=>{
+const getSolution = async (shouldWait = false) => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND}/app/student/solution/${searchParams.get('task')}`)
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND}/app/student/solution/${searchParams.get('task')}`);
+    
     if (response.data) {
-      setSolution(response.data)
-      setGradeStatus(response.data.status)
-      setCode(response?.data?.code)
+      const status = response.data.status;
+      setSolution(response.data);
+      setGradeStatus(status);
+      setCode(response.data.code);
 
-      if (response.data.status === 'accepted') {
-        setDisableSend(true)
-      } else {
-        setDisableSend(false)
+      if (status === 'accepted' || status === 'grading') {
+        setDisableSend(true);
+      } 
+      else if (status === 'revise') {
+        if (shouldWait) {
+          setDisableSend(true); 
+          setTimeout(() => {
+            setDisableSend(false);
+          }, 15000);
+        } else {
+          setDisableSend(false);
+        }
+      } 
+      else {
+        setDisableSend(false);
       }
     } else {
-      setSolution({
-        status: "none",
-        code: ""
-      })
-
-      setGradeStatus("none")
+      setSolution({ status: "none", code: "" });
+      setGradeStatus("none");
+      setDisableSend(false);
       setCode("")
-      setDisableSend(false)
     }
   } catch (error) {
-    console.error(error)
+    console.error(error);
   }
-}
+};
 
     useEffect(()=>{
       console.log(`Promena task parametra (main): ${searchParams.get('task')}`)

@@ -13,7 +13,7 @@ export const getStudents = async(req, res)=>{
         if (req.user.type !== "teacher") {
             return res.status(400).json(BuildValidationReturn("lacking role.", "error", "You are not authorized to access Students."))
         }
-        let students = await UserModel.find({teacherRef: req.user._id,  type: "student_permanent"}).select("-password -solutions -teacherRef").lean()
+        let students = await UserModel.find({teacherRef: req.user._id,  type: "student_permanent"}).select("-password -solutions -teacherRef -type").lean()
 
         return res.status(200).json(students)
     } catch (error) {

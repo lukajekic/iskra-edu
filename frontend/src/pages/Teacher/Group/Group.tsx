@@ -1,7 +1,7 @@
 import PageTitle from '@/components/custom/PageTitle'
 import { Button } from '@/components/ui/button'
-import { Fullscreen, Info, PlusSquare, Users } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import { Fullscreen, Info, PlusSquare, Users, X } from 'lucide-react'
+import React, { use, useEffect, useState } from 'react'
 import Footer from '@/components/custom/Footer'
 import { DataTable } from '@/components/custom/data-table'
 import { Drawer, DrawerContent, DrawerFooter, DrawerHeader } from '@/components/ui/drawer'
@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
+import moment from 'moment-timezone'
 import {
   Table,
   TableBody,
@@ -21,59 +22,128 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-const Group =   () => {
-const [groupActive, setGroupActive] = useState(true)
-const [codeFullScreen, setCodeFullScreen] = useState(false)
-const invoices = [
-  {
-    invoice: "INV001",
-    paymentStatus: "Paid",
-    totalAmount: "$250.00",
-    paymentMethod: "Credit Card",
-  },
-  {
-    invoice: "INV002",
-    paymentStatus: "Pending",
-    totalAmount: "$150.00",
-    paymentMethod: "PayPal",
-  },
-  {
-    invoice: "INV003",
-    paymentStatus: "Unpaid",
-    totalAmount: "$350.00",
-    paymentMethod: "Bank Transfer",
-  },
-  {
-    invoice: "INV004",
-    paymentStatus: "Paid",
-    totalAmount: "$450.00",
-    paymentMethod: "Credit Card",
-  },
-  {
-    invoice: "INV005",
-    paymentStatus: "Paid",
-    totalAmount: "$550.00",
-    paymentMethod: "PayPal",
-  },
-  {
-    invoice: "INV006",
-    paymentStatus: "Pending",
-    totalAmount: "$200.00",
-    paymentMethod: "Bank Transfer",
-  },
-  {
-    invoice: "INV007",
-    paymentStatus: "Unpaid",
-    totalAmount: "$300.00",
-    paymentMethod: "Credit Card",
-  },
-]
+import axios from 'axios'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { io } from 'socket.io-client'
+import { useUserId } from '@/context/UserContext'
+import { Badge } from '@/components/ui/badge'
 
-useEffect(()=>{
-  fetch('https://jsonplaceholder.typicode.com/todos/1')
-      .then(response => response.json())
-      .then(json => console.log(json))
-}, [])
+type ProgressPerStudent = {
+    name:      string;
+    studentid: string;
+    correct:   number;
+    createdAt: Date;
+}
+
+
+
+const Group =   () => {
+const [groupActive, setGroupActive] = useState(false)
+const [codeFullScreen, setCodeFullScreen] = useState(false)
+const [workhourData, setWorhourData] = useState()
+const [openEndModal, setopenendmodal] = useState(false)
+const [progress, setProgress] = useState([])
+const { userID } = useUserId()
+const [workhourProgress, setWorkhourProgress] = useState<ProgressPerStudent[]>([])
+
+
+const endclass = async()=>{
+  try {
+    const response = await axios.delete(`${import.meta.env.VITE_BACKEND}/user/me/workhour/end`)
+    if (response.status === 200) {
+      location.reload()
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+
+const fetchWorhourData = async()=>{
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/workhour`)
+    if (response.status === 200 && response.data) {
+      setWorhourData(response.data)
+      const diff = new Date(response.data.expiry).getTime() - new Date().getTime()
+
+      if (diff > 0) {
+        setGroupActive(true)
+      } else {
+        setGroupActive(false)
+      }
+    } else {
+      setGroupActive(false)
+    }
+  } catch (error) {
+    console.error(error)
+    setGroupActive(false)
+  }
+}
+
+
+const fetchWorhourProgress = async()=>{
+  try {
+    const response = await axios.get<ProgressPerStudent[]>(`${import.meta.env.VITE_BACKEND}/user/me/workhour/progress`)
+    if (response.status === 200 && response.data) {
+      setWorkhourProgress(response.data)
+    }
+  } catch (error) {
+    console.error(error)
+    setWorkhourProgress([])
+  }
+}
+
+
+
+
+const createNewGroup = async()=>{
+  try {
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/me/workhour/create`)
+    if (response.status === 200) {
+      location.reload()
+    }
+  } catch (error) {
+    
+  }
+}
+
+useEffect(() => {
+  fetchWorhourData();
+  fetchWorhourProgress()
+  console.log("globalni id:", userID)
+
+  if (userID) {
+    let socket = io(import.meta.env.VITE_BACKEND)
+
+    socket.emit("join_room", userID);
+
+    const handleJoinStudent = (newStudent) => {
+      console.log("NOVI UCENIK STIGAO:", newStudent);
+      setWorkhourProgress((prev) => [...prev, newStudent]);
+
+      //dodati ga u tabelu
+    }
+
+
+    const handleProgressUpdate = (updateData) => {
+      console.log("NOVI INCREMENT STIGAO:", updateData);
+
+      //INCRMENETUJ SCORE
+
+      setWorkhourProgress(prev =>
+        prev.map(item => item.studentid === updateData.studentid ? {...item, correct: item.correct + 1} : item)
+      )
+    }
+
+    socket.on('join_student', handleJoinStudent)
+    socket.on('increment_progress', handleProgressUpdate)
+
+    return () => {
+      socket.off('join_student', handleJoinStudent);
+      socket.off('increment_progress', handleProgressUpdate)
+    };
+  }
+}, [userID]);
   return (
     <>
     <PageTitle title='Nastavna grupa' subtitle='Započnite nastavno predavanje ili pratite napredak aktivnog.'></PageTitle>
@@ -95,17 +165,20 @@ useEffect(()=>{
         </div>
    
     {!groupActive ? (
-      <Button><Users></Users>Nova grupa</Button>
+      <Button onClick={()=>{createNewGroup()}}><Users></Users>Nova grupa</Button>
     ) : (
       <>
       <div>
         <span className="font-bold text-2xl">Kod za pristup</span>
         <div className="border-1  text-orange-700 w-fit rounded-2xl mt-2 flex ">
-          <span className="p-5 text-5xl font-bold">AG23-3HSE</span>
+          <span className="p-5 text-5xl font-bold">{workhourData?.code?.slice(0, 4)}<span className='select-none'>-</span>{workhourData?.code?.slice(4)}</span>
           <Button onClick={()=>{setCodeFullScreen(true)}} variant={'outline'} className='h-auto text-gray-500 border-1 border-transparent border-l-1 border-l-[var(--border)] rounded-r-2xl rounded-l-none'><Fullscreen className='size-6'></Fullscreen></Button>
         </div>
       </div>
-      <Separator className='my-5'></Separator>
+      <div className="w-full flex justify-end">
+        <Button onClick={()=>{setopenendmodal(true)}} variant={'destructive'}><X></X>Završi čas (pre roka)</Button>
+      </div>
+      <Separator className='mb-5 mt-2'></Separator>
       <div>
         <span className="font-bold text-2xl">Napredak grupe</span>
         <div className="p-5 border-1 text-5xl font-bold   rounded-2xl mt-2">
@@ -114,16 +187,20 @@ useEffect(()=>{
       <TableHeader>
         <TableRow>
           <TableHead>Ime i prezime</TableHead>
-          <TableHead>Period aktivnosti u grupi</TableHead>
+          <TableHead>Vreme prijave</TableHead>
           <TableHead className="text-right">Napredak (urađeni zadaci)</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {invoices.map((invoice) => (
-          <TableRow key={invoice.invoice}>
-            <TableCell>{invoice.paymentStatus}</TableCell>
-            <TableCell>{invoice.paymentMethod}</TableCell>
-            <TableCell className="text-right">{invoice.totalAmount}</TableCell>
+        {workhourProgress.sort((a,b)=>b.correct - a.correct).map((item, index) => (
+          <TableRow key={item.studentid}>
+            <TableCell>{item.name}</TableCell>
+            <TableCell>{moment.utc(item.createdAt).local().format("HH:mm")}</TableCell>
+            <TableCell className="text-right">
+              <Badge className='bg-green-600 text-lg h-[32px]'>
+                {item.correct.toString()}
+              </Badge>
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -206,10 +283,28 @@ useEffect(()=>{
       <DialogContent className='min-w-fit'>
           <div className='w-fit'>
         <span className="font-bold text-2xl">Kod za pristup</span>
-        <div className="p-5 border-1 text-7xl font-bold text-orange-700 w-fit rounded-2xl mt-2">AG23-3HSE</div>
+        <div className="p-5 border-1 text-7xl font-bold text-orange-700 w-fit rounded-2xl mt-2">{workhourData?.code?.slice(0, 4)}<span className='select-none'>-</span>{workhourData?.code?.slice(4)}</div>
       </div>
       </DialogContent>
     </Dialog>
+
+
+      <AlertDialog open={openEndModal} onOpenChange={(e)=>{setopenendmodal(e)}}>
+    
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Da li ste sigurni?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Ukoliko sada završite čas, nećete imati dalji uvid napretka ičenika dok ne počnete sledeći čas.
+            Vaši učenici biće momentalno odjavljeni.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={()=>[setopenendmodal(false)]}>Odustani</AlertDialogCancel>
+          <AlertDialogAction onClick={()=>{endclass()}}>Potvrdi</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </>
   )
 }

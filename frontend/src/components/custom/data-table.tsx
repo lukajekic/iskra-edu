@@ -104,7 +104,7 @@ const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+                Nema rezultata.
               </TableCell>
             </TableRow>
           )}

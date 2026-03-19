@@ -6,7 +6,7 @@ import { Field, FieldGroup } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AlertTriangleIcon, Ban, CircleQuestionMark, Download, File, PlusSquare, SquarePlus } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -17,10 +17,28 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+
+
+
 import Footer from '@/components/custom/Footer'
 const Editor = () => {
+    const playAnimation = () => {
+    if (checkmark.current) {
+        checkmark.current.seek(0)
+        checkmark.current.play()
+    }
+    
+    setOpenModalAnimation(true);
+    
+    setTimeout(() => {
+        setOpenModalAnimation(false);
+    }, 2000);
+}
+    const checkmark = useRef(null)
     const [editingAllowed, setEditingAllowed] = useState<"true" | "store-origin">("true")
     const [selfPublished, setSelfPublished] = useState(true)
+    const [func_openModalAnimation, setOpenModalAnimation ] = useState(false)
 
     const [descriptionValue, setDescriptionValue] = useState("")
 
@@ -210,7 +228,7 @@ const Editor = () => {
                         })}
                        </div>
 <div className="flex w-full items-center justify-end mt-5 gap-3">
-    <Button variant={'outline'}>Odustani</Button>
+    <Button variant={'outline'} onClick={()=>{playAnimation()}}>Odustani</Button>
                         <Button onClick={()=>{setOpenSaveModal(true)}}>Sačuvaj izmene</Button>
 </div>
                     </form>
@@ -253,6 +271,19 @@ const Editor = () => {
                 </div>
             </div>
         </DialogFooter>
+    </DialogContent>
+</Dialog>
+
+<Dialog open={func_openModalAnimation}>
+    <DialogContent showCloseButton={false} className=' min-h-fit min-w-fit p-4'>
+        <DotLottieReact
+      src="https://lottie.host/a32aec36-5cb0-4a61-94a2-7557bb000486/oNxnTYRLYq.lottie"
+      loop
+      autoplay
+      dotLottieRefCallback={(dotLottie) => {
+    checkmark.current = dotLottie;
+  }}
+    />
     </DialogContent>
 </Dialog>
 </>

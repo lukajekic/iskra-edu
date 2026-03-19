@@ -17,6 +17,8 @@ import StudentDashboardWrapper from './pages/Teacher/StudentDashboardWrapper';
 import Editor from './pages/Teacher/Editor/Editor';
 import Maintenance from './pages/Maintenance';
 import MaintenanceGuard from './components/logic/MaintenanceGuard';
+import { UserProvider } from './context/UserContext';
+import AboutUsModular from './pages/About';
 export function App() {
 
   const router = createBrowserRouter([
@@ -30,6 +32,10 @@ element: <NotFound></NotFound>
     {
       path: "/",
       element: <Navigate to={"/auth/onboarding"} replace></Navigate>
+    },
+    {
+      path: "/about",
+      element: <AboutUsModular></AboutUsModular>
     },
     {
       path: "/maintenance",
@@ -114,9 +120,11 @@ return (
  <>
  <TooltipProvider>
   <Toaster position='top-center'></Toaster>
- <RouterProvider router={router}>
+<UserProvider>
+   <RouterProvider router={router}>
   
  </RouterProvider>
+</UserProvider>
  </TooltipProvider>
  </>
 )
