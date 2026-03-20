@@ -15,24 +15,34 @@ export type Payment = {
 
 export const columns: ColumnDef<Payment>[] = [
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: "name",
+    header: "Ime i prezime",
   },
   {
-    accessorKey: "done",
+    accessorKey: "progress",
     cell({row}) {
         
-       const items = row.getValue("done") as number []
+       const progress = row.getValue("progress") as  {
+        none: number;
+        revise: number;
+        accepted: number;
+      }
+
+      const stats = [
+        { value: progress.accepted, color: "bg-green-600" },
+        { value: progress.revise, color: "bg-red-600" },
+        { value: progress.none, color: "bg-gray-400" },
+      ];
        return (
        <div className="flex gap-1 flex-wrap justify-end">
-  {items.map((item, index) => (
-    <Badge 
-      className={`p-4 ${index === 0 ? "bg-green-600" : index === 1 ? "bg-red-600" : "bg-gray-400"}`} 
-      key={index}
-    >
-      {item}
-    </Badge>
-  ))}
+  {stats.map((stat, index) => (
+            <Badge 
+              key={index} 
+              className={`text-md px-3 py-3 text-white ${stat.color} hover:${stat.color}/80`}
+            >
+              {stat.value}
+            </Badge>
+          ))}
 </div>
       )
     },
@@ -44,7 +54,7 @@ export const columns: ColumnDef<Payment>[] = [
           className="self-end"
 /*           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
  */        >
-          Progress
+          Napredak
 {/*           <ArrowUpDown className="ml-2 h-4 w-4" />
  */}        </Button>
         </div>

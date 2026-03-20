@@ -11,32 +11,35 @@ import { Field, FieldGroup } from '@/components/ui/field'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-async function getData(): Promise<Payment[]> {
-  // Fetch data from your API here.
-  return [
-    {
-      id: "728ed52f",
-       status: "pending",
-     done: [10, 4, 70],
-    },
+import axios from 'axios'
 
-    {
-      id: "sadefr",
-      status: "success",
-     done: [55, 2, 27],
-    },
-    // ...
-  ]
+type ProgressType = {
+  name: string,
+  progress: {
+    accepted: number,
+    revise: number,
+    none: number
+  }
 }
-const Progress =   () => {
-const [data, setData] = useState<Payment[]>([])
-  useEffect(() => {
-    const loadData = async () => {
-      const result = await getData()
-      setData(result)
-    }
 
-    loadData()
+const Progress =   () => {
+const [data, setData] = useState<ProgressType[]>([])
+
+const fetchProgress = async()=>{
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND}/my/students/progress`)
+    if (response.status === 200) {
+setData(response.data)
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+
+
+  useEffect(() => {
+    fetchProgress()
   }, [])
 
   return (
@@ -56,7 +59,7 @@ const [data, setData] = useState<Payment[]>([])
     <img src="/undraw_progress-overview_wl8n.svg" className='  h-[150px] hidden lg:block ' alt="" />
     </div>
     <div className="h-2"></div>
-<DataTable  filter={{key: "email", input_label: "Pretraga..."}} data={data} columns={columns}></DataTable>
+<DataTable  filter={{key: "name", input_label: "Pretraga..."}} data={data} columns={columns}></DataTable>
 
 
 

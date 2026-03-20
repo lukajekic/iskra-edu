@@ -83,10 +83,12 @@ Poslednja izmena: 19. mart 2026.
 
 function Privacy() {
   return (
-    <div className='markdown-container' style={{ maxWidth: '800px', margin: '0 auto', padding: '40px',  lineHeight: '1.6' }}>
+    <div className="md-wrapper">
+      <div className='markdown-container' >
       <ReactMarkdown >
         {termsContent}
       </ReactMarkdown>
+    </div>
     </div>
   );
 }
