@@ -9,6 +9,8 @@ Korišćenjem platforme Iskra, korisnik (učenik ili profesor) u potpunosti prih
 
 ## 2. Opis usluge
 Iskra je edukativna platforma namenjena automatizaciji testiranja koda i upravljanju nastavnim procesom. Autor zadržava pravo da u bilo kom trenutku izmeni, suspenduje ili prekine rad bilo kog dela platforme bez prethodne najave.
+### 2.1. Primena usluge
+Iskra je namenjena postavljanju zadataka i provere rešenja u lične svrhe, servis nije namenjen za primene u zvaničnim obrazovnim institucijama i u komercijalne svrhe.
 
 ## 3. Pravila ponašanja i zloupotreba
 Korisnicima je strogo zabranjeno:
@@ -40,7 +42,7 @@ Autor zadržava pravo da izmeni ove uslove u bilo kom trenutku. Nastavak koriš�
 
 **Hvala Vam što koristite Iskra edukativni sistem.**
 
-Poslednja izmena: 19. mart 2026.
+Poslednja izmena: 24. mart 2026.
 `;
 
 function Terms() {

@@ -158,6 +158,8 @@ border-radius: 10px;
 }
 .markdown-container h1 { border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; font-size: 2em; }
 .markdown-container h2 { border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; font-size: 1.5em; margin-top: 24px; }
+.markdown-container h3 { border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; font-size: 1.35em; margin-top: 24px; margin-left: 10px; }
+
 .markdown-container ul { padding-left: 2em; list-style-type: disc; list-style-position: outside; }
 .markdown-container ul ul {
   padding-left: 2em;
