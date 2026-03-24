@@ -182,13 +182,14 @@ const getSolution = async (shouldWait = false) => {
    <>
    {taskID && (
     <div className="w-full max-w-full min-w-full flex items-start gap-0">
-    <div id="student-task-details" className='p-4 basis-1/2'>
-      <p className="text-4xl font-bold">{task?.title}</p>
-    <div
-  className="iskra-rich-text  max-w-full mt-3"
-  dangerouslySetInnerHTML={{ __html: task?.richText ?? ""}}
-/>
-    </div>
+   <div id="student-task-details" className='p-4 basis-1/2 max-w-1/2 min-w-0 overflow-hidden'> 
+  {/* Dodat overflow-hidden ovde ^ */}
+  <p className="text-4xl font-bold break-words">{task?.title}</p>
+  <div
+    className="iskra-rich-text max-w-full mt-3 break-words"
+    dangerouslySetInnerHTML={{ __html: task?.richText ?? ""}}
+  />
+</div>
     <div id="student-solution-editor" className='p-4 basis-1/2'>
 <div className=" w-full overflow-hidden rounded-lg flex flex-col">
   <div id="solution-actions" className='w-full border-1 rounded-lg h-fit p-2 flex justify-between'>
