@@ -237,6 +237,20 @@ Retrieved 2026-03-05, License - CC BY-SA 4.0
     @apply text-blue-600 underline hover:text-blue-800;
 }
 
+.iskra-rich-text * {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal !important; /* Ovo je agresivno, ali rešava problem */
+}
+
+/* Ako želiš da kod ipak izgleda lepo, ali da ne kvari layout: */
+.iskra-rich-text pre {
+  white-space: pre-wrap !important;
+  overflow-x: auto;
+}
+
 
 .draft-box {
   border: 2px dashed #cecece;
