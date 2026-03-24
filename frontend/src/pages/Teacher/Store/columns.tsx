@@ -1,46 +1,56 @@
-"use client"
 
 import { Button } from "@/components/ui/button"
-import { type ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
 import { toast } from "sonner"
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-export type Payment = {
-  id: string
-  amount: number
-  status: "pending" | "processing" | "success" | "failed"
-  email: string
+import { type ColumnDef } from "@tanstack/react-table"
+export type Task = {
+
+_id:        string;
+    title:      string;
+    richText:   string;
+    language:   string;
+    outputType: string;
+    author?:     Author;
+    grade:      string;
+    __v:        number;
+    tests: []
 }
 
-export const columns: ColumnDef<Payment>[] = [
+export type Author = {
+    _id:         string;
+    name:        string;
+    institution: string;
+}
+
+export const getColumns = ({onPreview}):ColumnDef<Task>[]=>[
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: "title",
+    header: "Naziv zadatka",
   },
   {
-    accessorKey: "email",
-    cell({row}) {
-        
-        return (
-            <span onClick={()=>{toast.success(row.getValue("email"))}} className="cell-link">{row.getValue("email")}</span>
-        )
-    },
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Email
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
+    accessorKey: "language",
+    header: "Programski jezik"
   },
   {
-    accessorKey: "amount",
-    header: "Amount",
+    accessorKey: "outputType",
+    header: "Vrsta izlaza",
 
   },
+
+  {
+    accessorKey: "options",
+    header: ()=>(
+      <div className="text-right">Opcije</div>
+    ),
+    cell({row}) {
+      return (
+        <div className="flex justify-end">
+                  <Button onClick={()=>{onPreview(row.original)}}>Prikazi zadatak</Button>
+
+        </div>
+      )
+    },
+  }
+
+  
 ]

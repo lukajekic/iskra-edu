@@ -20,8 +20,9 @@ export const getTasks = async(req, res)=>{
             grade,
             language,
             author: {$ne: req.user._id},
-            folder: "000000000000000000000000"
-        }).lean() //samo za preuzimanje podataka
+            folder: "000000000000000000000000",
+            downloaded: {$nin: req.user._id}
+        }).select('-ownerRef  -folder').populate("author", 'name institution').lean() //samo za preuzimanje podataka
 
         return res.status(200).json(tasks)
         
@@ -34,7 +35,7 @@ export const getTasks = async(req, res)=>{
 
 export const publishTask = async(req, res)=>{
     try {
-        const {taskID, grade} = req.body || {}
+        const {taskID, grade, anon} = req.body || {}
 
         if (!taskID) {
             return res.status(400).json(BuildValidationReturn("no task id", "error", "Please provide Task ID."))
@@ -67,9 +68,13 @@ export const publishTask = async(req, res)=>{
         newTask.ownerRef = null
         delete newTask._id
         delete newTask.__v
+        if (anon) {
+            delete newTask.author
+        }
 
         const toPublish = new TaskModel(newTask)
         toPublish.folder = new mongoose.Types.ObjectId("000000000000000000000000")
+        toPublish.downloaded = []
         toPublish.grade = grade
         task.published = true
         task.storeOriginID = toPublish._id
@@ -102,7 +107,9 @@ export const downloadTask = async(req,res)=>{
 
         delete toDownload.__v
         delete toDownload._id
-
+        if (!toDownload.author) {
+            toDownload.author = new mongoose.Types.ObjectId("000000000000000000000000")
+        }
         toDownload.ownerRef = req.user._id
         toDownload.storeOriginID = storeTask._id
         toDownload.folder = new mongoose.Types.ObjectId(folderID)
@@ -110,6 +117,11 @@ export const downloadTask = async(req,res)=>{
 
         let toSave = new TaskModel(toDownload)
         await toSave.save()
+
+        await TaskModel.updateOne(
+    { _id: taskID },
+    { $addToSet: { downloaded: req.user._id } }
+)
 
         return res.status(200).json(BuildValidationReturn("ok", "success", "Downloaded Task successfully."))
     } catch (error) {

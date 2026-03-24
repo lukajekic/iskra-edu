@@ -126,3 +126,36 @@ export const EditTask = async(req, res)=>{
         return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
     }
 }
+
+
+export const MySingleTask = async(req, res)=>{
+    try {
+        if (req.user.type !== 'teacher') {
+            return res.status(400).json(BuildValidationReturn("lacking role.", "error", "You cannot access this resource."))
+        }
+
+        let {taskID} = req.body || {}
+        if (!taskID) {
+            return res.status(400).json(BuildValidationReturn("lacking task id.", "error", "Please provide Task ID."))
+        }
+
+        let task = await TaskModel.findOne({_id: taskID, ownerRef: req.user._id}).populate('folder')
+        if (!task) {
+            return res.status(404).json(BuildValidationReturn("not found.", "error", "Task not found."))
+        }
+
+        let toreturn = {
+            taskData: task,
+            editable: false,
+            published: task.published || false
+        }
+
+        if (task.ownerRef.equals(task.author)) {
+            toreturn.editable = true
+        }
+
+        return res.status(200).json(toreturn)
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
+    }
+}

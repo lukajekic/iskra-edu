@@ -48,6 +48,12 @@ const schema = new mongoose.Schema({
     grade: {
         type: String,
         required: false
+    },
+
+
+    downloaded: {
+        type: Array,
+        required: false
     }
 })
 

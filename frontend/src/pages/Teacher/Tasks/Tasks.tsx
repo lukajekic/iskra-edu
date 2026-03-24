@@ -143,6 +143,15 @@ const getFolders = async ()=>{
     getFolders()
   }, [])
 
+
+  const openEditor = (taskID:string) =>{
+    if(!taskID) {
+      return
+    }
+
+    navigate(`/app/teacher/editor/${taskID}`)
+  }
+
   return (
     <>
     <PageTitle title='Zadaci' subtitle='Pratite sve Vaše foldere i zadatke koje ste organizovali u njih.'></PageTitle>
@@ -301,7 +310,7 @@ const getFolders = async ()=>{
     </div>
 <div className="flex flex-col gap-2">
   {activeFolder?.zadaci.map((item, index)=>(
-  <div className="p-2 border-b-1 active:border-2 active:border-blue-400 rounded-lg flex items-center gap-2 hover:cursor-pointer">
+  <div onClick={()=>{openEditor(item._id)}} className="p-2 border-b-1 active:border-2 active:border-blue-400 rounded-lg flex items-center gap-2 hover:cursor-pointer">
   <img src={py_icon} className='size-6' alt="" />
   <span key={index} className="flex-1 break-all">{item.title}</span>
 </div>

@@ -5,9 +5,9 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from '
 import { Field, FieldGroup } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertTriangleIcon, Ban, CircleQuestionMark, Download, File, PlusSquare, SquarePlus } from 'lucide-react'
-import React, { useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { AlertTriangleIcon, Ban, CircleQuestionMark, Download, File, Import, PlusSquare, SquarePlus, Upload } from 'lucide-react'
+import React, { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import './react-quill-override.css'
@@ -20,9 +20,72 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 
+export type TaskData = {
+    taskData:  TaskDataClass;
+    editable:  boolean;
+    published: boolean;
+}
 
+export type TaskDataClass = {
+    downloaded:    any[];
+    _id:           string;
+    language:      string;
+    outputType:    string;
+    tests:         Test[];
+    folder:        Folder;
+    title:         string;
+    ownerRef:      string;
+    richText:      string;
+    author:        string;
+    published:     boolean;
+    storeOriginID: string;
+}
+
+export type Folder = {
+    _id:        string;
+    title:      string;
+    teacherRef: string;
+    open:       boolean;
+    __v:        number;
+}
+
+export type Test = {
+    _id:    string;
+    input:  any[];
+    output: string[];
+}
 import Footer from '@/components/custom/Footer'
+import axios from 'axios'
+import { Grades, SupportedLanguages } from '@/assets/constants'
+import { Drawer, DrawerContent, DrawerFooter, DrawerHeader } from '@/components/ui/drawer'
+import { Switch } from '@/components/ui/switch'
+import { toast } from 'sonner'
 const Editor = () => {
+    const params = useParams()
+    const navigate = useNavigate()
+    const taskID = params.id
+
+    const getTask = async()=>{
+        try {
+            const response = await axios.post<TaskData>(`${import.meta.env.VITE_BACKEND}/my/tasks/geteditortask`, {
+                taskID: taskID
+            })
+
+            if (response.status === 200) {
+setTaskData(response.data)
+if (response.data.editable) {
+    setEditingAllowed('true')
+    setSelfPublished(response.data.published || false)
+} else {
+    setEditingAllowed('store-origin')
+    setSelfPublished(false)
+}
+            }
+        } catch (error) {
+            console.error(error)
+            navigate('/app/teacher', {replace: true})
+        }
+    }
     const playAnimation = () => {
     if (checkmark.current) {
         checkmark.current.seek(0)
@@ -35,9 +98,65 @@ const Editor = () => {
         setOpenModalAnimation(false);
     }, 2000);
 }
+
+const updateTask = async(pushToStore:boolean=false)=>{
+    try {
+        let updateBody = {
+            taskID: taskID,
+            title: taskData?.taskData.title,
+            richText: taskData?.taskData.richText || "",
+            // TODO: folder: taskData?.taskData.folder || "",
+            tests: taskData?.taskData.tests || []
+        }
+
+        const update_response = await axios.put(`${import.meta.env.VITE_BACKEND}/my/tasks/edit`, updateBody)
+        if (update_response.status === 200) {
+            if (pushToStore && selfPublished === false) {
+                setOpenPublisher(true)
+                setOpenSaveModal(false)
+            } else {
+                setOpenSaveModal(false)
+                playAnimation()
+                setTimeout(() => {
+                    navigate('/app/teacher/tasks')
+                }, 2000);
+            }
+        }
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+const publishTask = async()=>{
+    try {
+        if (!publisherData.grade) {
+            toast.error("Odaberite razred za objavljivanje zadatka.")
+            return
+        }
+      if (!selfPublished) {
+        const response = await axios.post(`${import.meta.env.VITE_BACKEND}/store/publish`, {
+...publisherData,
+taskID: taskID
+        })
+
+        if (response.status === 200) {
+              playAnimation()
+                setTimeout(() => {
+                    navigate('/app/teacher/tasks')
+                }, 2000);
+        }
+      }  
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+useEffect(()=>{
+    getTask()
+}, [])
     const checkmark = useRef(null)
     const [editingAllowed, setEditingAllowed] = useState<"true" | "store-origin">("true")
-    const [selfPublished, setSelfPublished] = useState(true)
+    const [selfPublished, setSelfPublished] = useState(false)
     const [func_openModalAnimation, setOpenModalAnimation ] = useState(false)
 
     const [descriptionValue, setDescriptionValue] = useState("")
@@ -45,6 +164,16 @@ const Editor = () => {
     const [openTestMaker, setOpenTestmaker] = useState(false)
 
     const [openSaveModal, setOpenSaveModal] = useState(false)
+    const [taskData, setTaskData] = useState<TaskData>()
+    const [standard_temp_new_test, set_standard_temp_new_test] = useState({
+        input: [],
+        output: []
+    })
+    const [openPublisher, setOpenPublisher] = useState(false)
+    const [publisherData, setPublisherData] = useState({
+        grade:"",
+        anon: false
+    })
   return (
     <>
         <PageTitle title='Uređivač zadatka' subtitle='Jedno mesto da uređujete naziv, uputstva i testove Vašeg zadatka.'></PageTitle>
@@ -69,14 +198,45 @@ const Editor = () => {
                                     
                                 </Label>
 
-                                <Input id='task-title'></Input>
+                              <Input 
+    id='task-title'
+    value={taskData?.taskData.title || ''}
+    onChange={(e) => {
+        setTaskData(prev => {
+            if (!prev) return prev;
+            return {
+                ...prev,
+                taskData: {
+                    ...prev.taskData,
+                    title: e.target.value
+                }
+            };
+        });
+    }} 
+/>
                             </Field>
 
                             <Field>
                                 <Label>Tekst zadatka</Label>
                                 <div className="quill-wrapper border-1 shadow-xs">
-                                    <ReactQuill value={descriptionValue} onChange={(e)=>{setDescriptionValue(e)}}  theme='snow' className='h-[calc(100%-50px)]'></ReactQuill>
-                                </div>
+<ReactQuill 
+  value={taskData?.taskData.richText || ""} 
+  onChange={(content) => {
+    setTaskData(prev => {
+      if (!prev) return prev; 
+      
+      return {
+        ...prev,
+        taskData: {
+          ...prev.taskData,
+          richText: content
+        }
+      };
+    });
+  }}  
+  theme='snow' 
+  className='h-[calc(100%-50px)]'
+/>                                </div>
 {/* <div
   className="iskra-rich-text text-gray-800 leading-relaxed bg-gray-50 p-4 rounded border border-gray-200 prose prose-sm max-w-none"
   dangerouslySetInnerHTML={{ __html: '<h1>Heading&nbsp;1</h1><p></p><h2>Heading&nbsp;2</h2><p></p><h3>Heading&nbsp;3</h3><p></p><p>Normal</p><p></p><p><strong>Bold</strong></p><p></p><p><em>Italic</em></p><p></p><p><u>Underline</u></p><p></p><p><a href="Link" rel="noopener noreferrer" target="_blank">Link</a></p><p></p><ol><li>decimalna</li></ol><p></p><ul><li>tackasta</li></ul>' }}
@@ -89,14 +249,22 @@ const Editor = () => {
                                         <Field>
                                             <Label>Programski jezik</Label>
 
-                                 <Select  defaultValue='python'>
+                                 <Select value={taskData?.taskData.language}> 
       <SelectTrigger disabled className="w-1/2">
         <SelectValue placeholder="" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
           <SelectLabel>Dostupni jezici</SelectLabel>
-          <SelectItem value="python"><img src={py_icon} className='w-4'></img>Python</SelectItem>
+          {SupportedLanguages.map((item, index)=>{
+                      return (
+                        <SelectItem value={item.value} key={index}>
+                          {item.icon && (
+                            <img src={item.icon} alt="" className='size-5' />
+                          )}
+                          {item.label}</SelectItem>
+                      )
+                    })}
 
         </SelectGroup>
       </SelectContent>
@@ -109,7 +277,7 @@ const Editor = () => {
                                         <Field>
                                             <Label>Folder</Label>
 
-                                 <Select  defaultValue='apple1'>
+                                 <Select  value={taskData?.taskData.folder.title || "."}>
       <Tooltip>
         <TooltipTrigger className=''>
             <SelectTrigger disabled className="w-full">
@@ -123,10 +291,9 @@ const Editor = () => {
       <SelectContent>
      <SelectGroup>
           <SelectLabel>Folders</SelectLabel>
-          <SelectItem value="apple1"><img src={foldericon} className='w-4'></img>Apple 1</SelectItem>
-          <SelectItem value="apple2"><img src={foldericon} className='w-4'></img>Apple 2</SelectItem>
-          <SelectItem value="apple3"><img src={foldericon} className='w-4'></img>Apple 3</SelectItem>
-
+       {/* index    */}
+       <SelectItem value={taskData?.taskData.folder.title || "."}><img src={foldericon} className='w-4'></img>{taskData?.taskData.folder.title}</SelectItem>
+      
         </SelectGroup>
       </SelectContent>
     </Select>
@@ -142,7 +309,14 @@ const Editor = () => {
 
                         <h1 className='text-3xl font-bold'>Testovi</h1>
 
-                        <Alert className='mt-3'>
+{/* python testovi  */}
+{taskData?.taskData.language === 'python' && (
+    <>
+        {/* python standard testovi */}
+
+    {taskData.taskData.outputType === 'standard' && (
+        <>
+        <Alert className='mt-3'>
                             <File></File>
                             <AlertTitle>Uputstvo za kreiranje testova</AlertTitle>
                             <AlertDescription>
@@ -151,12 +325,20 @@ const Editor = () => {
                                 <br></br>
                                 <br></br>
                                 <div className="flex justify-end">
-                                    <Button className=''><Download></Download>Preuzmi uputstvo</Button>
-                                </div>
+<Button asChild>
+  <a 
+    target="_blank" 
+    href="https://lukajekic.github.io/iskra-documents/kreiranje-testova.pdf"
+  >
+    <Download />
+    Preuzmi uputstvo
+  </a>
+</Button>                                </div>
                             </AlertDescription>
                             
                         </Alert>
-                        {!openTestMaker && (
+
+                         {!openTestMaker && (
                             <Button className='mt-3' onClick={()=>{setOpenTestmaker(true)}}><SquarePlus></SquarePlus>Kreiraj novi test</Button>
                         )}
 
@@ -166,13 +348,27 @@ const Editor = () => {
                                                     <h1 className='text-2xl font-bold'>Novi test</h1>
                                                     <Separator className='my-3'></Separator>
                         <div className="flex w-full gap-2">
-                            <Button><PlusSquare></PlusSquare>Novi ulaz</Button>
+                            <Button onClick={()=>{set_standard_temp_new_test(prev => ({
+                                ...prev,
+                                input: [...prev.input, ""]
+                            }))}}><PlusSquare></PlusSquare>Novi ulaz</Button>
                             <div id="inputs" className="flex-1 flex flex-col gap-2">
-                                {Array.from({length: 2}).map((item, index)=>{
+                                {standard_temp_new_test.input.map((item, index)=>{
                                     return (
                                         <div className="flex items-center gap-2">
                                             <div className="draft-box p-4 rounded-lg min-w-[3.5rem] flex justify-center items-center">{index + 1}</div>
-                                            <Input className='bg-white'></Input>
+                                            <div className="w-full flex items-center gap-2">
+                                                <Input value={standard_temp_new_test.input[index]} onChange={(e) => {
+                    set_standard_temp_new_test(prev => ({
+                        ...prev,
+                        input: prev.input.map((val, i) => i === index ? e.target.value : val)
+                    }))
+                }} className='bg-white'></Input>
+                <Button onClick={()=>{set_standard_temp_new_test(prev => ({
+        ...prev,
+        input: prev.input.filter((_, i) => i !== index)
+    }));}} variant={'destructive'}>Obrisi ulaz</Button>
+                                            </div>
                                         </div>
                                     )
                                 })}
@@ -180,13 +376,27 @@ const Editor = () => {
                         </div>
 <Separator className='my-5'></Separator>
                          <div className="flex w-full gap-2">
-                            <Button><PlusSquare></PlusSquare>Novi izlaz</Button>
+                             <Button onClick={()=>{set_standard_temp_new_test(prev => ({
+                                ...prev,
+                                output: [...prev.output, ""]
+                            }))}}><PlusSquare></PlusSquare>Novi izlaz</Button>
                             <div id="outputs" className="flex-1 flex flex-col gap-2">
-                                {Array.from({length: 2}).map((item, index)=>{
+                                {standard_temp_new_test.output.map((item, index)=>{
                                     return (
                                         <div className="flex items-center gap-2">
                                             <div className="draft-box p-4 rounded-lg min-w-[3.5rem] flex justify-center items-center">{index + 1}</div>
-                                            <Input className='bg-white'></Input>
+                                            <div className="flex items-center gap-2 w-full">
+                                                <Input value={standard_temp_new_test.output[index]} onChange={(e) => {
+                    set_standard_temp_new_test(prev => ({
+                        ...prev,
+                        output: prev.output.map((val, i) => i === index ? e.target.value : val)
+                    }))
+                }} className='bg-white flex-1'></Input>
+                <Button onClick={()=>{set_standard_temp_new_test(prev => ({
+        ...prev,
+        output: prev.output.filter((_, i) => i !== index)
+    }));}} variant={'destructive'}>Obrisi izlaz</Button>
+                                            </div>
                                         </div>
                                     )
                                 })}
@@ -194,8 +404,14 @@ const Editor = () => {
                         </div>
 
                         <div className="flex items-center gap-3 mt-5">
-                            <Button className='p-5  bg-green-600 hover:bg-green-700'>SAČUVAJ TEST</Button>
-                            <Button variant={'outline'} onClick={()=>{setOpenTestmaker(false)}}>Odustani</Button>
+                            <Button onClick={()=>{setTaskData(prev => ({
+                                ...prev,
+                                taskData: {
+                                    ...prev?.taskData,
+                                    tests: [...prev?.taskData.tests, standard_temp_new_test]
+                                }
+                            })) ,setOpenTestmaker(false), set_standard_temp_new_test({input: [], output: []})}}  className='p-5  bg-green-600 hover:bg-green-700'>SAČUVAJ TEST</Button>
+                            <Button variant={'outline'} onClick={()=>{setOpenTestmaker(false), set_standard_temp_new_test({input: [], output: []})}}>Odustani</Button>
                         </div>
                         </div>
                         )}
@@ -203,23 +419,26 @@ const Editor = () => {
                         <Separator className='my-5'></Separator>
 
                        <div className="flex flex-col gap-2">
-                         {Array.from({length: 5}).map((item, index)=>{
+                         {taskData.taskData.tests.map((item, index)=>{
                             return (
                                 <div className="flex items-center gap-2">
                                     <div className="draft-box p-4 rounded-[50%] min-w-[3.5rem] max-h-[3.5rem] flex justify-center items-center text-lg font-bold">{index + 1}</div>
                                     <div className="border-1 rounded-lg p-4 flex-1">
                                         <p className="text-lg font-bold">Ulazi</p>
                                         <ol>
-                                            <li>Ana</li>
-                                            <li>Jovanovic</li>
+                                            {item.input.map((item, index)=>(
+                                                <li key={index}>{item}</li>
+                                            ))}
+                                            
                                         </ol>
 
                                
 
                                         <p className="text-lg font-bold mt-1">Izlazi</p>
                                         <ol>
-                                            <li>Ana</li>
-                                            <li>Jovanovic</li>
+                                             {item.output.map((item, index)=>(
+                                                <li key={index}>{item}</li>
+                                            ))}
                                         </ol>
                                     </div>
                                 </div>
@@ -227,9 +446,21 @@ const Editor = () => {
 
                         })}
                        </div>
+                        </>
+    )}
+    </>
+)}
+                        
+                       
 <div className="flex w-full items-center justify-end mt-5 gap-3">
     <Button variant={'outline'} onClick={()=>{playAnimation()}}>Odustani</Button>
-                        <Button onClick={()=>{setOpenSaveModal(true)}}>Sačuvaj izmene</Button>
+                        <Button onClick={()=>{
+                            if (selfPublished) {
+                                updateTask(false)
+                            } else {
+                                setOpenSaveModal(true)
+                            }
+                        }}>Sačuvaj izmene</Button>
 </div>
                     </form>
                 </div>
@@ -266,8 +497,8 @@ const Editor = () => {
             <div className="flex justify-between items-center gap-7">
                 <Button onClick={()=>{setOpenSaveModal(false)}} variant={'outline'}>Odustani</Button>
                 <div className="flex items-center gap-2">
-                    <Button className='border-amber-600 text-amber-700' variant={'outline'}>Sačuvaj za ličnu upotrebu</Button>
-                    <Button variant={'default'}>Sačuvaj i objavi u Zbirku zadataka</Button>
+                    <Button onClick={()=>{updateTask(false)}} className='border-amber-600 text-amber-700' variant={'outline'}>Sačuvaj za ličnu upotrebu</Button>
+                    <Button onClick={()=>{updateTask(true)}} variant={'default'}>Sačuvaj i objavi u Zbirku zadataka</Button>
                 </div>
             </div>
         </DialogFooter>
@@ -286,6 +517,59 @@ const Editor = () => {
     />
     </DialogContent>
 </Dialog>
+
+
+
+
+{/* publisher */}
+<Drawer open={openPublisher} onOpenChange={(val)=>{
+  if (!val) {
+    setOpenPublisher(val)
+  }
+}}   direction='right'  >
+  <DrawerContent className='pb-[60px]'>
+    <DrawerHeader className='font-bold text-lg border-b'>
+      Detalji zadatka
+    </DrawerHeader>
+
+    <div className="p-4">
+              <Select onValueChange={(val)=>{setPublisherData(prev => ({
+                ...prev,
+                grade: val
+              }))}}>
+              <SelectTrigger className="w-full">
+                <SelectValue  placeholder="Izaberite razred..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Razredi</SelectLabel>
+                  {Grades.map((item, index)=>{
+                    return (
+                      <SelectItem value={item} key={index}>{item}</SelectItem>
+                    )
+                  })}
+              
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+<div className="flex items-center gap-3 mt-5">
+
+                  <Switch className='' checked={publisherData.anon} onCheckedChange={(val)=>{setPublisherData(prev => ({...prev, anon: val}))}} id="anonymous" />
+                          <Label htmlFor="anonymous">Objavi zadatak anonimno.</Label>
+                    
+</div>
+    </div>
+
+    <DrawerFooter>
+    <Button onClick={()=>{navigate('/app/teacher/tasks')}} variant={'outline'}>Odustani</Button>
+    <Button onClick={()=>{
+     
+     publishTask()
+    }}><Upload></Upload>Preuzmi zadatak</Button>
+  </DrawerFooter>
+  </DrawerContent>
+  
+</Drawer>
 </>
   )
 }

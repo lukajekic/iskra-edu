@@ -152,7 +152,7 @@ border-radius: 10px;
   margin:  auto;
   width: 75%;
   padding: 40px;
-  line-height: '1.6';
+  line-height: 1.6;
   background-color: white;
   box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
 }
@@ -257,4 +257,13 @@ img, svg {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+
+#tests-table {
+  border-radius: calc(var(--radius) - 2px);
+
+}
+#tests-table td {
+  border: 1px solid #dddddd;
 }

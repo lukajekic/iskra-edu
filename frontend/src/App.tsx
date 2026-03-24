@@ -20,6 +20,7 @@ import MaintenanceGuard from './components/logic/MaintenanceGuard';
 import { UserProvider } from './context/UserContext';
 import AboutUsModular from './pages/About';
 import Privacy from './pages/Legal/Privacy';
+import LandingPage from './pages/static/Landing/LandingPage';
 export function App() {
 
   const router = createBrowserRouter([
@@ -32,7 +33,7 @@ element: <NotFound></NotFound>
     },
     {
       path: "/",
-      element: <Navigate to={"/auth/onboarding"} replace></Navigate>
+      element: <LandingPage></LandingPage> //<Navigate to={"/auth/onboarding"} replace></Navigate>
     },
     {
       path: "/about",
