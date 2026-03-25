@@ -112,6 +112,11 @@ const executeQuery = async()=>{
     const response = await axios.post(`${import.meta.env.VITE_BACKEND}/store`, query)
 
     if (response.status === 200) {
+      if (response.data.length === 0) {
+        setTimeout(() => {
+          toast.warning("Nisu pronađeni zadaci za unete kriterijume.")
+        }, 650);
+      }
       return response.data
     }
   } catch (error) {

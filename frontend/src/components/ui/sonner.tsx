@@ -38,6 +38,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
         classNames: {
           toast: "cn-toast",
 error: "group-[.toaster]:!border-red-500 border-1 group-[.toaster]:!text-red-600 group-[.toaster]:!border-red-600",
+warning: "group-[.toaster]:!border-orange-500 border-1 group-[.toaster]:!text-orange-600 group-[.toaster]:!border-orange-600",
+
 success: "group-[.toaster]:!border-green-500 border-1 group-[.toaster]:!text-green-600 group-[.toaster]:!border-green-600",
 
         },

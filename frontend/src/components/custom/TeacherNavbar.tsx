@@ -300,7 +300,7 @@ if (userID) {
           <DialogHeader className='text-lg font-bold h-fit'>
             Poruke
           </DialogHeader>
-<div className="border-1 w-full h-full overflow-hidden flex items-start">
+<div className="border-1 w-full h-full overflow-hidden flex items-start rounded-lg">
     <div className=" w-[30%] h-full flex flex-col gap-0 items-start overflow-y-auto">
 
      {messages?.map((item, index) => (
@@ -318,7 +318,7 @@ if (userID) {
   </div>
 ))}
     </div>
-  <div className="p-5 w-[70%] h-full border-[2px] border-[#194872] flex flex-col">
+  <div className="p-5 w-[70%] h-full border-[2px] border-[#194872] flex flex-col rounded-r-lg">
     <p className="text-[20px] text-[#194872]">
       {activeMessage?.title}
     </p>
