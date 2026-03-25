@@ -114,6 +114,6 @@ app.post('/devstatus', (req, res) => {
 
   return res.sendStatus(200); // Koristi sendStatus za čist 200 OK
 });
-server.listen(process.env.PORT || 7860, ()=>{
+server.listen(process.env.PORT || 7860, '0.0.0.0', ()=>{
     console.log("Server je pokrenut na portu", process.env.PORT || 7860)
 })
