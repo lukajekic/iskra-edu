@@ -7,6 +7,7 @@ export const Grades = [
     'Drugi razred srednje škole',
     'Treći razred srednje škole',
     'Četvrti razred srednje škole',
+    'Zadaci za obuke'
 ]
 
 export const SupportedLanguages = [
