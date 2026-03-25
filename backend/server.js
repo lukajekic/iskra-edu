@@ -16,7 +16,7 @@ dotenv.config()
 const app = express()
 connectMongoDB()
 app.use(cors({
-    origin: ["http://localhost:5173", "https://k547nh3t-5173.euw.devtunnels.ms"],
+    origin: ["http://localhost:5173", "https://k547nh3t-5173.euw.devtunnels.ms", "https://iskra-edu.vercel.app"],
     credentials: true
 }))
 app.use(bodyParser.json())
