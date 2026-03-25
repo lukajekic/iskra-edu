@@ -88,7 +88,7 @@ const sendReadStatus = async(messageid:string)=>{
 const determineReadCall = (message:Message, dontcall:boolean=false)=>{
 try {
   if (message) {
-    let read = message.read.find(item => item === sessionStorage.getItem('teacher_id'))
+    let read = message.read.find(item => item === userID)
     if (!read) {
       
       if (dontcall) {
@@ -327,7 +327,7 @@ if (userID) {
 <Separator className='my-2'></Separator>
 
 <div className="flex-1 overflow-y-auto">
-  <p dangerouslySetInnerHTML={{ __html: activeMessage?.description ?? "" }} className='text-[15px] text-gray-700'>
+  <p dangerouslySetInnerHTML={{ __html: activeMessage?.description ?? "" }} className='text-[15px] text-gray-700 iskra-rich-text'>
 </p>
 </div>
   </div>

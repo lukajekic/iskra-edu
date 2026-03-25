@@ -250,7 +250,7 @@ export const getMessages = async (req, res) => {
 
 export const readMessage = async (req, res) => {
     try {
-        const userid = req.user._id
+        let userid = req.user._id
         const { message } = req.body || {}
 
         if (!userid || !message) {
@@ -258,9 +258,10 @@ export const readMessage = async (req, res) => {
         }
 
         const userType = req.user.type
+        userid = new mongoose.Types.ObjectId(userid)
 
         if (userType === "teacher") {
-            await MessageModel.findByIdAndUpdate(message, { $push: { read: userid } }, { new: true })
+            await MessageModel.findByIdAndUpdate(message, { $addToSet: { read: userid } }, { new: true })
             return res.status(200).json({ "message": "OK" })
         }
 
