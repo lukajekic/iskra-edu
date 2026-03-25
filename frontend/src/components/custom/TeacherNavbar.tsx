@@ -174,7 +174,7 @@ getDocuments()
 if (messages && messages?.length  > 0 && modalStatus.messages === true) {
   let first_message = messages[0]
   setActiveMessage(first_message)
-  if (!first_message.read.includes(sessionStorage.getItem('teacher_id') ?? "")) {
+  if (!first_message.read.includes(userID ?? "")) {
     console.log("index poruku read-ovati", first_message._id)
     sendReadStatus(first_message._id)
   }
