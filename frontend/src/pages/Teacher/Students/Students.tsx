@@ -30,6 +30,7 @@ import axios from 'axios'
 import { setDate } from 'date-fns'
 import { useUserId } from '@/context/UserContext'
 import { toast } from 'sonner'
+import LoaderModal from '@/components/custom/LoaderModal'
 
 type ModalStatus = {
   create: boolean,
@@ -45,8 +46,8 @@ type Student = {
 }
 
 
-
 const Students =   () => {
+  const [loading, setLoading] = useState(true)
   const {userID} = useUserId()
     const [modalStatus, setModalState] = useState<ModalStatus>({
     create: false,
@@ -71,6 +72,7 @@ const Students =   () => {
       toast.error("Unesite osnovne podatke.")
     }
     try {
+      setLoading(true)
       const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/create`, {
         name: createStudentForm.name,
         password: createStudentForm.password,
@@ -82,9 +84,11 @@ ref: userID
 if (response.status === 201) {
   setModalState(prev => ({...prev, create: false}))
   getStudents()
+  setLoading(false)
 }
     } catch (error) {
       console.error(error)
+      setLoading(false)
     }
   }
   const [data, setData] = useState<Student[]>([])
@@ -92,6 +96,7 @@ if (response.status === 201) {
 
   const deleteStudent = async()=>{
     try {
+      setLoading(true)
       const response = await axios.put(`${import.meta.env.VITE_BACKEND}/my/students/delete`, {
         id: editStudentForm._id
       })
@@ -99,14 +104,17 @@ if (response.status === 201) {
       if (response.status === 200) {
         setModalState(prev => ({...prev, delete: false}))
         getStudents()
+        setLoading(false)
       }
     } catch (error) {
       console.error(error)
+      setLoading(false)
     }
   }
 
   const editStudent = async()=>{
     try {
+      setLoading(true)
       const response = await axios.put(`${import.meta.env.VITE_BACKEND}/my/students/edit`, {
         id: editStudentForm._id,
         name: editStudentForm.name,
@@ -116,20 +124,25 @@ if (response.status === 201) {
       if (response.status === 200) {
  setModalState(prev => ({...prev, edit: false}))
         getStudents()
+        setLoading(false)
       }
     } catch (error) {
       console.error(error)
+      setLoading(false)
     }
   }
   const getStudents = async()=>{
   try {
+    setLoading(true)
     const response = await axios.get<Student[]>(`${import.meta.env.VITE_BACKEND}/my/students`)
     console.log(response)
     if (response.status === 200) {
       setData(response.data)
+      setLoading(false)
     }
   } catch (error) {
     console.error(error)
+    setLoading(false)
   }
 }
 
@@ -250,7 +263,7 @@ if (response.status === 201) {
       </AlertDialogContent>
     </AlertDialog>
 
-
+<LoaderModal open={loading}></LoaderModal>
     <Footer></Footer>
     </>
   )

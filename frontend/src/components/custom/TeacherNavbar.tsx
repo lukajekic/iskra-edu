@@ -26,6 +26,7 @@ import { HandleLogout } from '@/utils/logout'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useUserId } from '@/context/UserContext'
+import moment from 'moment-timezone'
 
 type ModalStatus = {
   my_profile: boolean,
@@ -65,7 +66,7 @@ type Activegroup = {
     _id:    string;
 }
 const TeacherNavbar = () => {
-  const {setUserID} = useUserId()
+  const {userID, setUserID} = useUserId()
   const [documents, setDocuments] = useState<Document[]>([])
 const [messages, setMessages] = useState<Message[]>()
 const [activeMessage, setActiveMessage] = useState<Message>()
@@ -131,12 +132,15 @@ setMyProfile(response.data ?? {})
 
 
   const getMessages = async()=>{
+    console.log("preuzimanje poruka....")
     try {
       const response = await axios.get<Message[]>(`${import.meta.env.VITE_BACKEND}/user/me/messages`)
       if (response.status === 200) {
 setMessages(response.data ?? [])
-let unread = response.data.filter(item => !item.read.includes(sessionStorage.getItem('teacher_id') ?? ""))
+let unread = response.data.filter(item => !item.read.includes(userID))
+
 if (unread.length > 0) {
+  
   toast.info("Imate neprocitane poruke.")
 }
 
@@ -154,7 +158,6 @@ if (response.data.length > 0) {
   useEffect(()=>{
     getProfile()
 getDocuments()
-getMessages()
 
   }, [])
 
@@ -184,6 +187,15 @@ if (myProfile?._id) {
   setUserID(myProfile._id)
 }
   }, [myProfile])
+
+  useEffect(()=>{
+if (userID) {
+  console.log("context spreman, vraca:", userID)
+  getMessages()
+} else {
+  console.log("context jos nije spreman")
+}
+  }, [userID])
   return (
     <>
       <div className="h-[62px]" />
@@ -299,7 +311,7 @@ if (myProfile?._id) {
       ${determineReadCall(item, true) ? "bg-white" : "bg-[#cecece]/15"} 
       hover:bg-white hover:border-l-2 hover:border-l-blue-400 hover:cursor-pointer`}
   >
-    <p className={`text-xs text-gray-500`}>{new Date(item.date).toLocaleString("sr-RS")}</p>
+    <p className={`text-xs text-gray-500`}>{moment(item.date).format("DD. MM. YYYY. HH:mm")}</p>
     <p className={`text-[16px] ${!determineReadCall(item, true) ? "text-[#194872] font-bold" : "text-gray-500"}`}>
       {item.title}
     </p>
@@ -310,7 +322,7 @@ if (myProfile?._id) {
     <p className="text-[20px] text-[#194872]">
       {activeMessage?.title}
     </p>
-        <p className={`text-xs text-gray-500`}>{new Date(activeMessage?.date ?? "").toLocaleString("sr-RS")}</p>
+        <p className={`text-xs text-gray-500`}>{moment(activeMessage?.date).format("D.. MM. YYYY. HH:mm")}</p>
 
 <Separator className='my-2'></Separator>
 

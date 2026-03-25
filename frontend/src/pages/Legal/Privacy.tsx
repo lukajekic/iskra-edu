@@ -56,8 +56,10 @@ Iskra može periodično pratiti ponašanja korisnika i deliti ih sa trećim 
 
 Trenutni partner Iskra edukativnog sistema jeste Metrica, prate se podaci o tačnosti zadataka, učestalosti kreiranja grupa, prijava, odjava, registracija korisnika, kreiranja zadataka, sakrivanja i otkrivanja foldera profesora i ostalih ponašanja, ali bez povezivanja sa konkretnim korisnikom, Metrica prima podatke o vremenu iyvršenja radnje i države iz koje je radnja protekla.
 
-Zajedno sa Metricom podatke o IP adresi im i servis [ipapi.com](https://ipapi.co/) koji Metrici ukazuje na zemlju porekla ponašanja korisnika.
+Zajedno sa Metricom podatke o IP adresi ima i servis [ipapi.com](https://ipapi.co/) koji Metrici ukazuje na zemlju porekla ponašanja korisnika.
 
+Za analitiku se koriste i usluge prikupljanja podataka Vercel Analytics.
+Informacije o prikupljanju analitike (Vercel Analytics) nalaze se ispod.
 ## Ovlašćenja u uvid podataka
 Podatke o učenicima mogu videti profesori koji predaju tim učenicima i svi koji aktivno rade na razvoju platforme, kroz podatke o napretku učenika.
 
@@ -68,7 +70,7 @@ Podatke o učenicima mogu videti profesori koji predaju tim učenicima i svi k
 -   **Railway Privacy Policy** [https://railway.com/legal/privacy](https://railway.com/legal/privacy)
 -   **Hugging Face Privacy Policy** [https://huggingface.co/privacy](https://huggingface.co/privacy)
 -   **Google Firebase (Google Cloud) Privacy Notice** [https://firebase.google.com/support/privacy](https://firebase.google.com/support/privacy)
-
+-   **Vercel Analytics** [https://vercel.com/docs/analytics/privacy-policy](https://vercel.com/docs/analytics/privacy-policy)
 ## Odricanje od odgovornosti
 Ova politika može biti menjana u svakom trenutku bez prethodnih obaveštenja korisnicima, očekuje se da korisnici periodično posećuju ovu stranicu za potencijalna ažuriranja. Iskra nije odgovorna za eventualne propuste ili greške u ovom zapisniku. Iskra nije dužna da prati promene u politikama privatnosti trećih lica i njihovoj dostupnosti.
 
@@ -78,7 +80,7 @@ Upotreba Iskra edukativnog sistema podrazumeva slaganje sa politikom privatnosti
 
 **Hvala Vam što koristite Iskra edukativni sistem.**
 
-Poslednja izmena: 19. mart 2026.
+Poslednja izmena: 25. mart 2026.
 `;
 
 function Privacy() {

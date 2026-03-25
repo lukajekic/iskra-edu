@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import axios from 'axios'
+import LoaderModal from '@/components/custom/LoaderModal'
 
 type ProgressType = {
   name: string,
@@ -24,15 +25,18 @@ type ProgressType = {
 
 const Progress =   () => {
 const [data, setData] = useState<ProgressType[]>([])
-
+const [loading, setLoading] = useState(true)
 const fetchProgress = async()=>{
   try {
+    setLoading(true)
     const response = await axios.get(`${import.meta.env.VITE_BACKEND}/my/students/progress`)
     if (response.status === 200) {
 setData(response.data)
+setLoading(false)
     }
   } catch (error) {
     console.error(error)
+    setLoading(false)
   }
 }
 
@@ -125,6 +129,8 @@ setData(response.data)
     </DialogContent>
 </Dialog>
     <Footer></Footer>
+
+    <LoaderModal open={loading}></LoaderModal>
     </>
   )
 }

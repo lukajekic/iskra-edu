@@ -5,7 +5,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from '
 import { Field, FieldGroup } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertTriangleIcon, Ban, CircleQuestionMark, Download, File, Import, PlusSquare, SquarePlus, Upload } from 'lucide-react'
+import { AlertTriangleIcon, Ban, ChevronRight, CircleOff, CircleQuestionMark, Download, File, Import, PlusSquare, SquarePlus, Trash, Upload } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import ReactQuill from 'react-quill-new';
@@ -60,19 +60,24 @@ import { Grades, SupportedLanguages } from '@/assets/constants'
 import { Drawer, DrawerContent, DrawerFooter, DrawerHeader } from '@/components/ui/drawer'
 import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
+import LoaderModal from '@/components/custom/LoaderModal'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 const Editor = () => {
     const params = useParams()
     const navigate = useNavigate()
     const taskID = params.id
-
+const [loading, setLoading] = useState(true)
     const getTask = async()=>{
         try {
+                    setLoading(true)
+
             const response = await axios.post<TaskData>(`${import.meta.env.VITE_BACKEND}/my/tasks/geteditortask`, {
                 taskID: taskID
             })
 
             if (response.status === 200) {
 setTaskData(response.data)
+
 if (response.data.editable) {
     setEditingAllowed('true')
     setSelfPublished(response.data.published || false)
@@ -80,9 +85,12 @@ if (response.data.editable) {
     setEditingAllowed('store-origin')
     setSelfPublished(false)
 }
+
+setLoading(false)
             }
         } catch (error) {
             console.error(error)
+            setLoading(false)
             navigate('/app/teacher', {replace: true})
         }
     }
@@ -101,6 +109,7 @@ if (response.data.editable) {
 
 const updateTask = async(pushToStore:boolean=false)=>{
     try {
+        setLoading(true)
         let updateBody = {
             taskID: taskID,
             title: taskData?.taskData.title,
@@ -114,7 +123,9 @@ const updateTask = async(pushToStore:boolean=false)=>{
             if (pushToStore && selfPublished === false) {
                 setOpenPublisher(true)
                 setOpenSaveModal(false)
+                setLoading(false)
             } else {
+                setLoading(false)
                 setOpenSaveModal(false)
                 playAnimation()
                 setTimeout(() => {
@@ -134,12 +145,14 @@ const publishTask = async()=>{
             return
         }
       if (!selfPublished) {
+        setLoading(true)
         const response = await axios.post(`${import.meta.env.VITE_BACKEND}/store/publish`, {
 ...publisherData,
 taskID: taskID
         })
 
         if (response.status === 200) {
+            setLoading(false)
               playAnimation()
                 setTimeout(() => {
                     navigate('/app/teacher/tasks')
@@ -147,6 +160,7 @@ taskID: taskID
         }
       }  
     } catch (error) {
+        setLoading(false)
         console.error(error)
     }
 }
@@ -174,6 +188,31 @@ useEffect(()=>{
         grade:"",
         anon: false
     })
+
+
+    const [testDeteletionData, setTestDeletionData] = useState({
+        modal: false,
+        index: -1
+    })
+
+
+    const deleteTest = ()=>{
+        let index = testDeteletionData.index
+        let filtered = taskData?.taskData.tests.filter((item, i)=>i !== index)
+        setTaskData(prev => ({
+            ...prev,
+            taskData: {
+                ...prev?.taskData,
+                tests: filtered
+            }
+        }))
+
+        setTestDeletionData({
+            modal: false,
+            index: -1
+        })
+        return
+    }
   return (
     <>
         <PageTitle title='Uređivač zadatka' subtitle='Jedno mesto da uređujete naziv, uputstva i testove Vašeg zadatka.'></PageTitle>
@@ -404,13 +443,19 @@ useEffect(()=>{
                         </div>
 
                         <div className="flex items-center gap-3 mt-5">
-                            <Button onClick={()=>{setTaskData(prev => ({
+                            <Button onClick={()=>{
+                                if (standard_temp_new_test.output.length > 0) {
+                                    setTaskData(prev => ({
                                 ...prev,
                                 taskData: {
                                     ...prev?.taskData,
                                     tests: [...prev?.taskData.tests, standard_temp_new_test]
                                 }
-                            })) ,setOpenTestmaker(false), set_standard_temp_new_test({input: [], output: []})}}  className='p-5  bg-green-600 hover:bg-green-700'>SAČUVAJ TEST</Button>
+                            })) ,setOpenTestmaker(false), set_standard_temp_new_test({input: [], output: []})
+                                } else {
+                                    toast.error("Test mora imati bar jedan izlaz.")
+                                }
+                                }}  className='p-5  bg-green-600 hover:bg-green-700'>SAČUVAJ TEST</Button>
                             <Button variant={'outline'} onClick={()=>{setOpenTestmaker(false), set_standard_temp_new_test({input: [], output: []})}}>Odustani</Button>
                         </div>
                         </div>
@@ -425,22 +470,42 @@ useEffect(()=>{
                                     <div className="draft-box p-4 rounded-[50%] min-w-[3.5rem] max-h-[3.5rem] flex justify-center items-center text-lg font-bold">{index + 1}</div>
                                     <div className="border-1 rounded-lg p-4 flex-1">
                                         <p className="text-lg font-bold">Ulazi</p>
+                                        {item.input.length === 0 && (
+                                           <span className='inline-flex items-center text-gray-500 italic gap-2'> <CircleOff className='size-5'></CircleOff> Nema ulaza...</span>
+                                        )}
                                         <ol>
-                                            {item.input.map((item, index)=>(
+                                            {item.input.map((item, index)=>{
+                                                
+                                                return (
                                                 <li key={index}>{item}</li>
-                                            ))}
+                                                )
+                                                
+                         })}
                                             
                                         </ol>
 
                                
 
                                         <p className="text-lg font-bold mt-1">Izlazi</p>
+                                        {item.output.length === 0 && (
+                                           <span className='inline-flex items-center text-gray-500 italic gap-2'> <CircleOff className='size-5'></CircleOff> Nema ulaza...</span>
+                                        )}
                                         <ol>
-                                             {item.output.map((item, index)=>(
-                                                <li key={index}>{item}</li>
-                                            ))}
+                                             {item.output.map((item, index)=>{
+                                                return (
+                                                <li key={index}>{item !== "" && (item)}
+                                                {item === "" && (
+                                                     <span className='text-gray-500 italic'>Prazna linija...</span>
+
+                                                )}
+                                                </li>
+                                                )
+                         })}
                                         </ol>
                                     </div>
+                                    <Button onClick={()=>{setTestDeletionData({modal: true, index: index})}} className='flex flex-col items-center h-auto self-stretch' variant={'destructive'}><Trash></Trash>
+                                    <span>Obriši test</span>
+                                    </Button>
                                 </div>
                             )
 
@@ -453,7 +518,7 @@ useEffect(()=>{
                         
                        
 <div className="flex w-full items-center justify-end mt-5 gap-3">
-    <Button variant={'outline'} onClick={()=>{playAnimation()}}>Odustani</Button>
+    <Button variant={'outline'} onClick={()=>{navigate('/app/teacher/tasks')}}>Odustani</Button>
                         <Button onClick={()=>{
                             if (selfPublished) {
                                 updateTask(false)
@@ -570,6 +635,23 @@ useEffect(()=>{
   </DrawerContent>
   
 </Drawer>
+
+<AlertDialog open={testDeteletionData.modal}>
+<AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Da li ste sigurni?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Da li želite obrisati test za pregledanje zadatka? Brisanje testa neće biti efekivno dok ne sačuvate promene.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={()=>[setTestDeletionData({modal: false, index: -1})]}>Odustani</AlertDialogCancel>
+          <AlertDialogAction variant={'destructive'} onClick={()=>{deleteTest()}}>Potvrdi</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+<LoaderModal open={loading}></LoaderModal>
 </>
   )
 }

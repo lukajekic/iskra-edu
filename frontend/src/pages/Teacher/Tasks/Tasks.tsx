@@ -26,6 +26,7 @@ import {
 import { Switch } from '@/components/ui/switch'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import LoaderModal from '@/components/custom/LoaderModal'
 
 
 type ModalStatus = {
@@ -60,6 +61,7 @@ const Tasks =   () => {
   const[newFolderName, setNewFodlerName] = useState<string>("")
   const createFodler = async()=>{
     try {
+      setLoading(true)
       const response = await axios.post(`${import.meta.env.VITE_BACKEND}/my/folders/create`, {
         title: newFolderName
       })
@@ -68,9 +70,11 @@ const Tasks =   () => {
         getFolders()
         setModalState(prev => ({...prev, newfolder: false}))
         setNewFodlerName("")
+        setLoading(false)
       }
     } catch (error) {
-      
+      setLoading(false)
+      console.error(error)
     }
   }
      const [modalStatus, setModalState] = useState<ModalStatus>({
@@ -92,8 +96,10 @@ const Tasks =   () => {
 
 const initializeTask = async()=>{
   try {
+    setLoading(true)
     const response = await axios.post(`${import.meta.env.VITE_BACKEND}/my/tasks/initialize`, newTaskForm)
     if (response.status === 200) {
+      setLoading(false)
       setModalState(prev => ({...prev, newtask: false}))
       setNewTaskForm({
   title: "",
@@ -105,14 +111,16 @@ navigate(`/app/teacher/editor/${response.data._id}`)
     }
   } catch (error) {
     console.error(error)
+    setLoading(false)
   }
 }
 
 const [data, setData] = useState<Folder[]>([])
 const [activeFolder, setActiveFolder] = useState<Folder>()
-
+const [loading, setLoading] = useState(true)
 const publishVisibility = async()=>{
   try {
+    setLoading(true)
     const response = await axios.put(`${import.meta.env.VITE_BACKEND}/my/folders/edit`, {
       _id: activeFolder?.folderId,
       open: proposedFolderView
@@ -122,21 +130,26 @@ const publishVisibility = async()=>{
       setProposedFolderView(null)
       setModalState(prev => ({...prev, folderinfo: false}))
       getFolders()
+      setLoading(false)
     }
   } catch (error) {
     console.error(error)
+    setLoading(false)
   }
 }
 
 
 const getFolders = async ()=>{
   try {
+    setLoading(true)
     const response = await axios.get(`${import.meta.env.VITE_BACKEND}/my/folders/tasks`)
     if (response.status === 200) {
       setData(response.data)
+      setLoading(false)
     }
   } catch (error) {
     console.error(error)
+    setLoading(false)
   }
 }
   useEffect(() => {
@@ -354,6 +367,7 @@ const getFolders = async ()=>{
 
 </Dialog>
     <Footer></Footer>
+    <LoaderModal open={loading}></LoaderModal>
     </>
   )
 }
