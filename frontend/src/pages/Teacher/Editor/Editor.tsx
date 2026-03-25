@@ -630,7 +630,7 @@ useEffect(()=>{
     <Button onClick={()=>{
      
      publishTask()
-    }}><Upload></Upload>Preuzmi zadatak</Button>
+    }}><Upload></Upload>Objavi zadatak</Button>
   </DrawerFooter>
   </DrawerContent>
   
