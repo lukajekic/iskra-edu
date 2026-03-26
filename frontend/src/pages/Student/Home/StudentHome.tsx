@@ -181,7 +181,7 @@ const getSolution = async (shouldWait = false) => {
   return (
    <>
    {taskID && (
-    <div className="w-full max-w-full min-w-full flex flex-col md:flex-row items-start gap-0">
+    <div className="w-full max-w-full min-w-full flex flex-col md:flex-row items-start gap-0 pt-5 md:pt-0">
    <div id="student-task-details" className='p-4 md:basis-1/2 md:max-w-1/2 min-w-0 overflow-hidden'> 
   {/* Dodat overflow-hidden ovde ^ */}
   <p className="text-4xl font-bold break-words">{task?.title}</p>

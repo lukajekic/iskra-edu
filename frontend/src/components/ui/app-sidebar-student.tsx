@@ -8,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
  import py_icon from "../../assets/python.svg"
@@ -35,7 +36,10 @@ type Task = {
   language: "python",
   title: string
 }
+
 export function AppSidebarStudent() {
+  const {setOpenMobile} = useSidebar()
+
     const [openTaskPicker, setOpenTaskPicker] = useState(false)
     let [folders, setFolders] = useState<Folder[]>()
 let [tasks, setTasks] = useState<Task[]>()
@@ -93,7 +97,7 @@ Odabir zadatka
 
      <div className="w-full flex flex-wrap h-[300px] overflow-y-auto gap-2 justify-center">
        {tasks?.map((item,index)=>(
-        <div key={index} onClick={()=>{setSearchParams({task: item._id}), setOpenTaskPicker(false)}} className='noselect h-fit w-[200px] border-1 m-px rounded-xl active:border-2 active:border-blue-500 active:m-0 hover:cursor-pointer flex flex-col items-center p-3'>
+        <div key={index} onClick={()=>{setSearchParams({task: item._id}), setOpenTaskPicker(false), setOpenMobile(false)}} className='noselect h-fit w-[200px] border-1 m-px rounded-xl active:border-2 active:border-blue-500 active:m-0 hover:cursor-pointer flex flex-col items-center p-3'>
           <img className='w-[40px]' src={py_icon}></img>
           <span className="break-all mt-2 text-center">{item.title}</span>
         </div>
