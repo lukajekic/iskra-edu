@@ -4,7 +4,7 @@ import React from 'react'
 const EmptyStudents = () => {
   return (
     <div className="w-full flex flex-col items-left">
-        <Undo className='size-[150px] text-amber-600 -scale-y-100 md:scale-y-100' strokeWidth={1}></Undo>
+        <Undo className='rotate-20 size-[150px] text-amber-600 -scale-y-100 md:scale-y-100' strokeWidth={1}></Undo>
         <div className="flex flex-col items-center gap-2">
             <p className="text-5xl font-bold text-amber-600">
                 Izaberi folder
