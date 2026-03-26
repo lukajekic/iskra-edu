@@ -111,7 +111,7 @@ handleOnboarding()
         <div className="flex-1 flex items-center justify-center">
         <div className="flex flex-col gap-2">
             <h1 className='text-4xl font-bold'>Prijava na Iskra platformu</h1>
-            <div className="flex items-start gap-5 mt-5">
+            <div className="flex items-start gap-5 mt-5 md:flex-row flex-col">
                 <Card className="relative mx-auto w-full max-w-md w-sm pt-0">
                   <img
                     src="/undraw_lecture_hul3.svg"

@@ -73,14 +73,14 @@ const [myProfile, setMyProfile] = useState<ProfileType>()
   }, [])
   return (
     <>
-      <div id='height_manager' className="h-[62px] mt-2 w-full flex justify-center" />
+      <div id='height_manager' className="md:h-[62px] h-[70px] mt-2 w-full flex justify-center" />
 
-      <div id='student-navbar-main' className=" w-[calc(100%-40px)] left-1/2 -translate-x-1/2 h-[60px] fixed top-2  bg-white z-50 flex justify-between items-center  border-[1px] pl-3 border-[#cecece]/75 rounded-lg pb-[2px]">
+      <div id='student-navbar-main' className=" w-[calc(100%-40px)] left-1/2 -translate-x-1/2 h-[70px] pt-2 pb-2 md:pt-0 md:h-[60px] fixed top-2  bg-white z-50 flex justify-between items-center  border-[1px] pl-3 border-[#cecece]/75 rounded-lg pb-[2px]">
         <div className="flex items-center gap-2 h-full">
           <img src="/favicon.png" className='size-10' alt="" />
           <div className="flex items-end gap-1">
-            <h1 className='text-3xl font-bold'>Iskra</h1>
-            <p className='mb-[2px]'>za učenike</p>
+            <h1 className='text-3xl font-bold hidden md:block'>Iskra</h1>
+            <p className='mb-[2px] hidden md:block'>za učenike</p>
           </div>
 
         {/*   <div className="border-x w-fit h-full flex flex-col items-start gap-0 justify-center px-5 ml-2">
@@ -112,13 +112,15 @@ const [myProfile, setMyProfile] = useState<ProfileType>()
 
     <div className="h-full  flex-1 min-w-0 flex justify-end pr-4">
 
-      <div className="flex items-center gap-2">
-        <UserCircle className='size-[30px] mr-2 text-gray-700'></UserCircle>
-        <div className="flex flex-col">
+      <div className="flex  gap-2 md:flex-row flex-row items-end md:items-center pb-2 md:pb-0">
+        <UserCircle className='size-[30px] mr-2 text-gray-700 md:block hidden'></UserCircle>
+        <div className="flex flex-col items-end md:items-start">
           <span className="text-gray-700 uppercase break-all">{
-            myProfile?.type === 'student_permanent' ? (<>Trajni nalog</>) : myProfile?.type === 'student_temp' ? (<><StudentTimer date={myProfile?.userExpiry}></StudentTimer></>) : (<>/</>)
+            myProfile?.type === 'student_permanent' ? (<>Trajni nalog</>) : myProfile?.type === 'student_temp' ? (<>
+            <div className=''><StudentTimer date={myProfile?.userExpiry}></StudentTimer></div>
+            </>) : (<>/</>)
             }</span>
-          <span className='break-all'>{myProfile?.name}</span>
+          <span className='break-all text-right md:text-left'>{myProfile?.name}</span>
         </div>
         <Button onClick={()=>{ HandleLogout()}} variant={'destructive'}><PowerOff></PowerOff>Odjava</Button>
       </div>

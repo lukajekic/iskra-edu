@@ -181,8 +181,8 @@ const getSolution = async (shouldWait = false) => {
   return (
    <>
    {taskID && (
-    <div className="w-full max-w-full min-w-full flex items-start gap-0">
-   <div id="student-task-details" className='p-4 basis-1/2 max-w-1/2 min-w-0 overflow-hidden'> 
+    <div className="w-full max-w-full min-w-full flex flex-col md:flex-row items-start gap-0">
+   <div id="student-task-details" className='p-4 md:basis-1/2 md:max-w-1/2 min-w-0 overflow-hidden'> 
   {/* Dodat overflow-hidden ovde ^ */}
   <p className="text-4xl font-bold break-words">{task?.title}</p>
   <div
@@ -190,9 +190,9 @@ const getSolution = async (shouldWait = false) => {
     dangerouslySetInnerHTML={{ __html: task?.richText ?? ""}}
   />
 </div>
-    <div id="student-solution-editor" className='p-4 basis-1/2'>
+    <div id="student-solution-editor" className='p-4 md:basis-1/2 w-full '>
 <div className=" w-full overflow-hidden rounded-lg flex flex-col">
-  <div id="solution-actions" className='w-full border-1 rounded-lg h-fit p-2 flex justify-between'>
+  <div id="solution-actions" className='w-full min-w-full border-1 rounded-lg h-fit p-2 flex justify-between'>
     <div id="sa-left">
       <Tooltip>
         <TooltipTrigger>
@@ -209,7 +209,7 @@ const getSolution = async (shouldWait = false) => {
       <Button disabled={disableSend} variant={'default'} onClick={()=>{handleSolutionSend()}}><Send></Send>Pošalji na pregled</Button>
     </div>
   </div>
-  <div id="grading-status" className={`mt-5 rounded-t-lg flex items-center px-5 py-4 justify-between gap-2 h-fit   ${gradeStatus == "none" ? "bg-[#e6e6e6]" : gradeStatus == "accepted" ? "bg-[#2db32d] text-white" : gradeStatus == "revise" ? "bg-[#ff5959] text-white" : gradeStatus == "grading" ? "bg-[#ffdb4d]" : "bg-white" }`}>
+  <div id="grading-status" className={`mt-5 rounded-t-lg flex flex-col-reverse items-start md:flex-row md:items-center px-5 py-4 justify-between gap-2 h-fit   ${gradeStatus == "none" ? "bg-[#e6e6e6]" : gradeStatus == "accepted" ? "bg-[#2db32d] text-white" : gradeStatus == "revise" ? "bg-[#ff5959] text-white" : gradeStatus == "grading" ? "bg-[#ffdb4d]" : "bg-white" }`}>
     <div className='flex gap flex-col flex-1' id="send-info">
       <span className='text-2xl font-bold' hidden>ID 148721908</span>
       <span className='text-sm hidden'>00. 00. 0000. 00:00</span>

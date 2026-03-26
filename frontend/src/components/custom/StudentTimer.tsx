@@ -8,17 +8,18 @@ interface renderer {
     hours: number,
     minutes: number,
     seconds: number,
-    completed: boolean
+    completed: boolean,
 }
 const renderer = ({ hours, minutes, seconds, completed }: renderer) => {
   if (completed) {
-    return <span>Vreme je isteklo!</span>;
+    return <span>Vreme je isteklo!</span>
   } else {
-    return (
-      <span>
-        Jednokratna prijava: {zeroPad(minutes)}:{zeroPad(seconds)}
+      return (
+        <span className='inline-flex items-center gap-1'>
+        <span className='hidden md:block'>Jednokratna prijava:</span><span>{zeroPad(minutes)}:{zeroPad(seconds)}</span>
       </span>
-    );
+      )
+    
   }
 };
 

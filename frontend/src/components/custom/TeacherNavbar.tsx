@@ -1,4 +1,6 @@
 import React, { act, useEffect, useState } from 'react'
+import ReactMarkdown from 'react-markdown';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -328,6 +330,7 @@ if (userID) {
 
 <div className="flex-1 overflow-y-auto">
   <p dangerouslySetInnerHTML={{ __html: activeMessage?.description ?? "" }} className='text-[15px] text-gray-700 iskra-rich-text'>
+ 
 </p>
 </div>
   </div>
