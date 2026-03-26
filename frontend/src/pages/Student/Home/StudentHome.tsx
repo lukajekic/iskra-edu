@@ -4,7 +4,7 @@ import Editor from '@monaco-editor/react';
 import { loader } from '@monaco-editor/react';
 import { useOutletContext, useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Play, Send } from 'lucide-react';
+import { Check, Play, Send, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Spinner } from '@/components/ui/spinner';
@@ -219,7 +219,7 @@ const getSolution = async (shouldWait = false) => {
     </div>
 
       <div className='flex gap flex-col' id="grade-info">
-      <span className='text-2xl font-bold'>{gradeStatus === 'accepted' ? "Prihvaćeno" : gradeStatus === 'grading' ? 'Ocenjivanje u toku...' : gradeStatus === 'revise' ? 'Pokušaj ponovo' : "Nije urađeno"}</span>
+      <span className='text-2xl font-bold'>{gradeStatus === 'accepted' ? (<span className='inline-flex items-center gap-2'><Check/>Prihvaćeno</span>) : gradeStatus === 'grading' ? 'Ocenjivanje u toku...' : gradeStatus === 'revise' ? (<span className='inline-flex items-center gap-2'><X/>Pokušaj ponovo</span>) : "Nije urađeno"}</span>
       <span className='text-sm hidden'>00. 00. 0000. 00:00</span>
     </div>
   </div>
