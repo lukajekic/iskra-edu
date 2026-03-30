@@ -1,0 +1,7 @@
+User-agent: *
+# Dozvoljava pristup samo početnoj stranici
+Allow: /$
+# Zabranjuje pristup svim ostalim stranicama i folderima
+Disallow: /
+
+Sitemap: https://tvojsajt.com/sitemap.xml
