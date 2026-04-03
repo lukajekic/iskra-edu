@@ -14,6 +14,8 @@ import Footer from '@/components/custom/Footer';
 import EmptyStudents from './EmptyStudents';
 import axios from 'axios';
 import { toast } from 'sonner';
+import TerminalRunner from '@/components/custom/TerminalRunner';
+import TerminalResponse from '@/components/custom/TerminalResponse';
 
 type props = {
   openPicker: {
@@ -34,7 +36,37 @@ type Task = {
 const StudentHome = () => {
   const socket_data = useOutletContext()
 const [disableSend, setDisableSend] = useState(false)
+const prebrojInpute = (kod:string) => {
+  const bezStringova = kod
+    .replace(/"[^"\\]*(?:\\.[^"\\]*)*"/g, '') // Brise duple navodnike
+    .replace(/'[^'\\]*(?:\\.[^'\\]*)*'/g, ''); // Brise obicne navodnike
 
+  // Brise komentare
+  const bezKomentara = bezStringova.replace(/#[^\n]*/g, '');
+
+  // Broji prave pozive
+  const matches = bezKomentara.match(/input\s*\(/g);
+  return matches ? matches.length : 0;
+};
+
+const handleCodeRun = ()=>{
+  if (!code){
+    toast.error("Morate napisati program kako bi ga pokrenuli.")
+  }
+
+  setTErminalResponse(null)
+
+  let inputcount = prebrojInpute(code)
+  console.log("ocekivani inputi", inputcount)
+  setTerminalInputCount(inputcount)
+  setopenTerminal(true)
+
+  
+}
+
+const [openTerminal, setopenTerminal]= useState(false)
+const [terminalInputCount, setTerminalInputCount] = useState(0)
+const [terminalResponse, setTErminalResponse] = useState()
 
 const handleSolutionSend = async()=>{
   try {
@@ -196,7 +228,7 @@ const getSolution = async (shouldWait = false) => {
     <div id="sa-left">
       <Tooltip>
         <TooltipTrigger>
-          <Button disabled variant={'ghost'} className='text-green-600 hover:bg-green-600 hover:text-white' onClick={()=>{setOpenInputAlert(true)}}><Play></Play>Pokreni kod</Button>
+          <Button  variant={'ghost'} className='text-green-600 hover:bg-green-600 hover:text-white' onClick={()=>{handleCodeRun()}}><Play></Play>Pokreni kod</Button>
         </TooltipTrigger>
 
         <TooltipContent>
@@ -277,6 +309,15 @@ value={code}
     </div>
   </DialogContent>
 </Dialog>
+{openTerminal && (
+  <TerminalRunner codeOrigin={code} onClose={(response)=>{setopenTerminal(false), console.log(response), setTErminalResponse(response)}} count={terminalInputCount}></TerminalRunner>
+)}
+
+{terminalResponse && (
+  <>
+  <TerminalResponse response={terminalResponse} onClose={()=>{setTErminalResponse(null)}}></TerminalResponse>
+  </>
+)}
    </>
   )
 }
