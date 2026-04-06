@@ -88,7 +88,7 @@ const handleSolutionSend = async()=>{
     }
 
     setDisableSend(true)
-    CreateMetricaEvent(import.meta.env.VITE_BACKEND, metrica_events.process)
+    CreateMetricaEvent(import.meta.env.VITE_METRICA, metrica_events.process)
     const response = await axios.post(`${import.meta.env.VITE_BACKEND}/app/student/solution/create`, {
       solutionID: solution.solutionID,
       code: code,
@@ -124,7 +124,7 @@ const handleSolutionSend = async()=>{
       if (socket_data?.status === 'accepted') {
         handleConfetti();
         setSolution(prev => ({...prev, stderr: ""}))
-        CreateMetricaEvent(import.meta.env.VITE_BACKEND, metrica_events.accepted)
+        CreateMetricaEvent(import.meta.env.VITE_METRICA, metrica_events.accepted)
       }
 
       if (socket_data?.status === 'server') {
@@ -195,7 +195,7 @@ const getSolution = async (shouldWait = false) => {
       } 
       else if (status === 'revise') {
         if (shouldWait) {
-          CreateMetricaEvent(import.meta.env.VITE_BACKEND, metrica_events.incorrect)
+          CreateMetricaEvent(import.meta.env.VITE_METRICA, metrica_events.incorrect)
           setDisableSend(true); 
           setTimeout(() => {
             setDisableSend(false);

@@ -25,6 +25,7 @@ socket.on("solution_status_update", (data) => {
 
 socket.on("metrica_pyjudge", ()=>{
 CreateMetricaEvent(import.meta.env.VITE_METRICA, "69d3dd48bcef93be94541ad6")
+console.log("socket-pyjudge")
 })
 
     const handleOnboarding = async()=>{
