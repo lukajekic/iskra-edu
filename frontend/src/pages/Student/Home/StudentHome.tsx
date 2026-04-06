@@ -103,6 +103,14 @@ const handleSolutionSend = async()=>{
   useEffect(() => {
     if (socket_data) {
       console.log("!!! Primljen update preko socketa u Child-u:", socket_data);
+
+      if (socket_data.metrica_http_count){
+        for (let index = 0; index < socket_data.metrica_http_count; index++) {
+          CreateMetricaEvent(import.meta.env.VITE_METRICA, metrica_events.pyjudge)
+
+          
+        }
+      }
       
       // Ovde mapiraj podatke sa socketa na tvoj lokalni state
       // Na primer, ako socket šalje: { status: "accepted", solutionID: "..." }

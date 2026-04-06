@@ -142,6 +142,7 @@ let determineInstance = ()=>{
     return instances[activeInstance]
 }
 export const sendSolution = async(req,res)=>{
+    let metrica_http_count = 0
     const {solutionID, code, taskID} = req.body || {}
     if (!code || !taskID) {
         return res.status(400).json(BuildValidationReturn("validation failed.", "error", "Please send all required data."))
@@ -208,14 +209,13 @@ for (const test of tests) {
     let testing_instance = determineInstance()
 
     try {
+        metrica_http_count += 1
         const response = await fetch(`${testing_instance}/run`, {
             method: 'POST',
             body: JSON.stringify({ code, input_data: stdin, timeout: 5 }),
             headers: { 'Content-Type': 'application/json' }
         })
-        io.to(studentid.toString()).emit("metrica_pyjudge", {
-               track: true
-            })
+        
 
         const data = await response.json()
 
@@ -230,9 +230,11 @@ for (const test of tests) {
             })
 
             await student.save()
+            console.log("Metrica_http_count:", metrica_http_count)
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
-                status: "server" //pozvace status sa servera
+                status: "server", //pozvace status sa servera,
+                metrica_http_count
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
             
@@ -252,9 +254,11 @@ for (const test of tests) {
             })
 
             await student.save()
+            console.log("Metrica_http_count:", metrica_http_count)
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
-                status: "server" //pozvace status sa servera
+                status: "server", //pozvace status sa servera
+                metrica_http_count
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
             
@@ -275,11 +279,12 @@ student.solutions.push({
             })
 
             sendRealtimeProgressUpdate(io, student.teacherRef, student._id)
-
+console.log("Metrica_http_count:", metrica_http_count)
             await student.save()
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
-                status: "accepted" //nema sta novo osim statusa
+                status: "accepted", //nema sta novo osim statusa
+                metrica_http_count
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
                 }
@@ -297,11 +302,14 @@ for (const test of tests) {
     let testing_instance = determineInstance()
 
     try {
+        metrica_http_count += 1
         const response = await fetch(`${testing_instance}/run`, {
             method: 'POST',
             body: JSON.stringify({ code, input_data: stdin, timeout: 5 }),
             headers: { 'Content-Type': 'application/json' }
         })
+
+     
         const data = await response.json()
 
         if (data.stderr) {
@@ -317,7 +325,8 @@ for (const test of tests) {
             await student.save()
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
-                status: "server" //pozvace status sa servera
+                status: "server", //pozvace status sa servera
+                metrica_http_count
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
             
@@ -342,7 +351,8 @@ for (const test of tests) {
             await student.save()
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
-                status: "server" //pozvace status sa servera
+                status: "server", //pozvace status sa servera
+                metrica_http_count
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
             
@@ -367,7 +377,8 @@ student.solutions.push({
             await student.save()
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
-                status: "accepted" //svakako je jedino sto novo vidi status pa da ne fetchuje ponovo
+                status: "accepted", //svakako je jedino sto novo vidi status pa da ne fetchuje ponovo
+                metrica_http_count
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
                 }
