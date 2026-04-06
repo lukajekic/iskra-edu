@@ -8,6 +8,10 @@ import { Menu } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { io } from "socket.io-client";
+import { CreateMetricaView, CreateMetricaEvent } from "@lukajekic/metrica-sdk";
+
+
+
 const StudentDashboardWrapper = () => {
   let socket = io(import.meta.env.VITE_BACKEND)
   const [socket_solution, set_socket_solution] = useState()
@@ -18,6 +22,10 @@ socket.on("message", (data) => {
 socket.on("solution_status_update", (data) => {
   set_socket_solution(data)
 });
+
+socket.on("metrica_pyjudge", ()=>{
+CreateMetricaEvent(import.meta.env.VITE_METRICA, "69d3dd48bcef93be94541ad6")
+})
 
     const handleOnboarding = async()=>{
     try {

@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button'
 import './landingcss.css'
+import { CreateMetricaView } from "@lukajekic/metrica-sdk";
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import axios from 'axios'
 import Explainer from './Explainer'
@@ -9,6 +10,10 @@ import WhyIskra from './WhyIskra'
 import Signup from './Signup'
 
 const LandingPage = () => {
+
+  useEffect(()=>{
+    CreateMetricaView(import.meta.env.VITE_METRICA)
+  }, [])
 
       const hadleRedirect = async()=>{
     try {

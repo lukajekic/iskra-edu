@@ -16,6 +16,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import TerminalRunner from '@/components/custom/TerminalRunner';
 import TerminalResponse from '@/components/custom/TerminalResponse';
+import { CreateMetricaView, CreateMetricaEvent } from "@lukajekic/metrica-sdk";
 
 type props = {
   openPicker: {
@@ -34,6 +35,17 @@ type Task = {
     richText?:   string;
 }
 const StudentHome = () => {
+
+  const metrica_events = {
+    "accepted": "69d3dcffbcef93be94541ac1",
+    "incorrect": "69d3dd18bcef93be94541ac8",
+    "process": "69d3dd34bcef93be94541acf",
+    "pyjudge": "69d3dd48bcef93be94541ad6"
+  }
+
+  useEffect(()=>{
+      CreateMetricaView(import.meta.env.VITE_METRICA)
+    }, [])
   const socket_data = useOutletContext()
 const [disableSend, setDisableSend] = useState(false)
 const prebrojInpute = (kod:string) => {
@@ -76,7 +88,7 @@ const handleSolutionSend = async()=>{
     }
 
     setDisableSend(true)
-
+    CreateMetricaEvent(import.meta.env.VITE_BACKEND, metrica_events.process)
     const response = await axios.post(`${import.meta.env.VITE_BACKEND}/app/student/solution/create`, {
       solutionID: solution.solutionID,
       code: code,
@@ -112,6 +124,7 @@ const handleSolutionSend = async()=>{
       if (socket_data?.status === 'accepted') {
         handleConfetti();
         setSolution(prev => ({...prev, stderr: ""}))
+        CreateMetricaEvent(import.meta.env.VITE_BACKEND, metrica_events.accepted)
       }
 
       if (socket_data?.status === 'server') {
@@ -178,9 +191,11 @@ const getSolution = async (shouldWait = false) => {
 
       if (status === 'accepted' || status === 'grading') {
         setDisableSend(true);
+        
       } 
       else if (status === 'revise') {
         if (shouldWait) {
+          CreateMetricaEvent(import.meta.env.VITE_BACKEND, metrica_events.incorrect)
           setDisableSend(true); 
           setTimeout(() => {
             setDisableSend(false);

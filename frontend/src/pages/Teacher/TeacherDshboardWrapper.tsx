@@ -4,10 +4,13 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import axios from 'axios'
 import React, { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
+import { CreateMetricaView } from "@lukajekic/metrica-sdk";
 
 const TeacherDshboardWrapper = () => {
 
-
+useEffect(()=>{
+    CreateMetricaView(import.meta.env.VITE_METRICA)
+  }, [])
       const handleOnboarding = async()=>{
     try {
       const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/redirect`)

@@ -213,6 +213,10 @@ for (const test of tests) {
             body: JSON.stringify({ code, input_data: stdin, timeout: 5 }),
             headers: { 'Content-Type': 'application/json' }
         })
+        io.to(studentid.toString()).emit("metrica_pyjudge", {
+               track: true
+            })
+
         const data = await response.json()
 
         if (data.stderr) {
