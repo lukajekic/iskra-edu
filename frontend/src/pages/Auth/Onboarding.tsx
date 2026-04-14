@@ -162,7 +162,7 @@ handleOnboarding()
         <Field>
             <FieldLabel htmlFor="otp">Pristupni kod</FieldLabel>
 
-            <InputOTP  id='otp' value={accesscode} maxLength={8} onChange={(e)=>{console.log(e), setaccesscode(e)}}>
+            <InputOTP inputMode='text' pattern='.*'  id='otp' value={accesscode} maxLength={8} onChange={(e)=>{console.log(e), setaccesscode(e)}}>
       <InputOTPGroup>
         <InputOTPSlot index={0} />
         <InputOTPSlot index={1} />
