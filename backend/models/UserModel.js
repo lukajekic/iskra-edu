@@ -50,6 +50,11 @@ const schema = new mongoose.Schema({
     dev_output: {
         type: String,
         required: false
+    },
+
+    grading_date: {
+        type: Date,
+        required: false
     }
         }],
         default: undefined,

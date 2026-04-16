@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import TerminalRunner from '@/components/custom/TerminalRunner';
 import TerminalResponse from '@/components/custom/TerminalResponse';
 import { CreateMetricaView, CreateMetricaEvent } from "@lukajekic/metrica-sdk";
+import moment from 'moment-timezone';
 
 type props = {
   openPicker: {
@@ -267,7 +268,9 @@ const getSolution = async (shouldWait = false) => {
   <div id="grading-status" className={`mt-5 rounded-t-lg flex flex-col-reverse items-start md:flex-row md:items-center px-5 py-4 justify-between gap-2 h-fit   ${gradeStatus == "none" ? "bg-[#e6e6e6]" : gradeStatus == "accepted" ? "bg-[#2db32d] text-white" : gradeStatus == "revise" ? "bg-[#ff5959] text-white" : gradeStatus == "grading" ? "bg-[#ffdb4d]" : "bg-white" }`}>
     <div className='flex gap flex-col flex-1' id="send-info">
       <span className='text-2xl font-bold' hidden>ID 148721908</span>
-      <span className='text-sm hidden'>00. 00. 0000. 00:00</span>
+      <span className='text-md '>{
+        (solution?.grading_date && solution?.status === "accepted") ? moment(solution?.grading_date).tz("Europe/Belgrade").format("DD. MM. YYYY. HH:mm") : ""
+        }</span>
       {solution?.stderr && (
         <span className="text-md">{solution?.stderr}</span>
       )}

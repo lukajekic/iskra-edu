@@ -111,6 +111,7 @@ export const getSolution = async(req, res)=>{
         }
 
 
+
         let solutions = req.user.solutions || []
         console.log(solutions)
 
@@ -175,6 +176,8 @@ export const sendSolution = async(req,res)=>{
         }
 
 
+let grading_date = new Date()
+
 let new_id = crypto.randomUUID()
         if (!task.tests || task.tests.length === 0) {
             student.solutions.push({
@@ -182,7 +185,8 @@ let new_id = crypto.randomUUID()
                 status: "revise",
                 stderr: "Zadatak nije ispravno kreiran, molimo Vas obratite se Vasem predmetnom profesoru. (zadatak nema unete testove za proveru)",
                 code: code,
-                taskID: taskID
+                taskID: taskID,
+                grading_date
             })
 
             await student.save()
@@ -226,7 +230,8 @@ for (const test of tests) {
                 status: "revise",
                 stderr: `❌ Python nije mogao razumeti tvoj kod: ${stderr}`,
                 code: code,
-                taskID: taskID
+                taskID: taskID,
+                grading_date
             })
 
             await student.save()
@@ -250,7 +255,8 @@ for (const test of tests) {
                 code: code,
                 taskID: taskID,
                 dev_ocekivani_output: expected_output,
-                dev_output: output_real
+                dev_output: output_real,
+                grading_date
             })
 
             await student.save()
@@ -275,7 +281,8 @@ student.solutions.push({
                 status: "accepted",
                 stderr: "",
                 code: code,
-                taskID: taskID
+                taskID: taskID,
+                grading_date
             })
 
             sendRealtimeProgressUpdate(io, student.teacherRef, student._id)
@@ -319,7 +326,8 @@ for (const test of tests) {
                 status: "revise",
                 stderr: `❌ Python nije mogao razumeti tvoj kod: ${stderr}`,
                 code: code,
-                taskID: taskID
+                taskID: taskID,
+                grading_date
             })
 
             await student.save()
@@ -345,7 +353,8 @@ for (const test of tests) {
                 code: code,
                 taskID: taskID,
                 dev_ocekivani_output: expected_output,
-                dev_output: output_real
+                dev_output: output_real,
+                grading_date
             })
 
             await student.save()
@@ -369,7 +378,8 @@ student.solutions.push({
                 status: "accepted",
                 stderr: "",
                 code: code,
-                taskID: taskID
+                taskID: taskID,
+                grading_date
             })
 
             sendRealtimeProgressUpdate(io, student.teacherRef, student._id)
