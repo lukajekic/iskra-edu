@@ -291,7 +291,8 @@ console.log("Metrica_http_count:", metrica_http_count)
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
                 status: "accepted", //nema sta novo osim statusa
-                metrica_http_count
+                metrica_http_count,
+                grading_date
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
                 }
@@ -388,7 +389,8 @@ student.solutions.push({
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
                 status: "accepted", //svakako je jedino sto novo vidi status pa da ne fetchuje ponovo
-                metrica_http_count
+                metrica_http_count,
+                grading_date
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
                 }

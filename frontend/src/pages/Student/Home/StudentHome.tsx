@@ -133,6 +133,10 @@ const handleSolutionSend = async()=>{
       if (socket_data?.status === 'accepted') {
         handleConfetti();
         setSolution(prev => ({...prev, stderr: ""}))
+
+        if (socket_data.grading_date) {
+          setSolution(prev => ({...prev, grading_date: socket_data.grading_date}))
+        }
         CreateMetricaEvent(import.meta.env.VITE_METRICA, metrica_events.accepted)
       }
 
