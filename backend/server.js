@@ -103,6 +103,15 @@ io.on('connection', (socket)=>{
   
   socket.emit('message', `Usao si ušao u sobu: ${roomName}`);
 })
+
+
+
+socket.on('join_room_fwork_warning', (roomName) => {
+  socket.join(roomName)
+  console.log(`Socket ${socket.id} je ušao u sobu za work_forbidden: ${roomName}`);
+  
+  socket.emit('message', `Usao si ušao u sobu (work_forbidden) profesora: ${roomName}`);
+})
 })
 
 app.set('socketio', io)

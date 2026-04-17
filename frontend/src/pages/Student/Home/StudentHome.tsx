@@ -1,5 +1,5 @@
 import StudentNavbar from '@/components/custom/StudentNavbar'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import Editor from '@monaco-editor/react';
 import { loader } from '@monaco-editor/react';
 import { useOutletContext, useParams, useSearchParams } from 'react-router-dom';
@@ -18,6 +18,7 @@ import TerminalRunner from '@/components/custom/TerminalRunner';
 import TerminalResponse from '@/components/custom/TerminalResponse';
 import { CreateMetricaView, CreateMetricaEvent } from "@lukajekic/metrica-sdk";
 import moment from 'moment-timezone';
+import { WorkForbiddenContext } from '@/pages/Teacher/StudentDashboardWrapper';
 
 type props = {
   openPicker: {
@@ -35,6 +36,8 @@ type Task = {
     ownerRef:   string;
     richText?:   string;
 }
+
+
 const StudentHome = () => {
 
   const metrica_events = {
@@ -145,7 +148,12 @@ const handleSolutionSend = async()=>{
       }
       }
     }
+
+    console.log("Socket_data", socket_data)
   }, [socket_data])
+
+  const { work_forbidden, set_work_forbidden } = useContext(WorkForbiddenContext)
+
   const [gradeStatus, setGradeStatus] = useState<"none" | "accepted" | "revise" | "grading">("none")
   const [params] = useSearchParams()
   const [openInputAlert, setOpenInputAlert] = useState(false)
@@ -252,7 +260,8 @@ const getSolution = async (shouldWait = false) => {
 </div>
     <div id="student-solution-editor" className='p-4 md:basis-1/2 w-full '>
 <div className=" w-full overflow-hidden rounded-lg flex flex-col">
-  <div id="solution-actions" className='w-full min-w-full border-1 rounded-lg h-fit p-2 flex justify-between'>
+  {!work_forbidden && (
+    <div id="solution-actions" className='w-full min-w-full border-1 rounded-lg h-fit p-2 flex justify-between'>
     <div id="sa-left">
       <Tooltip>
         <TooltipTrigger>
@@ -269,6 +278,7 @@ const getSolution = async (shouldWait = false) => {
       <Button disabled={disableSend} variant={'default'} onClick={()=>{handleSolutionSend()}}><Send></Send>Pošalji na pregled</Button>
     </div>
   </div>
+  )}
   <div id="grading-status" className={`mt-5 rounded-t-lg flex flex-col-reverse items-start md:flex-row md:items-center px-5 py-4 justify-between gap-2 h-fit   ${gradeStatus == "none" ? "bg-[#e6e6e6]" : gradeStatus == "accepted" ? "bg-[#2db32d] text-white" : gradeStatus == "revise" ? "bg-[#ff5959] text-white" : gradeStatus == "grading" ? "bg-[#ffdb4d]" : "bg-white" }`}>
     <div className='flex gap flex-col flex-1' id="send-info">
       <span className='text-2xl font-bold' hidden>ID 148721908</span>

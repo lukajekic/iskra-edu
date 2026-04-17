@@ -1,5 +1,5 @@
 import express from 'express'
-import { createAccount, createWorkhourGroup, Documentation, endWorkhour, getMessages, Login, Logout, MyProfile, MyWorkhourGroup, readMessage, RedirectMe, WorkhourPorgress, WorkhourTimer } from '../controllers/UserController.js'
+import { createAccount, createWorkhourGroup, Documentation, endWorkhour, ForbidWork, getMessages, Login, Logout, MyProfile, MyWorkhourGroup, readMessage, RedirectMe, WorkhourPorgress, WorkhourTimer } from '../controllers/UserController.js'
 import { protect } from '../middleware/protect.js'
 let router = express.Router()
 
@@ -17,4 +17,5 @@ router.post('/me/workhour/create', protect, createWorkhourGroup)
 router.get('/me/workhour/timer', protect, WorkhourTimer)
 router.delete('/me/workhour/end', protect, endWorkhour)
 router.get('/me/workhour/progress', protect, WorkhourPorgress)
+router.post('/me/workhour/forbid', protect, ForbidWork)
 export default router

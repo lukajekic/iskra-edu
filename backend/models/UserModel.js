@@ -8,10 +8,12 @@ const schema = new mongoose.Schema({
     activegroup: {
     type: {
         expiry: Date,
-        code: String
+        code: String,
+        work_forbidden: Boolean
     },
     default: undefined,
-    required: false
+    required: false,
+
 },
 
     institution: {

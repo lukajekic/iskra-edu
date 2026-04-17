@@ -1,6 +1,6 @@
 import PageTitle from '@/components/custom/PageTitle'
 import { Button } from '@/components/ui/button'
-import { Fullscreen, Info, PlusSquare, Users, X } from 'lucide-react'
+import { Ban, Fullscreen, Info, LogOut, PlusSquare, Users, X } from 'lucide-react'
 import React, { use, useEffect, useState } from 'react'
 import Footer from '@/components/custom/Footer'
 import { DataTable } from '@/components/custom/data-table'
@@ -27,6 +27,21 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { io } from 'socket.io-client'
 import { useUserId } from '@/context/UserContext'
 import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { toast } from 'sonner'
 
 type ProgressPerStudent = {
     name:      string;
@@ -42,6 +57,8 @@ const [groupActive, setGroupActive] = useState(false)
 const [codeFullScreen, setCodeFullScreen] = useState(false)
 const [workhourData, setWorhourData] = useState()
 const [openEndModal, setopenendmodal] = useState(false)
+const [openForbidModal, SetOpenForbidModal] = useState(false)
+
 const [progress, setProgress] = useState([])
 const { userID } = useUserId()
 const [workhourProgress, setWorkhourProgress] = useState<ProgressPerStudent[]>([])
@@ -52,6 +69,18 @@ const endclass = async()=>{
     const response = await axios.delete(`${import.meta.env.VITE_BACKEND}/user/me/workhour/end`)
     if (response.status === 200) {
       location.reload()
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+const forbidwork = async()=>{
+  try {
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/me/workhour/forbid`)
+    if (response.status === 200) {
+toast.success("Uspesno!")
+SetOpenForbidModal(false)
     }
   } catch (error) {
     console.error(error)
@@ -176,7 +205,21 @@ useEffect(() => {
         </div>
       </div>
       <div className="w-full flex justify-end">
-        <Button onClick={()=>{setopenendmodal(true)}} variant={'destructive'}><X></X>Završi čas (pre roka)</Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+                  <Button variant={'destructive'}><X></X>Završi čas</Button>
+
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align='end' className='w-fit'>
+          <DropdownMenuItem variant='destructive' onClick={()=>{setopenendmodal(true)}}>
+<LogOut></LogOut>Odjavi sve učenike
+          </DropdownMenuItem>
+
+            <DropdownMenuItem variant='destructive' onClick={()=>{SetOpenForbidModal(true)}}>
+<Ban></Ban> Zabrani dalji rad
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       </div>
       <Separator className='mb-5 mt-2'></Separator>
       <div>
@@ -301,7 +344,23 @@ useEffect(() => {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={()=>[setopenendmodal(false)]}>Odustani</AlertDialogCancel>
-          <AlertDialogAction onClick={()=>{endclass()}}>Potvrdi</AlertDialogAction>
+          <AlertDialogAction variant={'destructive'} onClick={()=>{endclass()}}>Potvrdi</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <AlertDialog open={openForbidModal} onOpenChange={(e)=>{SetOpenForbidModal(e)}}>
+    
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Da li ste sigurni?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Zabranom rada imaćete uvid u rešenja Vaših učenika, ali dalje slanje zadataka će biti omogućeno dok ne pokrente novu grupu.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={()=>[SetOpenForbidModal(false)]}>Odustani</AlertDialogCancel>
+          <AlertDialogAction variant={'destructive'} onClick={()=>{forbidwork()}}>Potvrdi</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

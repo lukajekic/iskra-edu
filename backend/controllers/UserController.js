@@ -53,6 +53,10 @@ export const createAccount = async (req, res) => {
         if (!teacher) {
             return res.status(400).json(BuildValidationReturn("Teacher not in DB, queried by code, maybe teacher disabled the group", "error", "We cannot find your Teacher in our records."))
         }
+
+        if (teacher.work_forbidden) {
+            return res.status(400).json(BuildValidationReturn("work_forbidden = true", "error", "Group joins are disabled."))
+        }
         toInsert.teacherRef = new mongoose.Types.ObjectId(teacher._id)
         toInsert.solutions = []
         toInsert.username = "temp"
@@ -199,17 +203,36 @@ export const RedirectMe = async (req, res) => {
             return res.status(200).json({ "redirect": "/auth/onboarding" })
         }
 
+
+
         const verify = jwt.verify(token, process.env.JWT_SECRET)
 
         if (verify) {
-            const user = await UserModel.findById(verify.id)
-
+            const user = await UserModel.findById(verify.id).populate("teacherRef")
+console.log(user)
             if (!user) {
                 return res.status(200).json({ "redirect": "/auth/onboarding" })
             }
 
             if (user.type === "student_permanent" || user.type === "student_temp") {
-                return res.status(200).json({ "redirect": "/app/student/home", "userID": verify.id })
+                let returnObj = {
+    "redirect": "/app/student/home",
+    "userID": verify.id
+                }
+                if (req.query.teacherref && req.query.teacherref === "true") {
+                    returnObj["teacherRef"] = user.teacherRef._id.toString()
+                }
+
+                if (req.query.return_work_forbidden && req.query.return_work_forbidden === "true") {
+                    if (user.type === "student_permanent") {
+                        returnObj["work_forbidden"] = false
+                    } else {
+                        returnObj["work_forbidden"] = user.teacherRef.activegroup.work_forbidden
+                    }
+                    
+                }
+return res.status(200).json(returnObj)
+                
             } else if (user.type === "teacher") {
                 return res.status(200).json({ "redirect": "/app/teacher", "userID": verify.id })
             }
@@ -317,7 +340,8 @@ if (user.activegroup?.code) {
 
         user.activegroup = {
             code: classcode,
-            expiry: due_iso
+            expiry: due_iso,
+            work_forbidden: false
         }
 
         await user.save()
@@ -434,5 +458,48 @@ export const WorkhourPorgress = async(req,res) =>{
 
     } catch (error) {
         return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
+    }
+}
+
+export const ForbidWork = async(req, res)=>{
+    try {
+        const userid = req.user._id
+
+    if (!userid) {
+        return res.status(400).json(BuildValidationReturn('no user id from middleware', 'error', 'Missing User ID.'))
+
+    }
+
+    let user = await UserModel.findById(userid)
+
+    if (!user) {
+        return res.status(400).json(BuildValidationReturn('user not found.', 'error', "User not found."))
+    }
+
+    if (user.type !== 'teacher') {
+        return res.status(400).json(BuildValidationReturn('required teacher account type.', 'error', 'You are not authorized to access this functionality.'))
+    }
+
+    if (!user.activegroup) {
+        return res.status(400).json(BuildValidationReturn('no activegroup object in account.', 'error', 'You have no active workhour group.'))
+    }
+
+    const groupEndDate = new Date(user.activegroup.expiry)
+    const now = new Date()
+
+    const difference = now - groupEndDate
+
+    if (difference > 0) {
+        return res.status(400).json(BuildValidationReturn('group expired.', 'error', 'Group expired.'))
+    }
+
+    user.activegroup.work_forbidden = true
+    user.markModified('activegroup');
+    await user.save()
+    const io = req.app.get('socketio')
+    io.to(user._id.toString()).emit("work_forbidden_action")
+    return res.status(200).json(BuildValidationReturn('ok.', 'success', 'Successful.'))
+    } catch (error) {
+        return res.status(400).json(BuildValidationReturn(error.message, 'error', 'Unexpected error occured.'))
     }
 }
