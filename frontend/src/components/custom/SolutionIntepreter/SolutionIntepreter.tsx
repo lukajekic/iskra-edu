@@ -189,7 +189,9 @@ if (UserID) {
     {/* Sada će ovaj crveni div popuniti sav preostali prostor do dna kolone */}
     <div className="p-2 flex-1 rounded-[10px] border border-[#cecece] h-auto overflow-y-auto">
       <CardTitle className='mb-2'>Zadaci</CardTitle>
-    {student?.solutions.map((item, index)=>{
+    {student?.solutions.sort((a,b)=>{
+      return new Date(b.grading_date) - new Date(a.grading_date)
+    }).map((item, index)=>{
       if (item.status === 'accepted') {
 return (
   <div onClick={()=>{setActiveSolution(item)}} className={`${item.flags.length > 0 ? "bg-red-100" : ""} w-full hover:cursor-pointer p-2 flex items-center gap-3 border-b hover:shadow-sm transition-shadow hover:rounded`}>
