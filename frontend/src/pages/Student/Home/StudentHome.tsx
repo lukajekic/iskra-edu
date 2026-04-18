@@ -79,7 +79,7 @@ useEffect(() => {
         
         tabTimerRef.current = setTimeout(() => {
         sessionStorage.setItem("iskra_anticheat_tab", "true");
-        }, 5000) // DEV interval
+        }, 15000) // DEV interval
       } else {
         // console.log("Ucenik se vratio na vreme.");
         clearTimeout(tabTimerRef.current);
@@ -241,7 +241,6 @@ const handleSolutionSend = async()=>{
         origin: { x: 1, y: 0.5 },
         colors: colors,
       })
-      requestAnimationFrame(frame)
     }
     frame()
   }
