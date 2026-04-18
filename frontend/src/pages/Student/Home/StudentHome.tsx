@@ -242,7 +242,7 @@ const handleSolutionSend = async()=>{
         colors: colors,
       })
     }
-    frame()
+    requestAnimationFrame(frame)
   }
   const [searchParams, setSearchParams] = useSearchParams();
 
