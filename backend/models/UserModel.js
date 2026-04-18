@@ -40,6 +40,10 @@ const schema = new mongoose.Schema({
             status: String,
             code: String,
             stderr: String,
+            stdok: {
+                type: String,
+                required: false
+            },
             taskID: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Task"
@@ -56,6 +60,11 @@ const schema = new mongoose.Schema({
 
     grading_date: {
         type: Date,
+        required: false
+    },
+
+    flags: {
+        type: Array,
         required: false
     }
         }],

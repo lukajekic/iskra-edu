@@ -1,5 +1,5 @@
 import StudentNavbar from '@/components/custom/StudentNavbar'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import Editor from '@monaco-editor/react';
 import { loader } from '@monaco-editor/react';
 import { useOutletContext, useParams, useSearchParams } from 'react-router-dom';
@@ -39,6 +39,63 @@ type Task = {
 
 
 const StudentHome = () => {
+
+
+  
+
+ 
+// anticheat_paste
+function handleEditorDidMount(editor) {
+  editor.onDidPaste(async () => {
+    try {
+      // Čitamo clipboard BAŠ SAD kad je kliknuo paste
+      const tekstIzClipboarda = await navigator.clipboard.readText();
+      const duzina = tekstIzClipboarda.length;
+
+      if (duzina > 15) {
+        // console.log(`Detektovano: Učenik je zalepio ${duzina} karaktera.`);
+        
+        // Čuvamo informaciju
+        sessionStorage.setItem("iskra_anticheat_paste", "true");
+        
+        // Opciono: Možeš poslati i sam tekst na backend da profesor vidi ŠTA je zalepio
+      } else {
+        // console.log("Zalepljen je kratak tekst, to tolerišemo.");
+      }
+    } catch (err) {
+      // console.error("Greška pri čitanju clipboarda: ", err);
+    }
+  });
+}
+
+// anticheat_tab
+
+const tabTimerRef = useRef<number>(null);
+
+useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // console.log("Tab napusten, tajmer pokrenut...");
+        
+        tabTimerRef.current = setTimeout(() => {
+        sessionStorage.setItem("iskra_anticheat_tab", "true");
+        }, 5000) // DEV interval
+      } else {
+        // console.log("Ucenik se vratio na vreme.");
+        clearTimeout(tabTimerRef.current);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearTimeout(timerRef.current); // Cleanup u slučaju unmount-a
+    };
+  }, []);
+
+
+
+
 
   const metrica_events = {
     "accepted": "69d3dcffbcef93be94541ac1",
@@ -96,7 +153,9 @@ const handleSolutionSend = async()=>{
     const response = await axios.post(`${import.meta.env.VITE_BACKEND}/app/student/solution/create`, {
       solutionID: solution.solutionID,
       code: code,
-      taskID: searchParams.get('task')
+      taskID: searchParams.get('task'),
+      iskra_anticheat_paste: sessionStorage.getItem("iskra_anticheat_paste"),
+      iskra_anticheat_tab: sessionStorage.getItem("iskra_anticheat_tab")
     })
   } catch (error) {
     console.error(error)
@@ -193,6 +252,8 @@ const getTask = async()=>{
     const response = await axios.get<Task>(`${import.meta.env.VITE_BACKEND}/app/student/task/${searchParams.get('task')}`)
     if (response.data) {
       setTask(response.data)
+      sessionStorage.removeItem("iskra_anticheat_paste")
+      sessionStorage.removeItem("iskra_anticheat_tab")
     }
   } catch (error) {
     console.error(error)
@@ -285,8 +346,12 @@ const getSolution = async (shouldWait = false) => {
       <span className='text-md '>{
         (solution?.grading_date && solution?.status === "accepted") ? moment(solution?.grading_date).tz("Europe/Belgrade").format("DD. MM. YYYY. HH:mm") : ""
         }</span>
-      {solution?.stderr && (
+      {(solution?.stderr && solution?.status === 'revise') && (
         <span className="text-md">{solution?.stderr}</span>
+      )}
+
+      {(solution?.stdok && solution?.status === 'accepted') && (
+        <span className="text-md italic"><span className="font-bold">Komentar: </span>{solution?.stdok}</span>
       )}
     </div>
 
@@ -299,6 +364,7 @@ const getSolution = async (shouldWait = false) => {
   
   <Editor
 options={{
+  
     selectOnLineNumbers: true,
     renderWhitespace: "all",
     quickSuggestions: {
@@ -317,6 +383,7 @@ theme='vs-dark'
 defaultLanguage='python'
 onChange={(e)=>{console.log(JSON.stringify(e)), setCode(e)}}
 value={code}
+onMount={handleEditorDidMount}
 ></Editor>
 </div>
     </div>

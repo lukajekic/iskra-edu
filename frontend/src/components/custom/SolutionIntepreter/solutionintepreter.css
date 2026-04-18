@@ -1,0 +1,75 @@
+.info-value {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-start;
+    border: 1px solid #cecece;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.info-value h1 {
+    color: var(--color-gray-600);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.info-value p {
+    color: black;
+    font-size: 18px;
+}
+
+
+/* Kontejner koji drži sve na okupu */
+.shad-group {
+  display: inline-flex;
+  background-color: #f1f5f9; /* Slate-100 */
+  padding: 4px;
+  border-radius: 8px; /* Malo veći radius za spoljni deo */
+  gap: 4px;
+}
+
+/* Sakrivamo radio kružić potpuno */
+.shad-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* Osnovni stil za tag (dugme) */
+.shad-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b; /* Slate-500 (sivkasto) */
+  border-radius: 6px; /* Shadcn 'md' radius */
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  user-select: none;
+  background-color: transparent;
+}
+
+/* Hover - samo malo potamni tekst ili pozadinu */
+.shad-box:hover {
+  background-color: #e2e8f0; /* Slate-200 */
+  color: #0f172a; /* Slate-950 */
+}
+
+/* MAGIJA: Stil kada je RADIO selektovan */
+.shad-input:checked + .shad-box {
+  background-color: #ffffff; /* Bela pozadina unutra */
+  color: #0f172a; /* Skoro crna boja teksta */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* Fokus za tastaturu (da bude pristupačno) */
+.shad-input:focus-visible + .shad-box {
+  outline: 2px solid #94a3b8;
+  outline-offset: 2px;
+}

@@ -144,7 +144,7 @@ let determineInstance = ()=>{
 }
 export const sendSolution = async(req,res)=>{
     let metrica_http_count = 0
-    const {solutionID, code, taskID} = req.body || {}
+    const {solutionID, code, taskID, iskra_anticheat_paste, iskra_anticheat_tab} = req.body || {}
     if (!code || !taskID) {
         return res.status(400).json(BuildValidationReturn("validation failed.", "error", "Please send all required data."))
     }
@@ -153,6 +153,13 @@ export const sendSolution = async(req,res)=>{
 
 
     let student = await UserModel.findById(req.user._id)
+    let flags = []
+    if (iskra_anticheat_paste && iskra_anticheat_paste === "true") {
+        flags.push("iskra_anticheat_paste")
+    }
+    if (iskra_anticheat_tab && iskra_anticheat_tab === "true") {
+        flags.push("iskra_anticheat_tab")
+    }
     if (!allowed_users.includes(student.type)) {
             return res.status(400).json(BuildValidationReturn("lacking role.", "error", "You are not authorized to access this data."))
         }
@@ -186,7 +193,8 @@ let new_id = crypto.randomUUID()
                 stderr: "Zadatak nije ispravno kreiran, molimo Vas obratite se Vasem predmetnom profesoru. (zadatak nema unete testove za proveru)",
                 code: code,
                 taskID: taskID,
-                grading_date
+                grading_date,
+                flags: flags
             })
 
             await student.save()
@@ -231,7 +239,8 @@ for (const test of tests) {
                 stderr: `❌ Python nije mogao razumeti tvoj kod: ${stderr}`,
                 code: code,
                 taskID: taskID,
-                grading_date
+                grading_date,
+                flags: flags
             })
 
             await student.save()
@@ -256,7 +265,8 @@ for (const test of tests) {
                 taskID: taskID,
                 dev_ocekivani_output: expected_output,
                 dev_output: output_real,
-                grading_date
+                grading_date,
+                flags: flags
             })
 
             await student.save()
@@ -282,7 +292,8 @@ student.solutions.push({
                 stderr: "",
                 code: code,
                 taskID: taskID,
-                grading_date
+                grading_date,
+                flags: flags
             })
 
             sendRealtimeProgressUpdate(io, student.teacherRef, student._id)
@@ -328,7 +339,8 @@ for (const test of tests) {
                 stderr: `❌ Python nije mogao razumeti tvoj kod: ${stderr}`,
                 code: code,
                 taskID: taskID,
-                grading_date
+                grading_date,
+                flags: flags
             })
 
             await student.save()
@@ -355,7 +367,8 @@ for (const test of tests) {
                 taskID: taskID,
                 dev_ocekivani_output: expected_output,
                 dev_output: output_real,
-                grading_date
+                grading_date,
+                flags: flags
             })
 
             await student.save()
@@ -380,7 +393,8 @@ student.solutions.push({
                 stderr: "",
                 code: code,
                 taskID: taskID,
-                grading_date
+                grading_date,
+                flags: flags
             })
 
             sendRealtimeProgressUpdate(io, student.teacherRef, student._id)

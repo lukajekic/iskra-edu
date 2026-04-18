@@ -1,6 +1,6 @@
 import PageTitle from '@/components/custom/PageTitle'
 import { Button } from '@/components/ui/button'
-import { Ban, Fullscreen, Info, LogOut, PlusSquare, Users, X } from 'lucide-react'
+import { Ban, CircleCheckBig, Fullscreen, Info, LogOut, PlusSquare, Users, X } from 'lucide-react'
 import React, { use, useEffect, useState } from 'react'
 import Footer from '@/components/custom/Footer'
 import { DataTable } from '@/components/custom/data-table'
@@ -42,6 +42,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { toast } from 'sonner'
+import SolutionIntepreter from '@/components/custom/SolutionIntepreter/SolutionIntepreter'
 
 type ProgressPerStudent = {
     name:      string;
@@ -62,7 +63,7 @@ const [openForbidModal, SetOpenForbidModal] = useState(false)
 const [progress, setProgress] = useState([])
 const { userID } = useUserId()
 const [workhourProgress, setWorkhourProgress] = useState<ProgressPerStudent[]>([])
-
+const [studentIspectorID, setStudentIspectorID] = useState<string|null>(null)
 
 const endclass = async()=>{
   try {
@@ -232,6 +233,9 @@ useEffect(() => {
           <TableHead>Ime i prezime</TableHead>
           <TableHead>Vreme prijave</TableHead>
           <TableHead className="text-right">Napredak (urađeni zadaci)</TableHead>
+          <TableHead className="text-right w-[1%] whitespace-nowrap">
+  Akcija
+</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -243,6 +247,9 @@ useEffect(() => {
               <Badge className='bg-green-600 text-lg h-[32px]'>
                 {item.correct.toString()}
               </Badge>
+            </TableCell>
+            <TableCell className='flex justify-end pl-5'>
+              <Button onClick={()=>{setStudentIspectorID(item.studentid)}}><CircleCheckBig></CircleCheckBig>Pregled rešenja</Button>
             </TableCell>
           </TableRow>
         ))}
@@ -364,6 +371,20 @@ useEffect(() => {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+<Dialog open={studentIspectorID ? true : false} onOpenChange={(e)=>{
+  if (e === false) {
+    setStudentIspectorID(null)
+  }
+}}>
+  <DialogContent className='max-w-[95vw] w-[95vw] min-w-[95vw] h-[90vh] max-h-[90vh] flex flex-col p-6'>
+    <div className="flex-1 overflow-hidden">
+        {studentIspectorID && (
+          <SolutionIntepreter UserID={studentIspectorID} />
+        )}
+    </div>
+  </DialogContent>
+</Dialog>
     </>
   )
 }
