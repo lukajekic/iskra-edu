@@ -1,6 +1,6 @@
 import TeacherNavbar from '@/components/custom/TeacherNavbar'
 import { AppSidebar } from '@/components/ui/app-sidebar'
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import axios from 'axios'
 import React, { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
@@ -34,9 +34,12 @@ handleOnboarding()
       <TeacherNavbar></TeacherNavbar>
       <SidebarProvider >
       <AppSidebar  />
-      <main className='p-5 w-full'>
+      <SidebarInset>
+        <main className='p-5 w-full'>
         <Outlet></Outlet>
       </main>
+      </SidebarInset>
+      
     </SidebarProvider>
     </div>  
   )

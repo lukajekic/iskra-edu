@@ -52,7 +52,7 @@ export function AppSidebar() {
     getWorkhour()
   }, [])
   return (
-    <Sidebar className="top-[60px]">
+    <Sidebar variant='inset' className="top-[60px]">
       <SidebarContent >
         <SidebarGroup>
           <SidebarMenu className="mt-2">
