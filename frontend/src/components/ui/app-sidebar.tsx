@@ -60,8 +60,8 @@ export function AppSidebar() {
             <SidebarMenuItem>
                              <Link to={'/app/teacher/group'}>
 
-              <SidebarMenuButton className={` bg-gray-800 text-white [&:hover,&:active]:bg-gray-900 [&:hover,&:active]:text-white ${location.pathname === "/app/teacher/group" ? "w-[calc(100%-6px)]" : "w-full"}  `}>
-               <CirclePile></CirclePile>
+              <SidebarMenuButton className={` pl-3 py-5 bg-gray-800 text-white [&:hover,&:active]:bg-gray-900 [&:hover,&:active]:text-white ${location.pathname === "/app/teacher/group" ? "w-[calc(100%-6px)]" : "w-full"}  `}>
+               {/* <CirclePile></CirclePile> */}
                Nastavna grupa 
 {myWorkhour && <Badge className="ml-auto"><BagdeTimer date={myWorkhour}></BagdeTimer></Badge>}
 {location.pathname === "/app/teacher/group" && (
@@ -77,9 +77,9 @@ export function AppSidebar() {
 
               return (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive}>
+                  <SidebarMenuButton className="text-[15px] py-5" asChild isActive={isActive}>
                     <Link to={item.url}>
-                      <item.icon />
+                      <item.icon className="!size-5" />
                       <span>{item.title}</span>
                       {isActive && (
                         <div className="ml-auto h-2 w-2 rounded-full bg-primary" />

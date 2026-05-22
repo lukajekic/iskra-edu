@@ -198,7 +198,7 @@ return (
         <div className="w-5 h-5 bg-green-600 rounded-lg  flex justify-center items-center">
           <Check className='text-white size-4'></Check>
         </div>
-        <p>{item.taskID.title}</p>
+        <p>{item?.taskID?.title}</p>
       </div>
 )
       } else if (item.status === 'revise') {
@@ -207,7 +207,7 @@ return (
         <div className="w-5 h-5 bg-red-600 rounded-lg  flex justify-center items-center">
           <X className='text-white size-4'></X>
         </div>
-        <p>{item.taskID.title}</p>
+        <p>{item?.taskID?.title}</p>
       </div>
         )
       }

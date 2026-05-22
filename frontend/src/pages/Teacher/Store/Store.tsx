@@ -1,6 +1,6 @@
 import PageTitle from '@/components/custom/PageTitle'
 import { Button } from '@/components/ui/button'
-import { CircleAlert, Download, Import, Info, PlusSquare, Search, User, UserCircle } from 'lucide-react'
+import { ArrowUpRightIcon, CircleAlert, Download, Folder, Import, Info, PlusSquare, Search, User, UserCircle } from 'lucide-react'
 import React, { act, useEffect, useState } from 'react'
 import Footer from '@/components/custom/Footer'
 import { DataTable } from '@/components/custom/data-table'
@@ -28,6 +28,8 @@ import { Grades, SupportedLanguages } from '@/assets/constants'
 import LoaderModal from '@/components/custom/LoaderModal'
 import { Separator } from '@/components/ui/separator'
 import foldericon from '../../../assets/folder.png'
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import { Link } from 'react-router-dom'
 
 type Folder = {
     _id:        string;
@@ -345,6 +347,7 @@ useEffect(()=>{
 
 
 <div className="flex flex-col gap-2">
+
   {myFolders.folders.map((item, index)=>(
   <div onClick={()=>{
     setOpenLoader(true)
@@ -354,7 +357,34 @@ useEffect(()=>{
   <span key={index} className="flex-1 break-all">{item?.title}</span>
 </div>
 ))}
-</div>
+
+
+
+{myFolders.folders.length === 0 ? (
+    
+
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Folder />
+        </EmptyMedia>
+        <EmptyTitle>Nemate foldere.</EmptyTitle>
+        <EmptyDescription>
+          Kreirajte folder kako biste mogli preuzeti zadatak.
+        </EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent className="flex-row justify-center gap-2">
+        <Button>
+          <Link to={'/app/teacher/tasks?ActiveModal=new_folder'}>Kreirajte folder</Link>
+        </Button>
+      </EmptyContent>
+    </Empty>
+
+
+
+  ) : null}
+  
+  </div>
 
 
 

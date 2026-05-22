@@ -29,11 +29,21 @@ export const getColumns = ({onPreview}):ColumnDef<Task>[]=>[
   },
   {
     accessorKey: "language",
-    header: "Programski jezik"
+    header: "Programski jezik",
+    cell({row}) {
+      return (
+        <span>{row.original.language === "python" ? "Python" : row.original.language}</span>
+      )
+    },
   },
   {
     accessorKey: "outputType",
     header: "Vrsta izlaza",
+    cell({row}) {
+      return (
+        <span>{row.original.outputType === 'standard' ? "Standardni ispis" : row.original.outputType}</span>
+      )
+    },
 
   },
 

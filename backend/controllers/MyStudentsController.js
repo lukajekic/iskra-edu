@@ -133,7 +133,9 @@ export const StudentsProgress = async(req, res)=>{
                     none: tasks_count - (counts.done + counts.revise),
                     revise: counts.revise,
                     accepted: counts.done
-                }
+                },
+
+                id: item._id
             }
 
             acc.push(info)

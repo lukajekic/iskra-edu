@@ -1,6 +1,6 @@
 import PageTitle from '@/components/custom/PageTitle'
 import { Button } from '@/components/ui/button'
-import { Info, PlusSquare } from 'lucide-react'
+import { Info, PlusSquare, RefreshCcw } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import Footer from '@/components/custom/Footer'
 import { DataTable } from '@/components/custom/data-table'
@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import axios from 'axios'
 import LoaderModal from '@/components/custom/LoaderModal'
+import SolutionIntepreter from '@/components/custom/SolutionIntepreter/SolutionIntepreter'
 
 type ProgressType = {
   name: string,
@@ -26,6 +27,8 @@ type ProgressType = {
 const Progress =   () => {
 const [data, setData] = useState<ProgressType[]>([])
 const [loading, setLoading] = useState(true)
+const [studentIspectorID, setStudentIspectorID] = useState<string|null>(null);
+(window as any).setStudentIspectorID = setStudentIspectorID
 const fetchProgress = async()=>{
   try {
     setLoading(true)
@@ -63,7 +66,8 @@ setLoading(false)
     <img src="/undraw_progress-overview_wl8n.svg" className='  h-[150px] hidden lg:block ' alt="" />
     </div>
     <div className="h-2"></div>
-<DataTable  filter={{key: "name", input_label: "Pretraga..."}} data={data} columns={columns}></DataTable>
+    <Button onClick={()=>{fetchProgress()}} className='mb-2'><RefreshCcw></RefreshCcw>Osveži podatke</Button>
+<DataTable  filter={{key: "name", input_label: "Pretraga..."}} data={data} columns={columns} studentIspectorID={studentIspectorID} setStudentIspectorID={setStudentIspectorID}></DataTable>
 
 
 
@@ -131,6 +135,20 @@ setLoading(false)
     <Footer></Footer>
 
     <LoaderModal open={loading}></LoaderModal>
+
+    <Dialog open={studentIspectorID ? true : false} onOpenChange={(e)=>{
+  if (e === false) {
+    setStudentIspectorID(null)
+  }
+}}>
+  <DialogContent className='max-w-[95vw] w-[95vw] min-w-[95vw] h-[90vh] max-h-[90vh] flex flex-col p-6'>
+    <div className="flex-1 overflow-hidden">
+        {studentIspectorID && (
+          <SolutionIntepreter UserID={studentIspectorID} />
+        )}
+    </div>
+  </DialogContent>
+</Dialog>
     </>
   )
 }

@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from '@/components/ui/switch'
 import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import LoaderModal from '@/components/custom/LoaderModal'
 
 
@@ -56,6 +56,7 @@ type NewTask = {
 }
 
 const Tasks =   () => {
+  const [SearchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const [proposedFolderView, setProposedFolderView] = useState<boolean|null>(null)
   const[newFolderName, setNewFodlerName] = useState<string>("")
@@ -154,6 +155,16 @@ const getFolders = async ()=>{
 }
   useEffect(() => {
     getFolders()
+    
+
+    let active_modal_param = SearchParams.get("ActiveModal")
+    console.log(active_modal_param)
+
+    if (active_modal_param === "new_folder") {
+      setModalState(prev => ({...prev, newfolder: true}))
+    }
+
+
   }, [])
 
 
@@ -229,7 +240,7 @@ const getFolders = async ()=>{
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <SelectLabel>Dostupni jezici</SelectLabel>
+          <SelectLabel className='uppercase'>Dostupni jezici</SelectLabel>
           <SelectItem value="python"><img src={py_icon} className='w-4'></img>Python</SelectItem>
 
         </SelectGroup>
@@ -248,9 +259,9 @@ const getFolders = async ()=>{
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <SelectLabel>Dostupni jezici</SelectLabel>
+          <SelectLabel className='uppercase'>Vrste ispisa</SelectLabel>
           <SelectItem value="standard">Standardni ispis</SelectItem>
-          <SelectItem value="matplotlib">Biblioteka matplotlib</SelectItem>
+          <SelectItem disabled value="matplotlib">Biblioteka matplotlib</SelectItem>
         </SelectGroup>
       </SelectContent>
     </Select>
@@ -267,7 +278,7 @@ const getFolders = async ()=>{
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <SelectLabel>Folderi</SelectLabel>
+          <SelectLabel className='uppercase'>Folderi</SelectLabel>
 {data.map((item, index)=>(
             <SelectItem key={index} value={item.folderId}><img src={foldericon} className='w-4'></img>{item?.folderName}</SelectItem>
 
