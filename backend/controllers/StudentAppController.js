@@ -4,6 +4,7 @@ import { BuildValidationReturn } from "../utilities/ReturnValidationError.js"
 import { TaskModel } from "../models/TaskModel.js"
 import { UserModel } from "../models/UserModel.js"
 import crypto from "crypto";
+import { AILogModel } from "../models/AILogModel.js"
 
 const allowed_users = ['student_temp', 'student_permanent']
 
@@ -461,5 +462,249 @@ export const RunCode = async (req, res) => {
     } catch (error) {
         const errorResponse = BuildValidationReturn(error.message, "error", "Unexpected error occured.");
         return res.status(500).json(errorResponse);
+    }
+}
+
+export const getAIMentorHelp = async(req, res)=>{
+    const html_coimng_soon = `
+    <!DOCTYPE html>
+        <html lang="sr">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Iskra AI Mentor — Dolazi Uskoro</title>
+            <style>
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                    background-color: #0b0f19;
+                    color: #f3f4f6;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    overflow: hidden;
+                    position: relative;
+                }
+                /* Neonski efekat u pozadini */
+                body::before {
+                    content: '';
+                    position: absolute;
+                    width: 300px;
+                    height: 300px;
+                    background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, rgba(0,0,0,0) 70%);
+                    top: 20%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    z-index: 0;
+                }
+                .container {
+                    text-align: center;
+                    z-index: 1;
+                    padding: 20px;
+                    max-width: 600px;
+                }
+                .badge {
+                    display: inline-block;
+                    background: rgba(249, 115, 22, 0.1);
+                    border: 1px solid rgba(249, 115, 22, 0.3);
+                    color: #f97316;
+                    padding: 6px 16px;
+                    border-radius: 20px;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    margin-bottom: 24px;
+                    animation: pulse 2s infinite;
+                }
+                h1 {
+                    font-size: 2.8rem;
+                    font-weight: 800;
+                    letter-spacing: -0.05em;
+                    margin-bottom: 16px;
+                    background: linear-gradient(to right, #ffffff, #9ca3af);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+                h1 span {
+                    background: linear-gradient(to right, #f97316, #fbcfe8);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+                p {
+                    font-size: 1.15rem;
+                    color: #9ca3af;
+                    line-height: 1.6;
+                    margin-bottom: 32px;
+                }
+                .card {
+                    background: rgba(17, 24, 39, 0.7);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    border-radius: 16px;
+                    padding: 24px;
+                    backdrop-filter: blur(10px);
+                    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+                }
+                .feature-list {
+                    text-align: left;
+                    list-style: none;
+                    margin-top: 12px;
+                }
+                .feature-list li {
+                    font-size: 0.95rem;
+                    color: #d1d5db;
+                    margin-bottom: 12px;
+                    display: flex;
+                    align-items: center;
+                }
+                .feature-list li::before {
+                    content: '✦';
+                    color: #f97316;
+                    margin-right: 10px;
+                    font-size: 1.1rem;
+                }
+                @keyframes pulse {
+                    0% { opacity: 0.6; }
+                    50% { opacity: 1; }
+                    100% { opacity: 0.6; }
+                }
+            </style>
+        </head>
+        <body>
+
+            <div class="container">
+                <div class="badge">U razvoju</div>
+                <h1>Iskra <span>AI Mentor</span></h1>
+                <p>Podižemo učenje kodiranja na sledeći nivo. Tvoj lični asistent za analizu koda, pronalaženje bagova i pametne smernice stiže direktno na platformu.</p>
+                
+                <div class="card">
+                    <ul class="feature-list">
+                        <li>Pedagoški pristup otklanjanju problema</li>
+                        <li>Podsticaj na razmišljanje o fundamentalnim konceptima</li>
+                        <li>100% Anonimno</li>
+                    </ul>
+                </div>
+              
+              <p style="font-size:10px;margin-top:10px;">Za detalje o obradi podataka i anonimnosti, posetite dokumentaciju politike privatnosti.</p>
+            </div>
+
+        </body>
+        </html>
+    `
+
+
+
+    // res.type('html')
+    // res.send(html_coimng_soon)
+
+    const studentid = req.user._id
+        const {taskID} = req.params || {} 
+        if (!studentid) {
+            return res.status(400).json(BuildValidationReturn("no req.user._id", "error", "We cannot determine your Student ID."))
+        }
+
+        if (!taskID) {
+            return res.status(400).json(BuildValidationReturn("no task id", "error", "Please provide Task ID."))
+        }
+
+         if (!allowed_users.includes(req.user.type)) {
+            return res.status(400).json(BuildValidationReturn("lacking role.", "error", "You are not authorized to access this data."))
+        }
+
+
+
+        let solutions = req.user.solutions || []
+        console.log(solutions)
+
+
+    let single_solution = solutions.find(item => item.taskID.equals(taskID))
+
+    if (!single_solution) {
+        return res.status(400).json(BuildValidationReturn("no solution found.", "error", "Solution not found."))
+    }
+
+    let task =  await TaskModel.findById(taskID)
+
+    if (!task) {
+        return res.status(400).json(BuildValidationReturn("Task not found.", "error", "Task not found."))
+    }
+
+    let solution_ai_used = task.ai_users.includes(req.user._id.toString()) || false
+    let task_ai_allowed = task.ai_allowed || false
+
+    if (!solution_ai_used && task_ai_allowed) {
+        console.log("STARTING AI")
+        let ai_response = await CallAI(task.richText, single_solution.code)
+
+        if (ai_response === 'error') {
+            return res.status(400).json(BuildValidationReturn("AI ERROR.", "error", "IskraAI cannot be used now."))
+        }
+
+        //ako radi
+
+        task.ai_users.push(studentid.toString())
+        await task.save()
+
+        // logovanje u mongodb
+
+        let new_ailog = AILogModel({
+            taskID: taskID,
+            task_description: task.richText,
+            code: single_solution.code,
+            ai_suggestion: ai_response.result.response ?? "",
+            metadata: {
+                timestamp: new Date(),
+                language: task.language,
+                model: "llama-3-8b-instruct"
+            },
+
+            dataset_export: false
+        })
+
+        await new_ailog.save()
+        return res.status(200).json(ai_response.result.response ?? ".")
+
+    } else{
+        return res.status(400).json(BuildValidationReturn("AI forbidden.", "warning", "You cannot use AI on Non-AI tasks or if you already used it for this task."))
+    }
+}
+
+
+async function CallAI(task_description, user_code) {
+    let json = {
+        "messages": [
+            {
+                "role": "system",
+                "content": "AI Mentor. Pravila: Odgovaraj na srpskom, mentorski, max 2-3 rečenice. Zabranjen kod, backticks, zagrade, računski simboli i engleski nazivi funkcija (print, input, float, int). Koristi Sokratski metod sa pitanjem na kraju."
+            },
+            {
+                "role": "user",
+                "content": `Zadatak:\n\n${task_description}\n\nKod:\n\n${user_code}`
+            }
+        ],
+        "max_tokens": 500,
+        "temperature": 0.6
+    }
+
+    try {
+        const response = await fetch(process.env.AI_ENDPOINT, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": process.env.AI_API_KEY
+            },
+            body: JSON.stringify(json)
+        });
+
+        const data = await response.json();
+        return data
+    } catch (err) {
+        console.error("AI Fetch error:", err);
+        return "error";
     }
 }

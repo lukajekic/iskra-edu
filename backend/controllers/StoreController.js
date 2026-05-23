@@ -113,6 +113,8 @@ export const downloadTask = async(req,res)=>{
         toDownload.ownerRef = req.user._id
         toDownload.storeOriginID = storeTask._id
         toDownload.folder = new mongoose.Types.ObjectId(folderID)
+        toDownload.ai_allowed = true // to se moze naknadno editovati
+        toDownload.ai_users = []
 
 
         let toSave = new TaskModel(toDownload)

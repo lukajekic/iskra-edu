@@ -54,6 +54,16 @@ const schema = new mongoose.Schema({
     downloaded: {
         type: Array,
         required: false
+    },
+
+    ai_users: {
+        type: Array,
+        required: false
+    },
+
+    ai_allowed: {
+        type: Boolean,
+        default: true
     }
 })
 

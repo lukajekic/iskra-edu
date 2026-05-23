@@ -153,6 +153,11 @@ Podatke o učenicima mogu videti profesori koji predaju tim učenicima i svi k
 
 - **Vercel Analytics** [https://vercel.com/docs/analytics/privacy-policy](https://vercel.com/docs/analytics/privacy-policy)
 
+- **Cloudflare Privacy Policy** [https://www.cloudflare.com/privacypolicy](https://www.cloudflare.com/privacypolicy)
+
+- **Cloudflare AI Workers Data Usage** [https://developers.cloudflare.com/workers-ai/platform/data-usage](https://developers.cloudflare.com/workers-ai/platform/data-usage)
+
+
 ## Odricanje od odgovornosti
 
 Ova politika može biti menjana u svakom trenutku bez prethodnih obaveštenja korisnicima, očekuje se da korisnici periodično posećuju ovu stranicu za potencijalna ažuriranja. Iskra nije odgovorna za eventualne propuste ili greške u ovom zapisniku. Iskra nije dužna da prati promene u politikama privatnosti trećih lica i njihovoj dostupnosti.
