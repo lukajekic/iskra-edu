@@ -201,7 +201,8 @@ let new_id = crypto.randomUUID()
             await student.save()
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
-                status: "server"
+                status: "server",
+                ai_modal: true
             })
 
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution is graded, results will be listed here."))
@@ -249,7 +250,8 @@ for (const test of tests) {
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
                 status: "server", //pozvace status sa servera,
-                metrica_http_count
+                metrica_http_count,
+                ai_modal: true
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
             
@@ -275,7 +277,8 @@ for (const test of tests) {
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
                 status: "server", //pozvace status sa servera
-                metrica_http_count
+                metrica_http_count,
+                ai_modal: true
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
             
@@ -348,7 +351,8 @@ for (const test of tests) {
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
                 status: "server", //pozvace status sa servera
-                metrica_http_count
+                metrica_http_count,
+                ai_modal: true
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
             
@@ -376,7 +380,8 @@ for (const test of tests) {
             io.to(studentid.toString()).emit("solution_status_update", {
                 task: taskID,
                 status: "server", //pozvace status sa servera
-                metrica_http_count
+                metrica_http_count,
+                ai_modal: true
             })
             return res.status(200).json(BuildValidationReturn("solution checked.", "info", "Your solution was checked, results are listed here."))
             
@@ -635,7 +640,7 @@ export const getAIMentorHelp = async(req, res)=>{
     }
 
     let solution_ai_used = task.ai_users.includes(req.user._id.toString()) || false
-    let task_ai_allowed = task.ai_allowed || false
+    let task_ai_allowed = task.ai_allowed ?? true
 
     if (!solution_ai_used && task_ai_allowed) {
         console.log("STARTING AI")
@@ -680,7 +685,7 @@ async function CallAI(task_description, user_code) {
         "messages": [
             {
                 "role": "system",
-                "content": "AI Mentor. Pravila: Odgovaraj na srpskom, mentorski, max 2-3 rečenice. Zabranjen kod, backticks, zagrade, računski simboli i engleski nazivi funkcija (print, input, float, int). Koristi Sokratski metod sa pitanjem na kraju."
+                "content": "AI Mentor. Pravila: Odgovaraj na srpskom, mentorski, max 2-3 rečenice. Zabranjen kod, backticks, zagrade, računski simboli i engleski nazivi funkcija (print, input, float, int). Koristi Sokratski metod sa pitanjem na kraju. Nikada ne postavljaj follow-up pitanja jer ucenik ti ne moze odgovoriti. Ono sto ti jednom kazes ucenik se dalje ne moze dopisivati."
             },
             {
                 "role": "user",
@@ -706,5 +711,51 @@ async function CallAI(task_description, user_code) {
     } catch (err) {
         console.error("AI Fetch error:", err);
         return "error";
+    }
+}
+
+
+export const checkIskraAIEligibility = async(req, res)=>{
+    try {
+        const studentid = req.user._id
+
+        const {taskID} = req.params || {} 
+        if (!studentid) {
+            return res.status(200).json({"eligible": false})
+        }
+
+        if (!taskID) {
+            return res.status(200).json({"eligible": false})        }
+
+         if (!allowed_users.includes(req.user.type)) {
+            return res.status(200).json({"eligible": false})        }
+
+
+
+        let solutions = req.user.solutions || []
+        console.log(solutions)
+
+
+    let single_solution = solutions.find(item => item.taskID.equals(taskID))
+
+    if (!single_solution) {
+            return res.status(200).json({"eligible": false})
+            }
+
+    let task =  await TaskModel.findById(taskID)
+
+    if (!task) {
+            return res.status(200).json({"eligible": false})
+            }
+
+    let solution_ai_used = task.ai_users.includes(req.user._id.toString()) || false
+    let task_ai_allowed = task.ai_allowed ?? true
+
+    if (!solution_ai_used && task_ai_allowed) {
+        return res.status(200).json({"eligible": true})
+    }
+        return res.status(200).json({"eligible": false})
+    } catch (error) {
+        return res.status(500).json({"eligible": false, "block": "catch", "error": error})
     }
 }

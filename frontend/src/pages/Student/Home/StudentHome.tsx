@@ -19,6 +19,9 @@ import TerminalResponse from '@/components/custom/TerminalResponse';
 import { CreateMetricaView, CreateMetricaEvent } from "@lukajekic/metrica-sdk";
 import moment from 'moment-timezone';
 import { WorkForbiddenContext } from '@/pages/Teacher/StudentDashboardWrapper';
+import AIDrawer from '@/components/custom/AIDrawer';
+import Loader from '@/components/custom/Loader';
+import LoaderModal from '@/components/custom/LoaderModal';
 
 type props = {
   openPicker: {
@@ -39,9 +42,45 @@ type Task = {
 
 
 const StudentHome = () => {
+const [openAIModal, setopenAIModal] = useState(false)
+const [openAIChat, setOpenAIChat] = useState(false);
+const [loader, setLoader] = useState(false);
+(window as any).setOpenAIChat = setOpenAIChat
+
+const [AIAnswer, setAIAnswer] = useState("")
+
+const checkIskraAIEligibility = async()=>{
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND}/app/student/solution/mentor/${searchParams.get('task')}/eligible`)
+    if (response.status === 200) {
+      console.log("ISKRA AI ELIGIBLE:", response.data.eligible)
+      let eligible =  response.data.eligible || false
+
+      setopenAIModal(eligible)
+    }
+  } catch (error) {
+    console.log("ISKRA AI ELIGIBILITY CHECK ERROR")
+    setopenAIModal(false)
+  }
+}
 
 
-  
+const fetchIskraAiAnswer = async ()=>{
+  try {
+    setLoader(true)
+    setopenAIModal(false)
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND}/app/student/solution/mentor/${searchParams.get('task')}/execute`)
+
+    if (response.status === 200) {
+      setLoader(false)
+      setAIAnswer(response.data)
+      setOpenAIChat(true)
+    }
+  } catch (error) {
+    setLoader(false)
+    console.error('IskraAI error')
+  }
+}
 
  
 // anticheat_paste
@@ -163,6 +202,8 @@ const handleSolutionSend = async()=>{
 }
 
 
+
+
   useEffect(() => {
     if (socket_data) {
       console.log("!!! Primljen update preko socketa u Child-u:", socket_data);
@@ -173,6 +214,14 @@ const handleSolutionSend = async()=>{
 
           
         }
+      }
+
+
+
+
+      if (socket_data.ai_modal && socket_data.ai_modal === true) {
+        console.log("ISKRA AIIIIII")
+        checkIskraAIEligibility()
       }
       
       // Ovde mapiraj podatke sa socketa na tvoj lokalni state
@@ -426,6 +475,31 @@ onMount={handleEditorDidMount}
   <>
   <TerminalResponse response={terminalResponse} onClose={()=>{setTErminalResponse(null)}}></TerminalResponse>
   </>
+)}
+
+
+<Dialog open={openAIModal} onOpenChange={(val)=>{setopenAIModal(val)}}>
+  <DialogContent>
+<div className="flex justify-center">
+  <img src="/robot_help.png" alt="" className='w-[300px]' />
+</div>
+<p className='text-lg text-center text-gray-800'>Možeš iskoristiti za ovaj zadatak IskraAI kako bi te naveo na pravilnije razmišljanje.</p>
+
+<div className="flex justify-center gap-5 items-center">
+  <Button onClick={()=>{setopenAIModal(false)}} variant={'outline'}>Ne treba</Button>
+  <Button onClick={()=>{fetchIskraAiAnswer()}}>Treba mi pomoć</Button>
+</div>
+
+  </DialogContent>
+</Dialog>
+
+{openAIChat && (
+  <AIDrawer answer={AIAnswer}></AIDrawer>
+
+)}
+
+{loader && (
+  <LoaderModal open></LoaderModal>
 )}
    </>
   )

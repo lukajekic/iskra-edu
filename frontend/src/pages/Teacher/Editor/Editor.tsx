@@ -5,7 +5,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from '
 import { Field, FieldGroup } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertTriangleIcon, Ban, ChevronRight, CircleOff, CircleQuestionMark, Download, File, Import, PlusSquare, SquarePlus, Trash, Upload } from 'lucide-react'
+import { AlertTriangleIcon, Ban, ChevronRight, CircleOff, CircleQuestionMark, Download, File, Import, PlusSquare, Sparkle, SquarePlus, Trash, Upload } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import ReactQuill from 'react-quill-new';
@@ -39,6 +39,8 @@ export type TaskDataClass = {
     author:        string;
     published:     boolean;
     storeOriginID: string;
+    ai_allowed: boolean;
+
 }
 
 export type Folder = {
@@ -115,7 +117,8 @@ const updateTask = async(pushToStore:boolean=false)=>{
             title: taskData?.taskData.title,
             richText: taskData?.taskData.richText || "",
             // TODO: folder: taskData?.taskData.folder || "",
-            tests: taskData?.taskData.tests || []
+            tests: taskData?.taskData.tests || [],
+            ai_allowed: taskData?.taskData?.ai_allowed
         }
 
         const update_response = await axios.put(`${import.meta.env.VITE_BACKEND}/my/tasks/edit`, updateBody)
@@ -216,6 +219,32 @@ useEffect(()=>{
   return (
     <>
         <PageTitle title='Uređivač zadatka' subtitle='Jedno mesto da uređujete naziv, uputstva i testove Vašeg zadatka.'></PageTitle>
+        <div className="p-4 mt-4 border-1 rounded-lg border-[var(--border)]">
+             <div className="flex items-center space-x-2">
+      <Switch onCheckedChange={(e) => {
+        setTaskData(prev => {
+            console.log(e)
+            if (!prev) return prev;
+            return {
+                ...prev,
+                taskData: {
+                    ...prev.taskData,
+                    ai_allowed: e
+                }
+            };
+        });
+    }} id="ai-allow" checked={taskData?.taskData.ai_allowed || false} />
+      <Label htmlFor="ai-allow">Dozvoli upotrebu IskraAI <Sparkle className='size-5'></Sparkle></Label>
+    </div>
+
+{editingAllowed === "store-origin" && (
+ <Button className='mt-2' onClick={()=>{
+                                updateTask(false)
+                            
+                        }}>Sačuvaj izmene</Button>
+)}
+      
+        </div>
         {selfPublished && (
              <Alert className="max-w-full mt-5 border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50">
       <AlertTriangleIcon />
@@ -621,8 +650,12 @@ useEffect(()=>{
 
                   <Switch className='' checked={publisherData.anon} onCheckedChange={(val)=>{setPublisherData(prev => ({...prev, anon: val}))}} id="anonymous" />
                           <Label htmlFor="anonymous">Objavi zadatak anonimno.</Label>
+
+                        
                     
 </div>
+
+
     </div>
 
     <DrawerFooter>

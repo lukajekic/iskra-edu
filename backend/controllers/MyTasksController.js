@@ -100,7 +100,7 @@ export const EditTask = async(req, res)=>{
         }
 
 
-        let {title, richText, folder, tests} = req.body || {}
+        let {title, richText, folder, tests, ai_allowed} = req.body || {}
 
         if (title) {
             task.title = title
@@ -116,6 +116,10 @@ export const EditTask = async(req, res)=>{
 
         if (tests && tests.length > 0) { //testovi moraju postojati
             task.tests = tests
+        }
+
+        if (ai_allowed !== undefined) {
+            task.ai_allowed = ai_allowed
         }
 
         await task.save()
