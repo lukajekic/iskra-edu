@@ -116,7 +116,10 @@ export const createAccount = async (req, res) => {
     //cuvanje kreiranog objekta
     let toSave = new UserModel(toInsert)
     await toSave.save()
-    return res.status(201).json(BuildValidationReturn("User created.", "success", "New User created successfully."))
+
+    let return_obj = BuildValidationReturn("User created.", "success", "New User created successfully.")
+    return_obj['username'] = username
+    return res.status(201).json(return_obj)
 }  //ISPRAVNO - 9. 3. 2026.
 
 

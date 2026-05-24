@@ -19,7 +19,7 @@ const SANewUser = () => {
         const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/create`, data)
 
         if (response.status === 201) {
-            toast.success("OK.")
+            toast.success("OK:", response.data.username || "")
         }
         } catch (error) {
          toast.error("ERROR.")   
