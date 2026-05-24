@@ -21,6 +21,12 @@ const schema = new mongoose.Schema({
         required: false
     },
 
+    super_admin: {
+        type: Boolean,
+        default: false,
+        required: false
+    },
+
     teacherRef: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

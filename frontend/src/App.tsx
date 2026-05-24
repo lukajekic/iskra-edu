@@ -21,6 +21,7 @@ import { UserProvider } from './context/UserContext';
 import AboutUsModular from './pages/About';
 import Privacy from './pages/Legal/Privacy';
 import LandingPage from './pages/static/Landing/LandingPage';
+import SAHome from './pages/SAAdmin/SAHome';
 export function App() {
 
   const router = createBrowserRouter([
@@ -116,6 +117,17 @@ element: <NotFound></NotFound>
               element: <StudentHome></StudentHome>
             }
           ]
+        }
+      ],
+
+
+    },
+
+    {path: "admin",
+      children: [
+        {
+          index: true,
+          element: <SAHome></SAHome>
         }
       ]
     }

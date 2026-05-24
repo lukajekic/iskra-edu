@@ -1,10 +1,11 @@
 import express from 'express'
-import { createAccount, createWorkhourGroup, Documentation, endWorkhour, ForbidWork, getMessages, getSingleStudentProgress, Login, Logout, MyProfile, MyWorkhourGroup, readMessage, RedirectMe, ReGrade, WorkhourPorgress, WorkhourTimer } from '../controllers/UserController.js'
+import { CheckSuperAdminRole, createAccount, createWorkhourGroup, Documentation, endWorkhour, ForbidWork, getMessages, getSingleStudentProgress, Login, Logout, MyProfile, MyWorkhourGroup, NewMessage, readMessage, RedirectMe, ReGrade, WorkhourPorgress, WorkhourTimer } from '../controllers/UserController.js'
 import { protect } from '../middleware/protect.js'
+import { inject_req_data } from '../middleware/inject_req_data.js'
 let router = express.Router()
 
 
-router.post("/create", createAccount)
+router.post("/create", inject_req_data, createAccount)
 router.post('/login', Login)
 router.post('/logout', Logout)
 router.get("/me/redirect", RedirectMe)
@@ -21,5 +22,8 @@ router.post('/me/workhour/forbid', protect, ForbidWork)
 
 router.get('/inspect/student/:id', protect, getSingleStudentProgress)
 router.put('/inspect/student/regrade', protect, ReGrade)
+
+router.get('/me/superadmin', protect, CheckSuperAdminRole)
+router.post('/me/messages', protect, NewMessage)
 
 export default router

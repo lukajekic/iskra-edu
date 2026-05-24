@@ -29,6 +29,14 @@ export const createAccount = async (req, res) => {
     toInsert.password = hashed
 
     if (type === "teacher") {
+        if (!req.user) {
+            return res.status(401).json(BuildValidationReturn("Unauthorized.", "error", "You must be logged in to create a teacher account."))
+        }
+
+        let super_admin = req.user.super_admin ?? false
+        if (!super_admin) {
+            return res.status(400).json(BuildValidationReturn("forbidden.", "error", "You cannot create account with type: teacher."))
+        }
         if (!institution) {
             return res.status(400).json(BuildValidationReturn("Missing institution.", "error", "Your Account Info is missing Institution name."))
         }
@@ -603,5 +611,41 @@ export const ForbidWork = async(req, res)=>{
     return res.status(200).json(BuildValidationReturn('ok.', 'success', 'Successful.'))
     } catch (error) {
         return res.status(400).json(BuildValidationReturn(error.message, 'error', 'Unexpected error occured.'))
+    }
+}
+
+export const CheckSuperAdminRole = async(req,res)=>{
+    try {
+        let user = req.user
+
+        if (user && (user.super_admin === true || user.super_admin === "true")) {
+            return res.status(200).json({"super_admin": true})
+        } else {
+            return res.status(401).json({"super_admin": false})
+        }
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
+    }
+}
+
+
+export const NewMessage = async(req, res)=>{
+    try {
+        let user = req.user
+        let {title, description, date} = req.body || {}
+
+        if (!title || !description || !date) {
+            return res.status(400).json(BuildValidationReturn("validaiton failed.", "error", "Fill all the fields."))
+        }
+        if (user.super_admin !== undefined && user.super_admin === true) {
+            let new_msg = MessageModel({title, description, read: [], date: date})
+            await new_msg.save()
+            return res.status(201).json("OK")
+        }
+
+        return res.status(400).json(BuildValidationReturn("err", "error", "Cannot create message."))
+
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
     }
 }
