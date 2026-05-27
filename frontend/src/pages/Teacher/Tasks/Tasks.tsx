@@ -1,6 +1,6 @@
 import PageTitle from '@/components/custom/PageTitle'
 import { Button } from '@/components/ui/button'
-import { FolderPlus, Info, PlusSquare } from 'lucide-react'
+import { EllipsisVertical, FolderPlus, Info, PlusSquare } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import Footer from '@/components/custom/Footer'
 import { DataTable } from '@/components/custom/data-table'
@@ -13,7 +13,20 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import foldericon from "../../../assets/folder.png"
 import py_icon from "../../../assets/python.svg"
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Select,
   SelectContent,
@@ -27,6 +40,8 @@ import { Switch } from '@/components/ui/switch'
 import axios from 'axios'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import LoaderModal from '@/components/custom/LoaderModal'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { toast } from 'sonner'
 
 
 type ModalStatus = {
@@ -87,6 +102,29 @@ const Tasks =   () => {
 
 
 
+
+    const deleteFolder = async()=>{
+    try {
+        setLoading(true)
+        const response = await axios.post(`${import.meta.env.VITE_BACKEND}/my/folders/delete`, {
+                folder: deletionFolderID
+            })
+
+        if (response.status === 200){
+            toast.success("Uspesno!")
+            setLoading(false)
+            location.reload()
+        }
+        else{
+            toast.error('Desila se greska!')
+        setLoading(false)
+        }
+    } catch (error) {
+        toast.error('Desila se greska!')
+        setLoading(false)
+    }
+}
+
 // forma novog zadatka
  const [newTaskForm, setNewTaskForm] = useState<NewTask>({
   title: "",
@@ -94,6 +132,11 @@ const Tasks =   () => {
   language: "python",
   outputType: "standard"
 })
+
+
+
+const [deletionFolderID, setDeletionFolderID] = useState<string | null>(null)
+const [deletionFolderOpen, setDeletionFolderOpen] = useState<boolean>(false)
 
 const initializeTask = async()=>{
   try {
@@ -208,8 +251,26 @@ const getFolders = async ()=>{
 
 <div className="w-full flex gap-2 flex-wrap py-2">
   {data.map((item, index)=>(
-    <button key={index} onClick={()=>{setActiveFolder(item), setModalState(prev => ({...prev, folderinfo: true}))}} id="folder" className="border border-gray-200 rounded-lg w-35 min-h-30 active:border-[2px] active:border-blue-400 px-2 flex flex-col gap-2 items-center pt-2 pb-2 hover:cursor-pointer"><img src={foldericon} className='h-[80px]' alt="" />
-  <p className='break-all'>{item?.folderName}</p></button>
+   <div key={index} className="relative border border-gray-200 rounded-lg w-35 min-h-30 active:border-[2px] active:border-blue-400 px-2 flex flex-col gap-2 items-center pt-2 pb-2 hover:cursor-pointer" onClick={()=>{setActiveFolder(item), setModalState(prev => ({...prev, folderinfo: true}))}}>
+  <img src={foldericon} className='h-[80px]' alt="" />
+  <p className='break-all text-center'>{item?.folderName}</p>
+  
+  <div className="absolute top-1 right-1" onClick={(e) => e.stopPropagation()}>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="p-2 h-auto"><EllipsisVertical className='size-3' size={10}/></Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-40" align="end">
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={()=>{setDeletionFolderID(item?.folderId), setDeletionFolderOpen(true), console.log(item?.folderId)}} variant='destructive'>
+            Obrisi folder
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
+</div>
+  
   ))}
 </div>
 
@@ -379,6 +440,26 @@ const getFolders = async ()=>{
 </Dialog>
     <Footer></Footer>
     <LoaderModal open={loading}></LoaderModal>
+
+      <AlertDialog onOpenChange={(val)=>{setDeletionFolderOpen(val)}} open={deletionFolderOpen}>
+
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Da li ste sigurni?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Brisanjem foldera obrisaćete i sve zadatke u istom i sva rešenja učenika vezana za zadatke ovog foldera.
+            <br />
+            <span className="font-bold text-[var(--destructive)]">Ova radnja ne može biti opozvana.</span>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Odustani</AlertDialogCancel>
+          <AlertDialogAction onClick={()=>{deleteFolder()}} variant={'destructive'}>Nastavi</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+
     </>
   )
 }

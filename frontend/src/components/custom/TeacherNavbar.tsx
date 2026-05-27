@@ -441,7 +441,7 @@ if (userID) {
   <DialogContent className='min-w-fit p-5'>
     <DialogHeader className='text-lg font-bold'>Tehnička podrška</DialogHeader>
     <div className="flex items-center gap-5">
-      <img src="/undraw_calling_d6vk.svg" className='w-[250px]' alt="" />
+      <img src="/undraw_envelope_hem0.svg" className='w-[250px]' alt="" />
       <span className='w-[350px] text-lg text-right'>Molimo Vas da podršku kontaktirate na mejl ispod. Vaš mejl biće zaveden kao slučaj u sistemu za tehničku podršku.
         <br />
         <br />

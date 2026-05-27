@@ -1,0 +1,47 @@
+import { Button } from '@/components/ui/button'
+import React from 'react'
+import axios from 'axios'
+type redirectObj = {
+  redirect: string
+}
+const ErrorElement = () => {
+
+  const handleRedirect = async()=>{
+    try {
+      const response = await axios.get<redirectObj>(`${import.meta.env.VITE_BACKEND}/user/me/redirect`)
+      if (response.data) {
+        
+        console.log(response.data)
+        location.href = response.data.redirect
+      }
+    } catch (error) {
+      location.href = '/auth/onboarding'
+    }
+  }
+  return (
+    <>
+    <div className="w-full h-screen fixed top-0 left-0 overflow-hidden flex justify-between">
+      <div className="w-1/2 h-full overflow-hidden flex items-center p-10">
+      <img src="/undraw_connection-lost_am29.svg" className='object-contain' alt="" />
+      </div>
+
+      <div className="w-1/2 h-full overflow-hidden flex flex-col items-center p-10 justify-center">
+      <h1 className="text-5xl font-bold text-amber-600">Ups!</h1>
+      
+      <p className='color-gray-700 text-2xl mt-5 text-center'>
+        Desila se nepoznata greška na portalu.
+        <br />
+        Kliknite na „Preusmeri me” kako biste pokušali ponovo.
+      </p>
+
+
+      <Button onClick={()=>{handleRedirect()}} className='px-7 h-15 rounded-2xl text-xl mt-10'>Preusmeri me</Button>
+      </div>
+
+
+    </div>
+    </>
+  )
+}
+
+export default ErrorElement

@@ -22,11 +22,13 @@ import AboutUsModular from './pages/About';
 import Privacy from './pages/Legal/Privacy';
 import LandingPage from './pages/static/Landing/LandingPage';
 import SAHome from './pages/SAAdmin/SAHome';
+import ErrorElement from './pages/ErrorElement/ErrorElement';
 export function App() {
 
   const router = createBrowserRouter([
    {
     element: <MaintenanceGuard></MaintenanceGuard>,
+    errorElement: <ErrorElement></ErrorElement>,
     children: [
        {
 path: "*",
@@ -35,6 +37,10 @@ element: <NotFound></NotFound>
     {
       path: "/",
       element: <LandingPage></LandingPage> //<Navigate to={"/auth/onboarding"} replace></Navigate>
+    },
+    {
+      path: "/error",
+      element: <ErrorElement></ErrorElement>
     },
     {
       path: "/about",

@@ -25,7 +25,30 @@ app.use(cookieParser())
 
 //demo api
 app.get("/", (_, res)=>{
-res.send("Zdravo, Iskra.")
+const html = `
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hello, World!</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+
+<section id="hero" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; color: #CC5500; text-align: center; font-family: 'Inter', sans-serif;">
+  <img alt="" src="/favicon.png" style="margin-bottom: 1rem;">
+  <h1 style="margin: 0;">Zdravo, Iskra.</h1>
+    <p style="margin: 0; margin-top:10px;">Pristupite platformi preko portala.</p>
+
+</section>
+  </body>
+</html>
+`
+
+res.type('html')
+res.send(html)
 })
 
 

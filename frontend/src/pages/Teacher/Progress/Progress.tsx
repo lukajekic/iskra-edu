@@ -1,6 +1,6 @@
 import PageTitle from '@/components/custom/PageTitle'
 import { Button } from '@/components/ui/button'
-import { Info, PlusSquare, RefreshCcw } from 'lucide-react'
+import { Download, Info, PlusSquare, RefreshCcw } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import Footer from '@/components/custom/Footer'
 import { DataTable } from '@/components/custom/data-table'
@@ -14,7 +14,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import axios from 'axios'
 import LoaderModal from '@/components/custom/LoaderModal'
 import SolutionIntepreter from '@/components/custom/SolutionIntepreter/SolutionIntepreter'
-
+import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
 type ProgressType = {
   name: string,
   progress: {
@@ -29,6 +30,69 @@ const [data, setData] = useState<ProgressType[]>([])
 const [loading, setLoading] = useState(true)
 const [studentIspectorID, setStudentIspectorID] = useState<string|null>(null);
 (window as any).setStudentIspectorID = setStudentIspectorID
+
+
+
+ const columnsConfig = [
+    { header: 'Ime i prezime', dataKey: 'name' },
+    { header: 'Neuradjenih', dataKey: 'progress.none' },
+            { header: 'Netacnih', dataKey: 'progress.revise' },
+    { header: 'Tacnih', dataKey: 'progress.accepted' }
+  ];
+  
+
+  const handleExport = () => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(40, 40, 40);
+    doc.text('ISKRA', 15, 20);
+
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Generisano: ' + new Date().toLocaleDateString(), 15, 26);
+
+  const getNestedValue = (obj, path) => 
+  path.split('.').reduce((acc, key) => acc?.[key], obj);
+
+const tableRows = data.map(item =>
+  columnsConfig.map(col => getNestedValue(item, col.dataKey))
+);
+
+
+
+
+    autoTable(doc, {
+  columns: columnsConfig,
+  body: tableRows,
+  startY: 35,
+  margin: { top: 20, right: 15, bottom: 20, left: 15 },
+  styles: {
+    font: 'Helvetica',
+    fontSize: 10,
+    cellPadding: 4,
+  },
+  headStyles: {
+    fillColor: [41, 128, 185],
+    textColor: 255,
+    fontStyle: 'bold'
+  },
+  alternateRowStyles: {
+    fillColor: [245, 247, 250]
+  }
+});
+
+    doc.save('izvestaj.pdf');
+  };
+
+
+
 const fetchProgress = async()=>{
   try {
     setLoading(true)
@@ -67,6 +131,8 @@ setLoading(false)
     </div>
     <div className="h-2"></div>
     <Button onClick={()=>{fetchProgress()}} className='mb-2'><RefreshCcw></RefreshCcw>Osveži podatke</Button>
+    <Button className='ml-2' variant={'outline'} onClick={handleExport}><Download></Download>Izvoz podataka</Button>
+
 <DataTable  filter={{key: "name", input_label: "Pretraga..."}} data={data} columns={columns} studentIspectorID={studentIspectorID} setStudentIspectorID={setStudentIspectorID}></DataTable>
 
 

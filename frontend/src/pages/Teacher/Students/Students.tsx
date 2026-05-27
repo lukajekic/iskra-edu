@@ -1,6 +1,6 @@
 import PageTitle from '@/components/custom/PageTitle'
 import { Button } from '@/components/ui/button'
-import { Import, Info, PlusSquare } from 'lucide-react'
+import { Download, Import, Info, PlusSquare } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import Footer from '@/components/custom/Footer'
 import { DataTable } from '@/components/custom/data-table'
@@ -11,7 +11,8 @@ import { Field, FieldGroup } from '@/components/ui/field'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-
+import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,6 +48,64 @@ type Student = {
 
 
 const Students =   () => {
+
+
+  // 2. Definišeš koje fieldove eksportuješ i kako se zovu kolone
+  const columnsConfig = [
+    { header: 'Ime i prezime', dataKey: 'name' },
+    { header: 'Korisnicko ime', dataKey: 'username' },
+    { header: 'Datum kreiranja naloga', dataKey: 'createdAt' }
+  ];
+  // 1. Tvoj JSON / JS Array sa podacima
+  
+
+  const handleExport = () => {
+    // Kreiramo PDF u A4 formatu, merne jedinice su milimetri (mm)
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(40, 40, 40);
+    doc.text('ISKRA', 15, 20);
+
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Generisano: ' + new Date().toLocaleDateString(), 15, 26);
+
+    const tableRows = data.map(item =>
+  columnsConfig.map(col => item[col.dataKey])
+);
+
+    autoTable(doc, {
+  columns: columnsConfig,
+  body: tableRows,
+  startY: 35,
+  margin: { top: 20, right: 15, bottom: 20, left: 15 },
+  styles: {
+    font: 'Helvetica',
+    fontSize: 10,
+    cellPadding: 4,
+  },
+  headStyles: {
+    fillColor: [41, 128, 185],
+    textColor: 255,
+    fontStyle: 'bold'
+  },
+  alternateRowStyles: {
+    fillColor: [245, 247, 250]
+  }
+});
+
+    doc.save('izvestaj.pdf');
+  };
+
+
+  
   const [loading, setLoading] = useState(true)
   const {userID} = useUserId()
     const [modalStatus, setModalState] = useState<ModalStatus>({
@@ -170,6 +229,7 @@ if (response.status === 201) {
         </div>
    
     <Button onClick={()=>{setModalState(prev =>({...prev, create: true}))}}><PlusSquare></PlusSquare>Novi učenik</Button>
+    <Button className='ml-2' variant={'outline'} onClick={handleExport}><Download></Download>Izvoz podataka</Button>
         <div className="h-5"></div>
 <DataTable  filter={{key: "name", input_label: "Pretraga..."}} data={data} columns={getColumns({onEdit: (student)=> [setModalState(prev => ({...prev, edit: true})), setEditStudentForm({name: student.name, newpassword: "", _id: student._id})], onDelete: (student)=> [setModalState(prev => ({...prev, delete: true})), setEditStudentForm({name: student.name, newpassword: "", _id: student._id})]})}></DataTable>
 

@@ -5,7 +5,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from '
 import { Field, FieldGroup } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertTriangleIcon, Ban, ChevronRight, CircleOff, CircleQuestionMark, Download, File, Import, PlusSquare, Sparkle, SquarePlus, Trash, Upload } from 'lucide-react'
+import { AlertTriangleIcon, Ban, ChevronRight, CircleAlert, CircleOff, CircleQuestionMark, Download, File, Import, PlusSquare, Sparkle, SquarePlus, Trash, Upload } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import ReactQuill from 'react-quill-new';
@@ -69,6 +69,29 @@ const Editor = () => {
     const navigate = useNavigate()
     const taskID = params.id
 const [loading, setLoading] = useState(true)
+
+const deleteTask = async()=>{
+    try {
+        setLoading(true)
+        const response = await axios.post(`${import.meta.env.VITE_BACKEND}/my/tasks/delete`, {
+                tasks: [taskID]
+            })
+
+        if (response.status === 200){
+            toast.success("Uspesno!")
+            setLoading(false)
+            navigate('/app/teacher/tasks')
+        }
+        else{
+            toast.error('Desila se greska!')
+        setLoading(false)
+        }
+    } catch (error) {
+        toast.error('Desila se greska!')
+        setLoading(false)
+    }
+}
+
     const getTask = async()=>{
         try {
                     setLoading(true)
@@ -172,6 +195,7 @@ useEffect(()=>{
     getTask()
 }, [])
     const checkmark = useRef(null)
+    const [openDeleteModal, setOpenDeleteModal] = useState(false)
     const [editingAllowed, setEditingAllowed] = useState<"true" | "store-origin">("true")
     const [selfPublished, setSelfPublished] = useState(false)
     const [func_openModalAnimation, setOpenModalAnimation ] = useState(false)
@@ -546,7 +570,9 @@ useEffect(()=>{
 )}
                         
                        
-<div className="flex w-full items-center justify-end mt-5 gap-3">
+<div className="w-full flex justify-between items-end">
+    <Button onClick={()=>{setOpenDeleteModal(true)}} variant={'destructive'}>Obrisi zadatak</Button>
+    <div className="flex w-full items-center justify-end mt-5 gap-3">
     <Button variant={'outline'} onClick={()=>{navigate('/app/teacher/tasks')}}>Odustani</Button>
                         <Button onClick={()=>{
                             if (selfPublished) {
@@ -555,6 +581,7 @@ useEffect(()=>{
                                 setOpenSaveModal(true)
                             }
                         }}>Sačuvaj izmene</Button>
+</div>
 </div>
                     </form>
                 </div>
@@ -571,8 +598,10 @@ useEffect(()=>{
                     Na zadacima koje ste preuzeli iz „Zbirke zadataka“ nisu dozvoljene izmene.
                 </EmptyDescription>
 
-                <EmptyContent>
+                <EmptyContent className=''>
                     <Link to={'/app/teacher/tasks'}><Button>Povratak na zadatke</Button></Link>
+                        <Button onClick={()=>{setOpenDeleteModal(true)}} variant={'destructive'}>Obrisi zadatak</Button>
+
                 </EmptyContent>
             </Empty>
         ) : (<></>) }
@@ -685,6 +714,27 @@ useEffect(()=>{
     </AlertDialog>
 
 <LoaderModal open={loading}></LoaderModal>
+
+
+  <AlertDialog onOpenChange={(val)=>{setOpenDeleteModal(val)}} open={openDeleteModal}>
+
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Da li ste sigurni?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Brisanjem zadatka obrisaćete i sva rešenja učenika vezana za ovaj zadatak.
+            <br />
+            <span className="font-bold text-[var(--destructive)]">Ova radnja ne može biti opozvana.</span>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Odustani</AlertDialogCancel>
+          <AlertDialogAction onClick={()=>{deleteTask()}} variant={'destructive'}>Nastavi</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+
 </>
   )
 }

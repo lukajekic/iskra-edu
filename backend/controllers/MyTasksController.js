@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import { TaskModel } from "../models/TaskModel.js";
 import { BuildValidationReturn } from "../utilities/ReturnValidationError.js";
 import { validateTaskLanguage, validateTaskOutput } from "../utilities/validateTaskManifest.js";
+import { UserModel } from "../models/UserModel.js";
+import { Foldermodel } from "../models/FolderModel.js";
 
 export const MyTasks = async(req, res)=>{
     try {
@@ -163,3 +165,80 @@ export const MySingleTask = async(req, res)=>{
         return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
     }
 }
+
+
+// Servisna funkcija
+export const deleteTasksLogic = async (tasks, userId) => {
+    let success = 0;
+    let fail = 0;
+    let deleted = [];
+    let error_msgs = [];
+
+    for (let task_id of tasks) {
+        try {
+            const task = await TaskModel.findById(task_id);
+            
+            if (!task) {
+                throw new Error(`Task ${task_id} nije pronađen.`);
+            }
+
+            if (task.ownerRef.toString() !== userId.toString()) {
+                throw new Error(`Nemate dozvolu za brisanje zadatka ${task_id}.`);
+            }
+
+            // 3. Ako je prošla provera, nastavi sa brisanjem
+            await UserModel.updateMany(
+                { "solutions.taskID": task_id },
+                { $pull: { solutions: { taskID: task_id } } }
+            );
+            
+            await TaskModel.findByIdAndDelete(task_id);
+            
+            success += 1;
+            deleted.push(task_id);
+        } catch (error) {
+            fail += 1;
+            error_msgs.push(error.message);
+        }
+    }
+    return { deleted, success, fail, error_msgs };
+};
+// Originalni kontroler
+export const DeleteTasks = async (req, res) => {
+    try {
+        let tasks = req.body.tasks ?? [];
+        const result = await deleteTasksLogic(tasks, req.user._id);
+        
+        return res.status(200).json({
+            deleted: result.deleted,
+            successful: result.success,
+            failed: result.fail
+        });
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."));
+    }
+};
+
+export const DeleteFolder = async (req, res) => {
+    try {
+        const folderId = req.body.folder || "";
+        if (!mongoose.Types.ObjectId.isValid(folderId)) {
+            return res.status(400).json(BuildValidationReturn("Invalid folder ID format", "error", "Neispravan ID foldera."));
+        }
+        const tasks = await TaskModel.find({ 
+            folderRef: new mongoose.Types.ObjectId(folderId) 
+        }).select('_id')
+
+        const taskIds = tasks.map(t => t._id.toString());
+
+        const result = await deleteTasksLogic(taskIds, req.user._id);
+        await Foldermodel.findByIdAndDelete(folderId)
+        return res.status(200).json({
+            deleted: result.deleted,
+            successful: result.success,
+            failed: result.fail
+        });
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."));
+    }
+};

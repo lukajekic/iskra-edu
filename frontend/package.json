@@ -33,6 +33,7 @@
     "firebase": "^12.10.0",
     "framer-motion": "^12.38.0",
     "input-otp": "^1.4.2",
+    "jspdf-autotable": "^5.0.8",
     "lucide-react": "^0.575.0",
     "moment-timezone": "^0.6.0",
     "monaco-editor": "^0.55.1",

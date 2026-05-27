@@ -1,6 +1,6 @@
 import PageTitle from '@/components/custom/PageTitle'
 import { Button } from '@/components/ui/button'
-import { Ban, CircleCheckBig, Fullscreen, Info, LogOut, PlusSquare, Users, X } from 'lucide-react'
+import { Ban, CircleCheckBig, Download, Fullscreen, Info, LogOut, PlusSquare, Users, X } from 'lucide-react'
 import React, { use, useEffect, useState } from 'react'
 import Footer from '@/components/custom/Footer'
 import { DataTable } from '@/components/custom/data-table'
@@ -22,6 +22,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import axios from 'axios'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { io } from 'socket.io-client'
@@ -174,6 +176,66 @@ useEffect(() => {
     };
   }
 }, [userID]);
+
+
+
+//EXPORT
+
+
+const columnsConfig = [
+  { header: 'Ime i prezime', dataKey: 'name' },
+  { header: 'Vreme prijave', dataKey: 'createdAt' }, // Koristimo originalni ključ
+  { header: 'Tacno uradjenih', dataKey: 'correct' }
+];
+
+const handleExport = () => {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.setTextColor(40, 40, 40);
+  doc.text('ISKRA', 15, 20);
+
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 100);
+  doc.text('Generisano: ' + new Date().toLocaleDateString(), 15, 26);
+
+  // 2. Prilagođeno mapiranje redova
+  const tableRows = workhourProgress.map(item => [
+    item.name,
+    moment.utc(item.createdAt).local().format("HH:mm"), // Formatiranje vremena
+    item.correct.toString()
+  ]);
+
+  autoTable(doc, {
+    head: [columnsConfig.map(col => col.header)], // Ispravno postavljanje zaglavlja
+    body: tableRows,
+    startY: 35,
+    margin: { top: 20, right: 15, bottom: 20, left: 15 },
+    styles: {
+      font: 'Helvetica',
+      fontSize: 10,
+      cellPadding: 4,
+    },
+    headStyles: {
+      fillColor: [41, 128, 185],
+      textColor: 255,
+      fontStyle: 'bold'
+    },
+    alternateRowStyles: {
+      fillColor: [245, 247, 250]
+    }
+  });
+
+  doc.save('izvestaj.pdf');
+};
+
+
   return (
     <>
     <PageTitle title='Nastavna grupa' subtitle='Započnite nastavno predavanje ili pratite napredak aktivnog.'></PageTitle>
@@ -205,7 +267,8 @@ useEffect(() => {
           <Button onClick={()=>{setCodeFullScreen(true)}} variant={'outline'} className='h-auto text-gray-500 border-1 border-transparent border-l-1 border-l-[var(--border)] rounded-r-2xl rounded-l-none'><Fullscreen className='size-6'></Fullscreen></Button>
         </div>
       </div>
-      <div className="w-full flex justify-end">
+      <div className="w-full flex justify-between mt-2">
+    <Button className='ml-2' variant={'outline'} onClick={handleExport}><Download></Download>Izvoz podataka</Button>
       <DropdownMenu>
         <DropdownMenuTrigger>
                   <Button variant={'destructive'}><X></X>Završi čas</Button>
