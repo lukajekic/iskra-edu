@@ -23,6 +23,12 @@ import Privacy from './pages/Legal/Privacy';
 import LandingPage from './pages/static/Landing/LandingPage';
 import SAHome from './pages/SAAdmin/SAHome';
 import ErrorElement from './pages/ErrorElement/ErrorElement';
+import TheoryTasks from './pages/Teacher/TheoryTasks/TheoryTasks';
+import TheoryEditor from './pages/Teacher/Theory-Editor/TheoryEditor';
+import Exams from './pages/Teacher/Exams/Exams';
+import StudentExams from './pages/Student/Exams/StudentExams';
+import ExamForm from './pages/Student/ExamForm/ExamForm';
+import ExamEditor from './pages/Teacher/ExamEditor/ExamEditor';
 export function App() {
 
   const router = createBrowserRouter([
@@ -99,8 +105,25 @@ element: <NotFound></NotFound>
               element: <Tasks></Tasks>
             },
             {
+              path: "theory-tasks",
+              element: <TheoryTasks></TheoryTasks>
+            },
+            {
               path: "store",
               element: <Store></Store>
+            },
+            {
+              path: "exams",
+              children: [
+                {
+                  path: "all",
+                  element: <Exams></Exams>
+                },
+                {
+                  path: "edit/:id",
+                  element: <ExamEditor></ExamEditor>
+                }
+              ]
             },
 
             {
@@ -110,6 +133,15 @@ element: <NotFound></NotFound>
             {
               path: "editor/:id",
               element: <Editor></Editor>
+            },
+
+            {
+              path: 'theory-editor/:id',
+              element: <TheoryEditor></TheoryEditor>
+            },
+
+            {
+
             }
           ]
         },
@@ -123,6 +155,17 @@ element: <NotFound></NotFound>
               element: <StudentHome></StudentHome>
             }
           ]
+        },
+
+        {
+          path: "student-exams",
+          element: <StudentExams></StudentExams>,
+          
+        },
+
+        {
+          path: "exam/:id",
+          element: <ExamForm></ExamForm>
         }
       ],
 

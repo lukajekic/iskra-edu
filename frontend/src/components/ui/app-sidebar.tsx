@@ -1,4 +1,4 @@
-import { BookCheck, ChartSpline, ChevronDown, CircleCheck, CirclePile, File, Home, Settings, User, User2, Users } from "lucide-react"
+import { BookCheck, BookOpenText, ChartSpline, ChevronDown, CircleCheck, CirclePile, File, Home, Settings, User, User2, Users } from "lucide-react"
 
 import {
   Sidebar,
@@ -25,8 +25,10 @@ import axios from "axios";
 const items = [
   { title: "Učenici", url: "/app/teacher/students", icon: Users },
   { title: "Napredak", url: "/app/teacher/progress", icon: ChartSpline },
-  { title: "Zadaci", url: "/app/teacher/tasks", icon: CircleCheck },
+  { title: "Zadaci (programski)", url: "/app/teacher/tasks", icon: CircleCheck },
+    { title: "Zadaci (teorijski)", url: "/app/teacher/theory-tasks", icon: BookOpenText },
   { title: "Zbirka zadataka", url: "/app/teacher/store", icon: BookCheck },
+  {title: "Kontrolni zadaci", url: "/app/teacher/exams/all", icon: File}
 ];
 
 

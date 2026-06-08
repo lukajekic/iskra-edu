@@ -12,7 +12,12 @@ import StoreRoutes from './routes/StoreRoutes.js'
 import MyStudentsRoutes from './routes/MyStudentsRoutes.js'
 import StudentAppRoutes from './routes/StudentAppRoutes.js'
 import { Server } from 'socket.io'
+import LessonRouter from './routes/LessonRoutes.js'
+import TheoryTaskRouter from './routes/TheoryTaskRoutes.js'
+import TestRouter from './routes/TestRoutes.js'
 dotenv.config()
+import  visualizer  from 'express-routes-visualizer'
+import StudentExamsRouter from './routes/StudentExamsRoutes.js'
 const app = express()
 connectMongoDB()
 app.use(cors({
@@ -70,9 +75,13 @@ app.get("/run", async (req, res)=>{
 app.use("/user", userrouter)
 app.use("/my/folders", MyFolderRoutes)
 app.use('/my/tasks', MyTasksRouter)
+app.use('/my/lessons', LessonRouter)
+app.use('/my/theory-tasks', TheoryTaskRouter)
+app.use('/my/tests', TestRouter)
 app.use('/store', StoreRoutes)
 app.use('/my/students', MyStudentsRoutes)
 app.use('/app/student', StudentAppRoutes)
+app.use('/studentexams', StudentExamsRouter)
 async function runPythonCode(index) {
   const url = "https://lukajekic-python-judge.hf.space/run";
   

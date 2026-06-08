@@ -15,7 +15,7 @@ const LandingPage = () => {
     CreateMetricaView(import.meta.env.VITE_METRICA)
   }, [])
 
-      const hadleRedirect = async()=>{
+  const hadleRedirect = async()=>{
     try {
       const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/redirect`)
       if (response.data) {
@@ -25,14 +25,15 @@ const LandingPage = () => {
       console.error(error)
     }
   }
+
   return (
     <>
-    <section id="hero" className="hero pattern-bg">
-        <img src="/favicon.png" className='h-[75px] -mt-20' alt="" />
-        <h1 className="text-8xl text-primary font-semibold">Zdravo, Iskra.</h1>
-        <div id="actions">
-            <Button onClick={()=>{hadleRedirect()}} size={'lg'}><ArrowUpRight></ArrowUpRight>Pristupi platformi</Button>
-            <a href="#explainer"><Button  size={'lg'} variant={'outline'}>Saznaj vise</Button></a>
+    <section id="hero" className="hero pattern-bg min-h-screen w-full flex flex-col items-center justify-center p-4 text-center box-border">
+        <img src="/favicon.png" className='h-[75px] mb-6' alt="" />
+        <h1 className="text-5xl md:text-8xl text-primary font-semibold mb-8">Zdravo, Iskra.</h1>
+        <div id="actions" className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md">
+            <Button className="w-full sm:w-auto" onClick={()=>{hadleRedirect()}} size={'lg'}><ArrowUpRight></ArrowUpRight>Pristupi platformi</Button>
+            <a href="#explainer" className="w-full sm:w-auto"><Button className="w-full sm:w-auto" size={'lg'} variant={'outline'}>Saznaj vise</Button></a>
         </div>
     </section>
 
@@ -43,7 +44,6 @@ const LandingPage = () => {
     <section id='why'>
         <WhyIskra></WhyIskra>
     </section>
-
 
     <section id="contact">
         <Signup></Signup>
