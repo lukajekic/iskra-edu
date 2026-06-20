@@ -144,6 +144,17 @@ socket.on('join_room_fwork_warning', (roomName) => {
   
   socket.emit('message', `Usao si ušao u sobu (work_forbidden) profesora: ${roomName}`);
 })
+
+socket.on('join_exam_room', (roomName)=>{
+  socket.join(roomName)
+  console.log(`Soket ${socket.id} je usao u sobu za realtime updejte ispita za solution id: ${roomName}`)
+
+  socket.emit('message', `Usao si u sobu za realtime updejte ispita za soluiton id ${roomName}`)
+
+  socket.emit('update_exam_solution_status', {abc: "cde"})
+  
+})
+
 })
 
 app.set('socketio', io)

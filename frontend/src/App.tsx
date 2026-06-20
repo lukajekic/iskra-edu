@@ -29,6 +29,7 @@ import Exams from './pages/Teacher/Exams/Exams';
 import StudentExams from './pages/Student/Exams/StudentExams';
 import ExamForm from './pages/Student/ExamForm/ExamForm';
 import ExamEditor from './pages/Teacher/ExamEditor/ExamEditor';
+import ExamResults from './pages/Student/Exams/ExamResults';
 export function App() {
 
   const router = createBrowserRouter([
@@ -166,6 +167,11 @@ element: <NotFound></NotFound>
         {
           path: "exam/:id",
           element: <ExamForm></ExamForm>
+        },
+
+        {
+          path: "exam-results/:id",
+          element: <ExamResults></ExamResults>
         }
       ],
 

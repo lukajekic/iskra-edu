@@ -1,0 +1,19 @@
+.paper-div {
+    border-radius: 10px;
+    margin: auto;
+    width: 75%;
+    padding: 40px;
+    line-height: 1.6;
+    background-color: white;
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+
+.correct-draft-box {
+  border: 2px dashed #a7cb9f;
+  background-color: #d5ebd6;
+}
+
+.incorrect-draft-box {
+  border: 2px dashed #cb9f9f;
+  background-color: #ebd5d5;
+}

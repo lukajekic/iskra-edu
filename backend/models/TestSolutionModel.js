@@ -42,6 +42,11 @@ const solutionSchema = new mongoose.Schema({
             feedback: {
                 type: String,
                 default: ''
+            },
+            status: {
+                type: String,
+                enum: ['none', 'incorrect', 'correct', 'grading'],
+                default: 'none'
             }
         }
     ],
@@ -49,14 +54,24 @@ const solutionSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    total_points_possible: {
+        type: Number,
+        default: 0
+    },
     grade_value: {
-        type: Number
+        type: Number,
+        default: null
     },
     started_at: {
         type: Date,
         default: Date.now
     },
-    submitted_at: Date
+    submitted_at: Date,
+
+    action_required: {
+        type: Boolean,
+        default: false
+    }
 }, { timestamps: true });
 
 solutionSchema.index({ test_ref: 1, student_ref: 1 }, { unique: true });

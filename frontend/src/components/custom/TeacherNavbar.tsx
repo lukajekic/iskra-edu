@@ -200,9 +200,9 @@ if (userID) {
   }, [userID])
   return (
     <>
-      <div className="h-[62px]" />
+      <div className="h-[70px]" />
 
-      <div className="w-full h-[60px] fixed top-0 bg-white z-50 flex justify-between items-center pl-5 border-b-[2px] border-amber-500 pb-[2px]">
+<div className="max-w-[calc(100%-2rem)] mx-auto h-[60px] fixed top-2 left-4 right-4 bg-white z-50 flex justify-between items-center pl-5  border-1  pb-[2px] rounded-xl shadow-md">
         <div className="flex items-center gap-2 h-full">
           <img src="/favicon.png" className='size-10' alt="" />
           <div className="flex items-end gap-1">
@@ -221,10 +221,10 @@ if (userID) {
 
         {/* auth */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger className='rounded-r-xl' asChild>
             <Button
               variant="outline"
-              className='h-[60px] border-0 border-l rounded-none shadow-none flex flex-col items-end gap-0'
+              className='h-[59px] rounded-r-xl rounded-l-none border-0 border-l shadow-none flex flex-col items-end gap-0 border-1 border-b-0'
             >
               <span className="font-bold">Profesor</span>
               <span className='text-lg font-light'>
