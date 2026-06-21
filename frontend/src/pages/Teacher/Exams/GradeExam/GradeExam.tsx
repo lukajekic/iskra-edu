@@ -431,9 +431,9 @@ const GradeExam = () => {
                                         </div>
 
                                         <div className="mt-1">
-                                            <Label className="text-xs text-gray-500">Beleška / Feedback nastavnika:</Label>
+                                            <Label className="text-xs text-gray-500">Beleška nastavnika:</Label>
                                             <Input 
-                                                placeholder="Unesite feedback za ovaj zadatak..."
+                                                placeholder="Unesite belesku za ovaj zadatak..."
                                                 className="text-xs mt-1 h-8"
                                                 value={item.feedback || ""}
                                                 onChange={(e) => handleAnswerChange(index, 'feedback', e.target.value)}

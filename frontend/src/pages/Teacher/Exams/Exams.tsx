@@ -193,7 +193,7 @@ const disableEdits = async (test: ITest) => {
   )}
   
   {test.settings?.disableEdits && (
-    <Button><ChartColumnIncreasing /> Izvestaji</Button>
+    <Button  onClick={()=>{navigate(`/app/teacher/exams/reports/${test._id}`)}}><ChartColumnIncreasing /> Izvestaji</Button>
   )}
   
   {!test.settings?.disableEdits && (
