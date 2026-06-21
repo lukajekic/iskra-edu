@@ -661,7 +661,7 @@ export const getAIMentorHelp = async(req, res)=>{
             taskID: taskID,
             task_description: task.richText,
             code: single_solution.code,
-            ai_suggestion: ai_response.result.response ?? "",
+            ai_suggestion: ai_response ?? "",
             metadata: {
                 timestamp: new Date(),
                 language: task.language,
@@ -672,13 +672,12 @@ export const getAIMentorHelp = async(req, res)=>{
         })
 
         await new_ailog.save()
-        return res.status(200).json(ai_response.result.response ?? ".")
+        return res.status(200).json(ai_response ?? ".")
 
     } else{
         return res.status(400).json(BuildValidationReturn("AI forbidden.", "warning", "You cannot use AI on Non-AI tasks or if you already used it for this task."))
     }
 }
-
 
 async function CallAI(task_description, user_code) {
     let json = {
@@ -706,14 +705,22 @@ async function CallAI(task_description, user_code) {
             body: JSON.stringify(json)
         });
 
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`AI API Error HTTP ${response.status}:`, errorText);
+            return "error";
+        }
+
         const data = await response.json();
-        return data
+        console.log("AI RESPONSE DATA:", data)
+        const aiMessage = data?.result?.choices?.[0]?.message?.content || data?.result?.response || "";
+        console.log("AI MESSAGE:", aiMessage)
+        return aiMessage;
     } catch (err) {
         console.error("AI Fetch error:", err);
         return "error";
     }
 }
-
 
 export const checkIskraAIEligibility = async(req, res)=>{
     try {
