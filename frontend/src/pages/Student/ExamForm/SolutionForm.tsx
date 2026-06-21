@@ -18,13 +18,11 @@ const SolutionForm = () => {
     const [draft, setDraft] = useState(false)
     const [value, setValue] = useState(null)
     const {id} = useParams()
-    // Čitamo 'task' iz URL-a (pošto njega koristiš za pretragu ID-ja zadatka)
     const currentTaskId = searchParams.get('task');
     useEffect(()=>{
         console.log(value)
     }, [value])
     useEffect(() => {
-        // Ako nema ID-ja u URL-u ili podaci još nisu učitani, resetuj i prekini
         if (!currentTaskId || !tasksData) {
             setActiveTask(null);
             return;
@@ -32,28 +30,24 @@ const SolutionForm = () => {
 
         let foundTask = null;
 
-        // 1. Provera u practicalTasks
         if (tasksData.practicalTasks && Array.isArray(tasksData.practicalTasks)) {
             foundTask = tasksData.practicalTasks.find(task => 
                 task.taskDetails && task.taskDetails._id === currentTaskId
             );
         }
 
-        // 2. Provera u theoryTasks (ako već nije nađen u praktičnim)
         if (!foundTask && tasksData.theoryTasks && Array.isArray(tasksData.theoryTasks)) {
             foundTask = tasksData.theoryTasks.find(task => 
                 task.taskDetails && task.taskDetails._id === currentTaskId
             );
         }
 
-        // Postavljamo state samo jednom na kraju (ili nađeni zadatak ili null)
         setActiveTask(foundTask || null);
         setValue(foundTask?.student_answer)
         setDraft(false)
 
-    }, [currentTaskId, tasksData]); // Efekat reaguje na promenu ID-ja i na promenu samih podataka
+    }, [currentTaskId, tasksData]);
 
-    // Poseban useEffect samo za praćenje promene state-a u konzoli (opciono)
     useEffect(() => {
         console.log("Ažuriran activeTask:", activeTask);
     }, [activeTask]);
@@ -102,7 +96,6 @@ const SolutionForm = () => {
                 return
             }
 
-            // 1. Prvo postavljamo status na 'grading' pre nego što API krene
             setTasksData((prev) => {
                 if (!prev) return prev
                 return {
@@ -112,7 +105,7 @@ const SolutionForm = () => {
                             return {
                                 ...task,
                                 student_answer: value,
-                                status: 'grading' // <-- Ovo se sada izvršava odmah
+                                status: 'grading'
                             }
                         }
                         return task
@@ -120,14 +113,12 @@ const SolutionForm = () => {
                 }
             })
 
-            // 2. Tek onda šaljemo zahtev i čekamo odgovor
             const response = await axios.post(`${import.meta.env.VITE_BACKEND}/studentexams/practical-solution-check`, {
                 test_id: id,
                 mutation_id: activeTask?.questionID,
                 answer: value
             })
 
-            // 3. Kada stigne 200, ažuriramo sa konačnim rezultatom
             if (response.status === 200) {
                 setDraft(false)
                 setTasksData((prev) => {
@@ -181,7 +172,6 @@ const SolutionForm = () => {
             )}
             <RadioGroup value={value} onValueChange={(val)=>{console.log("promena resenja u", val), setDraft(true), setValue(val)}} defaultValue="comfortable" className="w-fit mt-5">
     {activeTask?.taskDetails?.answers?.map((item, index) => (
-  // Dodat je ključ (key) za React optimizaciju
   <div className={`flex items-center gap-3`} key={`radio-wrapper-${index}`}> 
     <RadioGroupItem className='h-5 w-5' value={item} id={`radio${index.toString()}`} />
     <Label className='text-lg' htmlFor={`radio${index.toString()}`}>{item}</Label>
@@ -232,7 +222,7 @@ options={{
       strings: true
     },
     suggestOnTriggerCharacters: true,
-    wordBasedSuggestions: "allDocuments", // Ovo će nuditi reči koje si već kucao
+    wordBasedSuggestions: "allDocuments",
     links: true,
     colorDecorators: true,
   }}
@@ -242,7 +232,6 @@ theme='vs-dark'
 defaultLanguage='python'
 onChange={(e)=>{setValue(e)}}
 value={value || ""}
-// onMount={handleEditorDidMount}
 ></Editor>
 
 {activeTask?.status === 'grading' && (

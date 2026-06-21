@@ -13,7 +13,6 @@ export interface TasksDataContextType {
 
 export const TasksDataContext = createContext<TasksDataContextType | undefined>(undefined);
 
-// --- Zajednički tipovi ---
 export type TaskType = 'Task' | 'TheoryTask';
 export type TaskStatus = 'none' | 'grading' | 'done';
 
@@ -25,7 +24,6 @@ export interface BaseTask {
   points_awarded?: number;
 }
 
-// --- Praktični zadaci (Practical Tasks) ---
 export interface PracticalTaskDetails {
   _id: string;
   title: string;
@@ -40,7 +38,6 @@ export interface PracticalTask extends BaseTask {
   taskDetails: PracticalTaskDetails;
 }
 
-// --- Teorijski zadaci (Theory Tasks) ---
 export interface TheoryTaskDetails {
   _id: string;
   title: string;
@@ -53,7 +50,6 @@ export interface TheoryTask extends BaseTask {
   taskDetails: TheoryTaskDetails;
 }
 
-// --- Glavni omotač za podatke (Response / State) ---
 export interface CourseTasksResponse {
   practicalTasks: PracticalTask[];
   theoryTasks: TheoryTask[];
@@ -67,7 +63,6 @@ const ExamForm = () => {
 
   const currentRoomId = tasksData?.solutionid;
 
-  // PROMENJENO: Funkcija sada koristi prevTasks (funkcionalni update) čime se izbegava Stale Closure
   const updateTaskStatus = (tasktype:"Task"|"TheoryTask", status:"done"|"correct"|"incorrect"|"grading", id:string)=>{
       setTasksData((prevTasks) => {
           if (!prevTasks) return null;
@@ -76,7 +71,6 @@ const ExamForm = () => {
 
           if (tasktype === 'Task') {
             tasks_data_local.practicalTasks = tasks_data_local.practicalTasks.map(item => {
-              // PROMENJENO: Proveri da li tvoj frontend objekat koristi questionID ili _id za poređenje sa ID-jem sa bekenda
               if (item.questionID === id || item._id === id) {
                 return { ...item, status: status as any }
               }
@@ -138,7 +132,6 @@ const ExamForm = () => {
 
     socket.on("update_exam_solution_status", (data) => {
       console.log("update_exam_solution_status data:", data);
-      // Poziva se osvežena funkcija koja radi sa najnovijim state-om kroz callback
       updateTaskStatus(data.tasktype, data.status, data.id)
     });
 

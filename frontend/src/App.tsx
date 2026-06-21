@@ -30,6 +30,8 @@ import StudentExams from './pages/Student/Exams/StudentExams';
 import ExamForm from './pages/Student/ExamForm/ExamForm';
 import ExamEditor from './pages/Teacher/ExamEditor/ExamEditor';
 import ExamResults from './pages/Student/Exams/ExamResults';
+import GradeExam from './pages/Teacher/Exams/GradeExam/GradeExam';
+import ExamReports from './pages/Teacher/Exams/ExamReports/ExamReports';
 export function App() {
 
   const router = createBrowserRouter([
@@ -123,6 +125,15 @@ element: <NotFound></NotFound>
                 {
                   path: "edit/:id",
                   element: <ExamEditor></ExamEditor>
+                },
+
+                {
+                  path: "grade/:id",
+                  element: <GradeExam></GradeExam>
+                },
+                {
+                  path: "reports/:id",
+                  element: <ExamReports></ExamReports>
                 }
               ]
             },

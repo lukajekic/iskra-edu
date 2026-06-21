@@ -788,3 +788,390 @@ export const getResultData = async (req, res) => {
         return res.status(500).json(BuildValidationReturn(error.message, 'error', 'Unexpected error occured.'))
     }
 }
+
+export const getGradingCandidates = async(req, res)=>{
+    try {
+        const userid = req.user._id
+        const testid = req.query.test
+        const usertype = req.user.type
+
+        if (!userid) {
+            return res.status(400).json(BuildValidationReturn('No user id middleware', 'error', 'Missing User ID.'))
+        }
+        if (!testid) {
+            return res.status(400).json(BuildValidationReturn('No test id from query param', 'error', 'Missing Test ID.'))
+        }
+        if (!usertype) {
+            return res.status(400).json(BuildValidationReturn('No req.user.type from middleware', 'error', 'Missing Account Type'))
+        }
+        if (usertype !== 'teacher') {
+            return res.status(400).json(BuildValidationReturn('Not right account type.', 'error', 'Your Account cannot access these resources.'))
+        }
+
+        let test = await TestModel.findById(testid).lean()
+
+        if (!test) {
+            return res.status(400).json(BuildValidationReturn('no test found.', 'error', 'Test not found.'))
+        }
+
+        if (test.author.toString() !== req.user._id.toString()) {
+            return res.status(400).json(BuildValidationReturn("Not Authorized.", 'error', 'Not Authorized.'))
+        }
+
+       const solutions = await SolutionModel.find({
+    test_ref: test._id,
+    submission_status: { $in: ["submitted", "graded"] }
+}).select("total_points_awarded total_points_possible grade_value started_at").populate("student_ref", "name")
+
+let returnData = {
+    solutions: solutions,
+    test_title: test.title,
+    scale: test.scale
+}
+
+return res.status(200).json(returnData)
+    } catch (error) {
+       return res.status(500).json(BuildValidationReturn(error.message, 'error', 'Unexpected error occured.')) 
+    }
+}
+
+export const getCandidateData = async(req, res)=>{
+    try {
+        const userid = req.user._id
+        const solutionID = req.query.solution
+        const usertype = req.user.type
+
+        if (!userid) {
+            return res.status(400).json(BuildValidationReturn('No user id middleware', 'error', 'Missing User ID.'))
+        }
+        if (!solutionID) {
+            return res.status(400).json(BuildValidationReturn('No solution id from query param', 'error', 'Missing Solution ID.'))
+        }
+        if (!usertype) {
+            return res.status(400).json(BuildValidationReturn('No req.user.type from middleware', 'error', 'Missing Account Type'))
+        }
+        if (usertype !== 'teacher') {
+            return res.status(400).json(BuildValidationReturn('Not right account type.', 'error', 'Your Account cannot access these resources.'))
+        }
+
+        let Solution = await SolutionModel.findOne({
+            _id: solutionID,
+            submission_status: { $in: ["graded", "submitted"] }
+        }).lean()
+
+        if (!Solution) {
+            return res.status(400).json(BuildValidationReturn('no solution found.', 'error', 'Solution not found.'))
+        }
+
+        let test = await TestModel.findById(Solution.test_ref).lean()
+
+        if (!test) {
+            return res.status(400).json(BuildValidationReturn('no test found.', 'error', 'Test not found.'))
+        }
+
+        let solutionid = Solution._id
+
+        const populatedQuestionsPromises = test.questions.map(async (q) => {
+            let populatedData = null;
+            const questionIdStr = q.questionID?.$oid || q.questionID;
+
+            if (q.taskType === "Task") {
+                const excludedTaskFields = '-author -folder -ownerRef -downloaded -ai_users -ai_allowed -tests -published -storeOriginID -language -outputType -__v -_id';
+
+                populatedData = await TaskModel.findById(questionIdStr)
+                    .select(excludedTaskFields)
+                    .lean();
+
+            } else if (q.taskType === "TheoryTask") {
+                const excludedTheoryFields = '-lesson  -owner -createdAt -updatedAt -__v -_id -answers';
+
+                populatedData = await TheroyTAskModel.findById(questionIdStr)
+                    .select(excludedTheoryFields)
+                    .lean();
+            }
+
+            const matchingAnswer = Solution.answers?.find(
+                (ans) => ans.question_id.toString() === questionIdStr.toString()
+            );
+
+            let displayStatus = 'none'
+
+            if (matchingAnswer) {
+                const realStatus = matchingAnswer.status || 'none';
+                    displayStatus = realStatus;
+                
+            }
+
+            return {
+                ...q,
+                status: displayStatus,
+                student_answer: matchingAnswer?.student_answer ?? null,
+                taskDetails: populatedData,
+                feedback: matchingAnswer?.feedback ?? null,
+                points_awarded: matchingAnswer?.points_awarded ?? 0,
+            };
+        });
+
+        const allPopulatedQuestions = await Promise.all(populatedQuestionsPromises);
+
+
+
+        let returnData = {
+            answers: null,
+            grade: null,
+            total_points: null,
+            max_points: null
+        }
+
+        returnData.answers = allPopulatedQuestions
+
+        returnData.grade = Solution.grade_value
+        returnData.title = test.title
+        returnData.total_points = Solution.total_points_awarded
+        returnData.max_points = Solution.total_points_possible
+       
+ 
+        return res.status(200).json({
+            success: true,
+            data: returnData
+                });
+
+
+    } catch (error) {
+       return res.status(500).json(BuildValidationReturn(error.message, 'error', 'Unexpected error occured.')) 
+
+    }
+}
+
+
+export const gradeCandidateExam = async (req, res) => {
+    try {
+        const userid = req.user._id
+        const usertype = req.user.type
+        
+        const { solutionID, grade_value, answers } = req.body
+
+        if (!userid) {
+            return res.status(400).json(BuildValidationReturn('No user id middleware', 'error', 'Missing User ID.'))
+        }
+        if (!usertype) {
+            return res.status(400).json(BuildValidationReturn('No req.user.type from middleware', 'error', 'Missing Account Type'))
+        }
+        if (usertype !== 'teacher') {
+            return res.status(400).json(BuildValidationReturn('Not right account type.', 'error', 'Your Account cannot access these resources.'))
+        }
+        if (!solutionID) {
+            return res.status(400).json(BuildValidationReturn('Missing solutionID in body', 'error', 'Missing Solution ID.'))
+        }
+        if (grade_value === undefined || grade_value === null) {
+            return res.status(400).json(BuildValidationReturn('Missing grade_value in body', 'error', 'Missing Grade Value.'))
+        }
+        if (!answers || !Array.isArray(answers)) {
+            return res.status(400).json(BuildValidationReturn('Answers must be an array', 'error', 'Invalid Answers Data.'))
+        }
+
+        let solution = await SolutionModel.findOne({
+            _id: solutionID,
+            submission_status: { $in: ["graded", "submitted"] }
+        })
+
+        if (!solution) {
+            return res.status(400).json(BuildValidationReturn('no solution found.', 'error', 'Solution not found.'))
+        }
+
+        let test = await TestModel.findById(solution.test_ref).lean()
+        if (!test) {
+            return res.status(400).json(BuildValidationReturn('no test found.', 'error', 'Test not found.'))
+        }
+
+        if (test.author.toString() !== userid.toString()) {
+        return res.status(403).json(BuildValidationReturn('Teacher does not own this test.', 'error', 'Unauthorized access to this exam.'))
+        }
+
+
+        let calculatedTotalPoints = 0
+
+        solution.answers = solution.answers.map((dbAnswer) => {
+            const dbQuestionIdStr = dbAnswer.question_id?.toString() || dbAnswer.questionID?.toString()
+
+            const clientUpdate = answers.find(ans => {
+                const clientQuestionIdStr = ans.questionID?.$oid || ans.questionID || ans.question_id || ans._id
+                return clientQuestionIdStr?.toString() === dbQuestionIdStr
+            })
+
+            if (clientUpdate) {
+                const points = Math.max(0, Math.min(Number(clientUpdate.points_awarded) || 0, dbAnswer.points_max || Infinity))
+                
+                dbAnswer.points_awarded = points
+                dbAnswer.feedback = clientUpdate.feedback !== undefined ? clientUpdate.feedback : dbAnswer.feedback
+                
+                dbAnswer.status = points > 0 ? 'correct' : 'incorrect'
+            }
+
+            calculatedTotalPoints += (dbAnswer.points_awarded || 0)
+            return dbAnswer
+        })
+
+        solution.total_points_awarded = calculatedTotalPoints
+        solution.grade_value = Number(grade_value)
+        solution.submission_status = "graded"
+
+        await solution.save()
+
+        return res.status(200).json({
+            success: true,
+            message: "Ispit je uspešno ocenjen.",
+            data: {
+                solutionID: solution._id,
+                grade_value: solution.grade_value,
+                total_points_awarded: solution.total_points_awarded,
+                submission_status: solution.submission_status
+            }
+        })
+
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, 'error', 'Unexpected error occurred.'))
+    }
+}
+
+
+export const getTestAnalyticsReport = async (req, res) => {
+    try {
+        const userid = req.user._id;
+        const usertype = req.user.type;
+        const { testID } = req.query;
+
+        if (!userid || usertype !== 'teacher') {
+            return res.status(403).json({ success: false, message: 'Samo nastavnici mogu pristupiti analitici.' });
+        }
+        if (!testID) {
+            return res.status(400).json({ success: false, message: 'ID testa je neophodan.' });
+        }
+
+        const test = await TestModel.findById(testID).lean();
+        if (!test) {
+            return res.status(404).json({ success: false, message: 'Test nije pronađen.' });
+        }
+        if (test.author.toString() !== userid.toString()) {
+            return res.status(403).json({ success: false, message: 'Nemate autorizaciju nad ovim testom.' });
+        }
+
+        const analytics = await SolutionModel.aggregate([
+            { 
+                $match: { 
+                    test_ref: new mongoose.Types.ObjectId(testID),
+                    submission_status: "graded" 
+                } 
+            },
+            {
+                $facet: {
+                    "generalStats": [
+                        {
+                            $group: {
+                                _id: null,
+                                totalGraded: { $sum: 1 },
+                                avgPoints: { $avg: "$total_points_awarded" },
+                                maxPointsAwarded: { $max: "$total_points_awarded" },
+                                minPointsAwarded: { $min: "$total_points_awarded" },
+                                avgGrade: { $avg: "$grade_value" },
+                                avgTimeSpent: {
+                                    $avg: {
+                                        $divide: [
+                                            { $subtract: [ { $ifNull: ["$submitted_at", new Date()] }, "$started_at" ] },
+                                            60000
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "gradeDistribution": [
+                        {
+                            $group: {
+                                _id: "$grade_value",
+                                count: { $sum: 1 }
+                            }
+                        }
+                    ],
+"taskAnalytics": [
+    { $unwind: "$answers" },
+    {
+        $group: {
+            _id: "$answers.question_id",
+            taskTitle: { $first: { $ifNull: ["$answers.taskDetails.title", "Bez naslova"] } },
+            avgPointsAwarded: { $first: { $ifNull: ["$answers.points_awarded", 0] } },
+            
+            maxPointsPossible: { 
+                $first: { 
+                    $ifNull: [
+                        "$answers.points_max", 
+                        { $ifNull: ["$answers.taskDetails.points_max", 20] }
+                    ] 
+                } 
+            },
+            correctCount: {
+                $sum: { $cond: [ { $eq: ["$answers.status", "correct"] }, 1, 0 ] }
+            }
+        }
+    }
+],
+                    "studentList": [
+                        {
+                            $lookup: {
+                                from: "users",
+                                localField: "student_ref",
+                                foreignField: "_id",
+                                as: "studentInfo"
+                            }
+                        },
+                        { $unwind: "$studentInfo" },
+                        {
+                            $project: {
+                                solutionID: "$_id",
+                                name: "$studentInfo.name",
+                                score: "$total_points_awarded",
+                                grade: "$grade_value",
+                                timeSpent: {
+                                    $round: [
+                                        {
+                                            $divide: [
+                                                { $subtract: [ { $ifNull: ["$submitted_at", new Date()] }, "$started_at" ] },
+                                                60000
+                                            ]
+                                        },
+                                        0
+                                    ]
+                                }
+                            }
+                        },
+                        { $sort: { name: 1 } }
+                    ]
+                }
+            }
+        ]);
+
+        const generalData = analytics[0]?.generalStats[0] || {
+            totalGraded: 0, avgPoints: 0, maxPointsAwarded: 0, minPointsAwarded: 0, avgGrade: 0, avgTimeSpent: 0
+        };
+
+        const responsePayload = {
+            testTitle: test.title,
+            maxPointsPossible: test.total_points_possible || 0,
+            general: {
+                ...generalData,
+                avgTimeSpent: Math.round(generalData.avgTimeSpent || 0)
+            },
+            grades: analytics[0]?.gradeDistribution || [],
+            tasks: analytics[0]?.taskAnalytics || [],
+            studentList: analytics[0]?.studentList || []
+        };
+
+        return res.status(200).json({
+            success: true,
+            data: responsePayload
+        });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};

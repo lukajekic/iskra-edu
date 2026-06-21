@@ -1,7 +1,7 @@
 import express from 'express'
 import { protect } from '../middleware/protect.js'
 import { Limiter15 } from '../utilities/limiter10.js'
-import { ApproveAntiCheat, checkPracticalSolution, CheckTheorySolution, finishTest, getExams, getResultData, getTasksData, InitializeSolution, ReportCheat } from '../controllers/StudentsExamsController.js'
+import { ApproveAntiCheat, checkPracticalSolution, CheckTheorySolution, finishTest, getCandidateData, getExams, getGradingCandidates, getResultData, getTasksData, getTestAnalyticsReport, gradeCandidateExam, InitializeSolution, ReportCheat } from '../controllers/StudentsExamsController.js'
 const StudentExamsRouter = express.Router()
 
 StudentExamsRouter.get('/', protect, getExams)
@@ -13,4 +13,8 @@ StudentExamsRouter.post('/report-cheating', protect, ReportCheat)
 StudentExamsRouter.post('/theory-solution-check', protect, CheckTheorySolution)
 StudentExamsRouter.post('/practical-solution-check', protect, checkPracticalSolution)
 StudentExamsRouter.get('/test-result', protect, getResultData)
+StudentExamsRouter.get('/grading-candidates', protect, getGradingCandidates)
+StudentExamsRouter.get('/candidate-data', protect, getCandidateData)
+StudentExamsRouter.post('/grade-candidate', protect, gradeCandidateExam)
+StudentExamsRouter.get('/analytics', protect, getTestAnalyticsReport)
 export default StudentExamsRouter

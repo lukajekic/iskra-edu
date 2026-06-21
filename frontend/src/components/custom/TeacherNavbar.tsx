@@ -202,7 +202,7 @@ if (userID) {
     <>
       <div className="h-[70px]" />
 
-<div className="max-w-[calc(100%-2rem)] mx-auto h-[60px] fixed top-2 left-4 right-4 bg-white z-50 flex justify-between items-center pl-5  border-1  pb-[2px] rounded-xl shadow-md">
+<div className="max-w-[calc(100%-2rem)] mx-auto h-[60px] fixed top-2 left-4 right-4 bg-white z-50 flex justify-between items-center pl-5  border-1  pb-[2px] rounded-xl shadow-sm">
         <div className="flex items-center gap-2 h-full">
           <img src="/favicon.png" className='size-10' alt="" />
           <div className="flex items-end gap-1">

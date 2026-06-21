@@ -43,26 +43,25 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 
 export interface IQuestion {
-    taskType: 'Task' | 'TheoryTask'; // Striktni enum tipovi za frontend validaciju
-    questionID: string;              // Na frontendu ObjectId dolazi kao string
-    points_max?: number;             // Opciono polje (Number)
+    taskType: 'Task' | 'TheoryTask';
+    questionID: string;
+    points_max?: number;
 }
 
-// 2. Glavni interfejs za Test koji koristiš na frontendu
 export interface ITest {
-    _id: string;                     // Svaki dokument sa backend-a ima svoj jedinstveni ID
+    _id: string;
     title: string;
-    author: string;                  // ID autora dolazi kao string (ID korisnika)
+    author: string;
     grade: string;
-    classes?: any[];                 // Niz odeljenja (opciono)
-    active?: boolean;                // Opciono polje, tipizirano kao boolean
-    questions: IQuestion[];          // Niz pitanja sa definisanom strukturom iznad
-    scale?: Record<string, any>;     // Tip za Object (mapa ključ-vrednost)
+    classes?: any[];
+    active?: boolean;
+    questions: IQuestion[];
+    scale?: Record<string, any>;
     settings?: {
-        disableEdits: boolean;       // Podstruktura za podešavanja
+        disableEdits: boolean;
     };
-    createdAt: string;               // Mongoose timestamps na frontendu dolaze kao ISO stringovi
-    updatedAt: string;               // Mongoose timestamps na frontendu dolaze kao ISO stringovi
+    createdAt: string;
+    updatedAt: string;
     solutionsCount?: number,
     gradedSolutions?: number
 }
@@ -190,7 +189,7 @@ const disableEdits = async (test: ITest) => {
   )}
   
   {test.settings?.disableEdits && (
-    <Button disabled={test.solutionsCount === test.gradedSolutions}><GraduationCap /> Oceni</Button>
+    <Button onClick={()=>{navigate(`/app/teacher/exams/grade/${test._id}`)}}><GraduationCap /> Oceni</Button>
   )}
   
   {test.settings?.disableEdits && (
