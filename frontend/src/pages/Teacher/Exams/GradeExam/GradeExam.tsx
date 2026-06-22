@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import axios from 'axios'
 import { Check, X, Info } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -85,6 +85,10 @@ const GradeExam = () => {
 
     const [selectedGrade, setSelectedGrade] = useState<string>("1")
     const [suggestedGrade, setSuggestedGrade] = useState<string>("1")
+
+    // Ref koji čuva teacher override ocenu za trenutnog kandidata.
+    // useEffect ga čita i ako je postavljen, ne pregazuje selectedGrade.
+    const teacherOverrideRef = useRef<string | null>(null)
     
     const [selectedSolutionID, setSelectedSolutionID] = useState<string | null>(null)
     const [isSaving, setIsSaving] = useState<boolean>(false)
@@ -142,13 +146,22 @@ const GradeExam = () => {
     }
     
     const [singleCandidateData, setSingleCandidateData] = useState<SingleCandidateDataType|null>(null)
-    const getSingleCandidate = async(solutionID:string)=>{
+
+    const getSingleCandidate = async (solutionID: string) => {
         try {
             const response = await axios.get(`${import.meta.env.VITE_BACKEND}/studentexams/candidate-data?solution=${solutionID}`)
             if (response.status === 200) {
+                // Pre nego što se okine useEffect zbog setSingleCandidateData,
+                // upisujemo override u ref. Effect će ga pročitati sinhrono.
+                const existingGrade = InitialData?.solutions.find(sol => sol._id === solutionID)?.grade_value
+                if (existingGrade !== null && existingGrade !== undefined) {
+                    teacherOverrideRef.current = String(existingGrade)
+                } else {
+                    teacherOverrideRef.current = null
+                }
+
                 setSelectedSolutionID(solutionID)
                 setSingleCandidateData(response.data.data)
-                console.log(response.data)
             }
         } catch (error) {
             toast.error("Desila se greska!")
@@ -179,22 +192,20 @@ const GradeExam = () => {
         const scale = InitialData.scale;
 
         let autoGrade = "1";
+        if (currentPoints >= scale.five) autoGrade = "5";
+        else if (currentPoints >= scale.four) autoGrade = "4";
+        else if (currentPoints >= scale.three) autoGrade = "3";
+        else if (currentPoints >= scale.two) autoGrade = "2";
 
-        if (currentPoints >= scale.five) {
-            autoGrade = "5";
-        } else if (currentPoints >= scale.four) {
-            autoGrade = "4";
-        } else if (currentPoints >= scale.three) {
-            autoGrade = "3";
-        } else if (currentPoints >= scale.two) {
-            autoGrade = "2";
-        } else {
-            autoGrade = "1";
-        }
-
+        // Predlog ocene se uvek računa po skali
         setSuggestedGrade(autoGrade);
-        setSelectedGrade(autoGrade);
-        console.log("Izračunata ocena na osnovu skale:", autoGrade, "Trenutni bodovi:", currentPoints);
+
+        // Na toggle-u: ako postoji teacher override (sačuvana ocena), ona ima prednost
+        if (teacherOverrideRef.current !== null) {
+            setSelectedGrade(teacherOverrideRef.current);
+        } else {
+            setSelectedGrade(autoGrade);
+        }
     }, [singleCandidateData, InitialData]);
 
     const saveGrading = async () => {
@@ -409,7 +420,7 @@ const GradeExam = () => {
                                                             </div>
                                                             <Separator />
                                                             <div>
-                                                                <h4 className="font-bold text-sm text-gray-500 uppercase">Odgovor studenta:</h4>
+                                                                <h4 className="font-bold text-sm text-gray-500 uppercase">Odgovor učenika:</h4>
                                                                 {item.taskType === 'Task' ? (
                                                                     <pre className="w-full mt-1 rounded-md bg-slate-900 p-3 text-white overflow-x-auto text-xs">
                                                                         <code>{item.student_answer || ""}</code>
