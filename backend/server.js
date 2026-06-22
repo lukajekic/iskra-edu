@@ -21,8 +21,8 @@ import StudentExamsRouter from './routes/StudentExamsRoutes.js'
 const app = express()
 connectMongoDB()
 app.use(cors({
-    origin: ["http://localhost:5173", "https://k547nh3t-5173.euw.devtunnels.ms", "https://iskra-edu.vercel.app"],
-    credentials: true
+  origin: true,
+  credentials: true
 }))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))

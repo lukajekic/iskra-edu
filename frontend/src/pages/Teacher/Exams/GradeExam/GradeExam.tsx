@@ -17,6 +17,7 @@ import { Check, X, Info } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
+import LoaderModal from '@/components/custom/LoaderModal'
 
 export interface StudentRef {
   _id: string;
@@ -86,20 +87,22 @@ const GradeExam = () => {
     const [selectedGrade, setSelectedGrade] = useState<string>("1")
     const [suggestedGrade, setSuggestedGrade] = useState<string>("1")
 
-    // Ref koji čuva teacher override ocenu za trenutnog kandidata.
-    // useEffect ga čita i ako je postavljen, ne pregazuje selectedGrade.
     const teacherOverrideRef = useRef<string | null>(null)
     
     const [selectedSolutionID, setSelectedSolutionID] = useState<string | null>(null)
     const [isSaving, setIsSaving] = useState<boolean>(false)
+    const [loading, SetLoading] = useState<boolean>(false)
 
     const getCandidates = async () => {
         try {
+            SetLoading(true)
             const response = await axios.get<TestSolutionsResponse>(`${import.meta.env.VITE_BACKEND}/studentexams/grading-candidates?test=${id}`)
             if (response.status === 200) {
                 setInitialData(response.data)
+                SetLoading(false)
             }
         } catch (error) {
+            SetLoading(false)
             toast.error("Desila se greska.")
             navigate('/app/teacher/exams')
         }
@@ -149,10 +152,9 @@ const GradeExam = () => {
 
     const getSingleCandidate = async (solutionID: string) => {
         try {
+            SetLoading(true)
             const response = await axios.get(`${import.meta.env.VITE_BACKEND}/studentexams/candidate-data?solution=${solutionID}`)
             if (response.status === 200) {
-                // Pre nego što se okine useEffect zbog setSingleCandidateData,
-                // upisujemo override u ref. Effect će ga pročitati sinhrono.
                 const existingGrade = InitialData?.solutions.find(sol => sol._id === solutionID)?.grade_value
                 if (existingGrade !== null && existingGrade !== undefined) {
                     teacherOverrideRef.current = String(existingGrade)
@@ -162,8 +164,10 @@ const GradeExam = () => {
 
                 setSelectedSolutionID(solutionID)
                 setSingleCandidateData(response.data.data)
+                SetLoading(false)
             }
         } catch (error) {
+            SetLoading(false)
             toast.error("Desila se greska!")
         }
     }
@@ -197,10 +201,8 @@ const GradeExam = () => {
         else if (currentPoints >= scale.three) autoGrade = "3";
         else if (currentPoints >= scale.two) autoGrade = "2";
 
-        // Predlog ocene se uvek računa po skali
         setSuggestedGrade(autoGrade);
 
-        // Na toggle-u: ako postoji teacher override (sačuvana ocena), ona ima prednost
         if (teacherOverrideRef.current !== null) {
             setSelectedGrade(teacherOverrideRef.current);
         } else {
@@ -213,6 +215,7 @@ const GradeExam = () => {
             toast.error("Nema odabranog kandidata za čuvanje.")
             return
         }
+        SetLoading(true)
 
         setIsSaving(true)
         try {
@@ -225,7 +228,7 @@ const GradeExam = () => {
             const response = await axios.post(`${import.meta.env.VITE_BACKEND}/studentexams/grade-candidate`, payload)
 
             if (response.status === 200) {
-                toast.success("Uspešno sačuvane ocene!")
+                toast.success("Uspešno sačuvana ocena!")
 
                 const updatedSolutions = InitialData.solutions.map((sol) => {
                     if (sol._id === selectedSolutionID) {
@@ -255,12 +258,16 @@ const GradeExam = () => {
                     setSelectedSolutionID(null)
                     toast.info("Svi učenici su uspešno ocenjeni!")
                 }
+
+                SetLoading(false)
             }
         } catch (error) {
+            SetLoading(false)
             console.error(error)
             toast.error("Greška prilikom čuvanja podataka.")
         } finally {
             setIsSaving(false)
+            SetLoading(false)
         }
     }
 
@@ -457,6 +464,8 @@ const GradeExam = () => {
                     </>
                 )}
             </div>
+
+            <LoaderModal open={loading}></LoaderModal>
         </main>
     )
 }
