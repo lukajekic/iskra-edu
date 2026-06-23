@@ -32,6 +32,7 @@ import ExamEditor from './pages/Teacher/ExamEditor/ExamEditor';
 import ExamResults from './pages/Student/Exams/ExamResults';
 import GradeExam from './pages/Teacher/Exams/GradeExam/GradeExam';
 import ExamReports from './pages/Teacher/Exams/ExamReports/ExamReports';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 export function App() {
 
   const router = createBrowserRouter([
@@ -210,6 +211,7 @@ return (
  </RouterProvider>
 </UserProvider>
  </TooltipProvider>
+ <SpeedInsights />
  </>
 )
 }
