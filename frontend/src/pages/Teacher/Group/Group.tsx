@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { toast } from 'sonner'
 import SolutionIntepreter from '@/components/custom/SolutionIntepreter/SolutionIntepreter'
+import LoaderModal from '@/components/custom/LoaderModal'
 
 type ProgressPerStudent = {
     name:      string;
@@ -61,7 +62,7 @@ const [codeFullScreen, setCodeFullScreen] = useState(false)
 const [workhourData, setWorhourData] = useState()
 const [openEndModal, setopenendmodal] = useState(false)
 const [openForbidModal, SetOpenForbidModal] = useState(false)
-
+const [loading, setLoading] = useState<boolean>(true)
 const [progress, setProgress] = useState([])
 const { userID } = useUserId()
 const [workhourProgress, setWorkhourProgress] = useState<ProgressPerStudent[]>([])
@@ -69,12 +70,14 @@ const [studentIspectorID, setStudentIspectorID] = useState<string|null>(null)
 
 const endclass = async()=>{
   try {
+    setLoading(true)
     const response = await axios.delete(`${import.meta.env.VITE_BACKEND}/user/me/workhour/end`)
     if (response.status === 200) {
       location.reload()
     }
   } catch (error) {
     console.error(error)
+    setLoading(false)
   }
 }
 
@@ -93,6 +96,7 @@ SetOpenForbidModal(false)
 
 const fetchWorhourData = async()=>{
   try {
+    setLoading(true)
     const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/workhour`)
     if (response.status === 200 && response.data) {
       setWorhourData(response.data)
@@ -103,12 +107,16 @@ const fetchWorhourData = async()=>{
       } else {
         setGroupActive(false)
       }
+
+      setLoading(false)
     } else {
       setGroupActive(false)
+      setLoading(false)
     }
   } catch (error) {
     console.error(error)
     setGroupActive(false)
+    setLoading(false)
   }
 }
 
@@ -130,12 +138,13 @@ const fetchWorhourProgress = async()=>{
 
 const createNewGroup = async()=>{
   try {
+    setLoading(true)
     const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/me/workhour/create`)
     if (response.status === 200) {
       location.reload()
     }
   } catch (error) {
-    
+    setLoading(false)
   }
 }
 
@@ -448,6 +457,8 @@ const handleExport = () => {
     </div>
   </DialogContent>
 </Dialog>
+
+<LoaderModal open={loading}></LoaderModal>
     </>
   )
 }
