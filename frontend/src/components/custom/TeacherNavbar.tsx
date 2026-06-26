@@ -233,7 +233,7 @@ if (userID) {
             </Button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent className="w-50 rounded-r-none rounded-tl-none -mt-[1px]" >
+          <DropdownMenuContent className="w-50 mt-[10px] mr-[20px]" >
             <DropdownMenuGroup className=''>
               <DropdownMenuLabel>Moj nalog</DropdownMenuLabel>
               <DropdownMenuItem onClick={()=>{setModalStatus(prev=>({...prev, my_profile: true}))}}>
