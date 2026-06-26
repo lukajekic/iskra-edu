@@ -58,6 +58,23 @@ const SolutionForm = () => {
                 toast.warning("Odaberi odgovor.")
                 return
             }
+
+            setTasksData((prev) => {
+                    if (!prev) return prev
+                    return {
+                        ...prev,
+                        theoryTasks: prev.theoryTasks.map((task) => {
+                            if (task.taskDetails?._id === currentTaskId) {
+                                return {
+                                    ...task,
+                                    student_answer: value,
+                                    status: 'grading'
+                                }
+                            }
+                            return task
+                        })
+                    }
+                })
             const response = await axios.post(`${import.meta.env.VITE_BACKEND}/studentexams/theory-solution-check`, {
                 test_id: id,
                 mutation_id: activeTask?.questionID,
@@ -179,6 +196,14 @@ const SolutionForm = () => {
 ))}
       </RadioGroup>
       <Button onClick={()=>{sendAnswerTheory()}} className='mt-5'><SendIcon></SendIcon>Pošalji na pregled</Button>
+
+      {activeTask?.status === 'grading' && (
+   <div className="absolute inset-y-0 right-0 bg-white/60 dark:bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-50 rounded-lg w-1/3">
+    <div className="text-xl font-bold animate-pulse text-gray-800 dark:text-gray-200">
+        Pregled u toku...
+    </div>
+</div>
+)}
       </>
         ) : activeTask?.taskType === 'Task' ? (<>
 {activeTask.status !== 'grading' && (
