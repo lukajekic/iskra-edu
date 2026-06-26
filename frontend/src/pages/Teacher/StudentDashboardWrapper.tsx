@@ -1,4 +1,4 @@
-import StudentNavbar from '@/components/custom/StudentNavbar'
+import StudentNavbar, { type ProfileType } from '@/components/custom/StudentNavbar'
 import { AppSidebarStudent } from '@/components/ui/app-sidebar-student'
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import axios from 'axios'
@@ -18,6 +18,7 @@ const [work_forbidden, set_work_forbidden] = useState(false)
   const socketRef = useRef(null)
   const [socket_solution, set_socket_solution] = useState()
   const [openforbididalog, setopenforbiddialog] = useState(false)
+  const [myProfile, setMyProfile] = useState<ProfileType>()
   const handleOnboarding = async (socket) => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/redirect?teacherref=true&return_work_forbidden=true`)
@@ -39,7 +40,20 @@ const [work_forbidden, set_work_forbidden] = useState(false)
     }
   }
 
+  const getProfile = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me`)
+      if (response.status === 200) {
+        setMyProfile(response.data)
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   useEffect(() => {
+    getProfile()
+
     const socket = io(import.meta.env.VITE_BACKEND)
     socketRef.current = socket
 
@@ -72,13 +86,13 @@ const [work_forbidden, set_work_forbidden] = useState(false)
   return (
    <WorkForbiddenContext.Provider value={{work_forbidden, set_work_forbidden}}>
      <div className="">
-      <StudentNavbar />
+      <StudentNavbar myProfile={myProfile} />
       <SidebarProvider>
         <SidebarTrigger className="z-50 h-10 w-10 border border-input bg-background hover:bg-accent rounded-md shadow-sm mt-2 ml-5 flex md:hidden fixed">
           <Menu className="h-5 w-5" />
           <span>Meni</span>
         </SidebarTrigger>
-        <AppSidebarStudent />
+        <AppSidebarStudent myProfile={myProfile} />
         <main className='p-5 w-full'>
           <Outlet context={socket_solution} />
         </main>

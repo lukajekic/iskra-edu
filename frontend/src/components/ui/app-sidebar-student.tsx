@@ -27,6 +27,7 @@ import examcion from "../../assets/exam-sidebar-student.png"
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import type { ProfileType } from "@/components/custom/StudentNavbar";
 type Folder = {
     zadaci:     Task[];
     folderName: string;
@@ -39,12 +40,18 @@ type Task = {
   title: string
 }
 
-export function AppSidebarStudent() {
+type AppSidebarStudentProps = {
+  myProfile?: ProfileType
+}
+
+export function AppSidebarStudent({ myProfile }: AppSidebarStudentProps) {
   const {setOpenMobile} = useSidebar()
 const navigate = useNavigate()
     const [openTaskPicker, setOpenTaskPicker] = useState(false)
     let [folders, setFolders] = useState<Folder[]>()
 let [tasks, setTasks] = useState<Task[]>()
+    const isTemporaryStudent = myProfile?.type === 'student_temp'
+
     const getFolders = async()=>{
       try {
         const response = await axios.get(`${import.meta.env.VITE_BACKEND}/app/student/folders`)
@@ -55,6 +62,7 @@ let [tasks, setTasks] = useState<Task[]>()
         console.error(error)
       }
     }
+
   const [searchParams, setSearchParams] = useSearchParams();
 
     useEffect(()=>{
@@ -72,10 +80,12 @@ let [tasks, setTasks] = useState<Task[]>()
         <SidebarGroup>
           <SidebarMenu className="mt-2">
 
-       <div onClick={()=>{location.href = "/app/student-exams"}}  className="bg-white border-1 noselect w-full h-fit p-2 flex items-center rounded-lg border-2  active:border-blue-500 gap-2 hover:cursor-pointer">
-      <img src={examcion} className="w-[25px]" alt="" />
-      <span className="flex-1 text-gray-500 break-all">Kontrolni zadaci</span>
-    </div>    
+{isTemporaryStudent !== true && (
+  <div onClick={()=>{location.href = "/app/student-exams"}}  className="bg-white border-1 noselect w-full h-fit p-2 flex items-center rounded-lg border-2  active:border-blue-500 gap-2 hover:cursor-pointer">
+    <img src={examcion} className="w-[25px]" alt="" />
+    <span className="flex-1 text-gray-500 break-all">Kontrolni zadaci</span>
+  </div>
+)}
 {folders?.map((item ,index)=>{
   return (
     <div onClick={()=>{setTasks(item.zadaci), setOpenTaskPicker(true)}} key={index} className="noselect w-full h-fit p-2 flex items-center rounded-lg border-2 border-transparent active:border-blue-500 gap-2 hover:cursor-pointer">

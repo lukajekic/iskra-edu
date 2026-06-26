@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,7 +50,11 @@ export type TeacherRef = {
     name:        string;
     institution: string;
 }
-const StudentNavbar = () => {
+type StudentNavbarProps = {
+  myProfile?: ProfileType
+}
+
+const StudentNavbar = ({ myProfile }: StudentNavbarProps) => {
 
 
   const [modalStatus, setModalStatus] = useState<ModalStatus>({
@@ -58,19 +62,6 @@ const StudentNavbar = () => {
     messages: false,
     documents: false
   })
-const [myProfile, setMyProfile] = useState<ProfileType>()
-  const getProfile = async()=>{
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me`)
-      if (response.status === 200) setMyProfile(response.data)
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
-  useEffect(()=>{
-    getProfile()
-  }, [])
   return (
     <>
       <div id='height_manager' className="md:h-[62px] h-[70px] mt-2 w-full flex justify-center" />
