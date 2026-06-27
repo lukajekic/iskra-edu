@@ -32,8 +32,10 @@ import {
 import Footer from '@/components/custom/Footer'
 import axios from 'axios'
 import { toast } from 'sonner'
+import Loader from '@/components/custom/Loader'
 
 const Onboarding = () => {
+const [btnLoading, setBtnLoading] = useState(false)
 const usernameField = useRef<HTMLInputElement>(null)
 const passwordField = useRef<HTMLInputElement>(null)
 const nameField = useRef<HTMLInputElement>(null)
@@ -64,6 +66,7 @@ handleOnboarding()
         toast.error("Unesite korisnicko ime i lozinku.");
         return;
       }
+      setBtnLoading(true)
       const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/login`, {
         username: usernameField.current.value,
         password: passwordField.current.value
@@ -76,10 +79,12 @@ handleOnboarding()
             sessionStorage.setItem('teacher_id', redirectresponse.data.userID)
           }
           location.href = redirectresponse.data.redirect;
+          setBtnLoading(false)
         }
       }
     } catch (error) {
       console.error(error);
+      setBtnLoading(false)
     }
   }
 
@@ -89,6 +94,7 @@ handleOnboarding()
         toast.error("Unesite ime i pristupni kod.");
         return;
       }
+      setBtnLoading(true)
 
       const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/create`, {
         name: nameField.current.value,
@@ -99,10 +105,12 @@ handleOnboarding()
       })
 
       if (response.status === 200) {
+        setBtnLoading(false)
         location.href = '/app/student/home'
       }
     } catch (error) {
       console.error(error)
+      setBtnLoading(false)
     }
   }
 
@@ -199,7 +207,9 @@ handleOnboarding()
                             <DialogClose asChild>
                               <Button variant="outline" onClick={()=>{setaccesscode("")}}>Odustani</Button>
                             </DialogClose>
-                            <Button onClick={()=>{handleCodeLogin()}} type="submit">Prijavi se</Button>
+                            <Button disabled={btnLoading} onClick={()=>{handleCodeLogin()}} type="submit">{btnLoading ? (
+                              <Loader small></Loader>
+                            ) : ("Prijavi se")}</Button>
                           </DialogFooter>
                         </DialogContent>
                       </form>
@@ -264,7 +274,9 @@ handleOnboarding()
                             <DialogClose asChild>
                               <Button variant="outline" onClick={()=>{setaccesscode("")}}>Odustani</Button>
                             </DialogClose>
-                            <Button onClick={()=>{handleCredentialLogin()}} type="submit">Prijavi se</Button>
+                            <Button disabled={btnLoading} onClick={()=>{handleCredentialLogin()}} type="submit">{btnLoading ? (
+                              <Loader small></Loader>
+                            ) : ("Prijavi se")}</Button>
                           </DialogFooter>
                         </DialogContent>
                       </form>
