@@ -1,21 +1,39 @@
-import { Button } from '@/components/ui/button'
-import React, { useEffect } from 'react'
+import { createContext, useEffect, useState } from 'react'
 
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from '@/components/ui/alert-dialog'
 import SANewMessage from './SANewMessage'
 import axios from 'axios'
 import SANewUser from './SANewUser'
+import { toast } from 'sonner'
+import SATeacherLookup from './SATeacherLookup'
+export  const TeacherListContext = createContext()
+
 const SAHome = () => {
+
+  const [teacherList, setTeacherList] = useState([])
+
+  const getTeachers = async()=>{
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/teachers/all`)
+      if (response.status === 200) {
+        setTeacherList(response.data)
+      }
+    } catch (error) {
+      toast.error("GRESKA: Preuzimanje profesora.")
+    }
+  }
+
+  useEffect(()=>{
+    getTeachers()
+  }, [])
 
     const consent = sessionStorage.getItem("sa_consent") && sessionStorage.getItem("sa_consent") === 'true'
     const setConsent = ()=>{
@@ -31,24 +49,30 @@ const SAHome = () => {
         {
             title: "Dodaj profesora",
             element: <SANewUser></SANewUser>
+        },
+
+        {
+          title: "Podaci o profesoru",
+          element: <SATeacherLookup></SATeacherLookup>
         }
     ]
 
     useEffect(()=>{
         axios.get(`${import.meta.env.VITE_BACKEND}/user/me/superadmin`)
-    })
+    }, [])
   return (
-    <div className='sa-admin-theme p-5'>
+    <TeacherListContext.Provider value={teacherList}>
+      <div className='sa-admin-theme p-5'>
 
 
 
 
         <h1 className="text-4xl">Iskra - Administrativni panel</h1>
-        <p>Verzija panela: 1.0</p>
+        <p>Verzija panela: 1.1</p>
         <div className="flex flex-wrap items-top justify-start mt-5 gap-5">
             {cards.map((item, index)=>(
-                <div key={index} className="h-[400px] w-[400px] border-1 rounded-lg flex flex-col">
-                <p className='font-bold border-b-1 p-2  shadow-[0px_4px_6px_0px_rgba(0,_0,_0,_0.1)]'>{item.title}</p>
+                <div key={index} className="h-100 w-100 border rounded-lg flex flex-col">
+                <p className='font-bold border-b p-2 shadow-[0px_4px_6px_0px_rgba(0,0,0,0.1)]'>{item.title}</p>
                 <div className="p-2 flex-1 overflow-y-auto">{item.element}</div>
             </div>
             ))}
@@ -72,6 +96,7 @@ const SAHome = () => {
       </AlertDialogContent>
     </AlertDialog>
     </div>
+    </TeacherListContext.Provider>
   )
 }
 

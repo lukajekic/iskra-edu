@@ -652,3 +652,32 @@ export const NewMessage = async(req, res)=>{
         return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
     }
 }
+
+export const getAllTeachers = async(req, res)=>{
+    try {
+        let user = req.user
+        if (user.super_admin !== undefined && user.super_admin === true) {
+            let items = await UserModel.find({type: "teacher"}).select("_id name username")
+            return res.status(200).json(items)
+        }
+
+        return res.status(400).json(BuildValidationReturn("Not Authorized.", "error", "Not Authorized."))
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
+    }
+}
+
+export const getSingleTeacher = async(req, res)=>{
+    try {
+        let user = req.user
+        let id = req.params.id
+        if (user.super_admin !== undefined && user.super_admin === true) {
+            let items = await UserModel.findOne({type: "teacher", _id: new mongoose.Types.ObjectId(id)}).select("-password")
+            return res.status(200).json(items)
+        }
+
+        return res.status(400).json(BuildValidationReturn("Not Authorized.", "error", "Not Authorized."))
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
+    }
+}

@@ -1,11 +1,8 @@
 import PageTitle from '@/components/custom/PageTitle'
 import { Button } from '@/components/ui/button'
 import { EllipsisVertical, FolderPlus, Info, PlusSquare } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Footer from '@/components/custom/Footer'
-import { DataTable } from '@/components/custom/data-table'
-import { columns, type Payment } from './columns'
-import { Drawer, DrawerContent, DrawerFooter, DrawerHeader } from '@/components/ui/drawer'
 import { Input } from '@/components/ui/input'
 import { Field, FieldGroup } from '@/components/ui/field'
 import { Label } from '@/components/ui/label'
@@ -18,13 +15,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {

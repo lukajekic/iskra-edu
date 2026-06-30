@@ -4,8 +4,8 @@ import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { AlertTriangleIcon, BookText, Check, Trash } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import { AlertTriangleIcon, Check, Trash } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,27 +15,26 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from '@/components/ui/alert-dialog'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import axios from 'axios'
 import { toast } from 'sonner'
 
-     type TheroyTask = {
-    _id: string; // Mongoose uvek dodaje _id kao string (kada se pošalje sa backend-a kao JSON)
-    title: string;
-    lesson: string; // Na frontendu ObjectId obično dobijaš kao string
-    answers?: any[];
-    correct_answer?: string;
-    owner: string;
-    description?: string;
-    createdAt?: string; // Datumi sa API-ja najčešće stižu kao ISO string
-    updatedAt?: string;
+type TheroyTask = {
+    _id?: string
+    title: string
+    lesson?: string
+    answers?: string[]
+    correct_answer?: string | null
+    owner?: string
+    description?: string
+    createdAt?: string
+    updatedAt?: string
 }
+
 const TheoryEditor = () => {
     const params = useParams()
-    const navigate = useNavigate()
     const taskID = params.id
     const [openMutateModal, setOpenMutateModal] = useState<"edit"|"delete"|"none">("none")
 const [newAnswerValue, setNewANswerValue] = useState("")
@@ -97,7 +96,7 @@ const [task, setTask] = useState<TheroyTask | null>(null)
             toast.error('Greska.')
         }
     }
-    const MutateAnswer = async(mutationType:string, index:number) =>{
+    const MutateAnswer = async(mutationType:string, index:number | null) =>{
         try {
             let body = {
             taskID,
@@ -138,9 +137,9 @@ const [task, setTask] = useState<TheroyTask | null>(null)
                 <Field>
                     <Label>Naziv zadatka</Label>
                     <Input 
-                     value={task?.title} 
+                     value={task?.title ?? ''} 
                      onChange={(e) => {
-                     setTask(prev => ({ ...prev, title: e.target.value }));
+                     setTask(prev => prev ? { ...prev, title: e.target.value } : prev)
                      }}
                      >
 </Input>
@@ -149,9 +148,9 @@ const [task, setTask] = useState<TheroyTask | null>(null)
                 <Field className='mt-2'>
                     <Label>Opis zadatka</Label>
                     <Textarea
-                    value={task?.description} 
+                    value={task?.description ?? ''} 
                      onChange={(e) => {
-                     setTask(prev => ({ ...prev, description: e.target.value }));
+                     setTask(prev => prev ? { ...prev, description: e.target.value } : prev)
                      }}></Textarea>
                 </Field>
 
@@ -165,10 +164,10 @@ const [task, setTask] = useState<TheroyTask | null>(null)
 
             <div id='answers-editor' className="w-full flex items-start mt-2">
                 
-                <div id="left-1" className="w-1/2 border-r-1 min-h-5 p-4 -mt-2">
+                <div id="left-1" className="w-1/2 border-r min-h-5 p-4 -mt-2">
                  
                  {task?.answers?.map((item, index)=>(
-                    <div className="p-2 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer border-1 justify-between mt-2">
+                    <div className="p-2 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer border justify-between mt-2">
                     <span>{item}</span>
                     <div className="flex gap-2 items-center">
                         <Button variant={'destructive'} onClick={()=>{setUpdateCorrectIndex(index), setOpenMutateModal('delete')}}><Trash></Trash></Button>

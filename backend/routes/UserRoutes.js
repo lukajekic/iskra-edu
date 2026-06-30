@@ -1,5 +1,5 @@
 import express from 'express'
-import { CheckSuperAdminRole, createAccount, createWorkhourGroup, Documentation, endWorkhour, ForbidWork, getMessages, getSingleStudentProgress, Login, Logout, MyProfile, MyWorkhourGroup, NewMessage, readMessage, RedirectMe, ReGrade, WorkhourPorgress, WorkhourTimer } from '../controllers/UserController.js'
+import { CheckSuperAdminRole, createAccount, createWorkhourGroup, Documentation, endWorkhour, ForbidWork, getAllTeachers, getMessages, getSingleStudentProgress, getSingleTeacher, Login, Logout, MyProfile, MyWorkhourGroup, NewMessage, readMessage, RedirectMe, ReGrade, WorkhourPorgress, WorkhourTimer } from '../controllers/UserController.js'
 import { protect } from '../middleware/protect.js'
 import { inject_req_data } from '../middleware/inject_req_data.js'
 let router = express.Router()
@@ -25,5 +25,8 @@ router.put('/inspect/student/regrade', protect, ReGrade)
 
 router.get('/me/superadmin', protect, CheckSuperAdminRole)
 router.post('/me/messages', protect, NewMessage)
+
+router.get("/me/teachers/all", protect, getAllTeachers)
+router.get("/me/teachers/:id", protect, getSingleTeacher)
 
 export default router

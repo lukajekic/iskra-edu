@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button'
 import './landingcss.css'
-import { CreateMetricaView } from "@lukajekic/metrica-sdk";
+import { CreateMetricaView } from '@lukajekic/metrica-sdk'
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import axios from 'axios'
 import Explainer from './Explainer'
