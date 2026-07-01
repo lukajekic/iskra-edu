@@ -14,6 +14,7 @@ import axios from 'axios'
 import SANewUser from './SANewUser'
 import { toast } from 'sonner'
 import SATeacherLookup from './SATeacherLookup'
+import SANewTargetedMessage from './SANewTargetedMessage'
 export  const TeacherListContext = createContext()
 
 const SAHome = () => {
@@ -54,6 +55,11 @@ const SAHome = () => {
         {
           title: "Podaci o profesoru",
           element: <SATeacherLookup></SATeacherLookup>
+        },
+
+        {
+          title: "Nova poruka korisniku",
+          element: <SANewTargetedMessage></SANewTargetedMessage>
         }
     ]
 
@@ -68,7 +74,7 @@ const SAHome = () => {
 
 
         <h1 className="text-4xl">Iskra - Administrativni panel</h1>
-        <p>Verzija panela: 1.1</p>
+        <p>Verzija panela: 1.2</p>
         <div className="flex flex-wrap items-top justify-start mt-5 gap-5">
             {cards.map((item, index)=>(
                 <div key={index} className="h-100 w-100 border rounded-lg flex flex-col">

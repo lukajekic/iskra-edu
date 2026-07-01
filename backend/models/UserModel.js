@@ -5,6 +5,11 @@ const schema = new mongoose.Schema({
     type: String,
     username: String,
     password: String,
+    login_banned: {
+        type: Boolean,
+        default: false,
+        required: false
+    },
     activegroup: {
     type: {
         expiry: Date,

@@ -141,6 +141,10 @@ export const Login = async (req, res) => {
         return res.status(400).json(BuildValidationReturn("Invalid credentials.", "error", "Your login credentials aren't valid."))
     }
 
+    if (user.login_banned) {
+        return res.status(400).json(BuildValidationReturn("Login banned.", "error", "Aktivna zabrana prijave na portal."))
+    }
+
     if (user.type === "student_temp") {
         return res.status(400).json(BuildValidationReturn("TEMP ACC ERR", "error", "You cannot use login endpoint for logging into temporary accounts."))
     } else {
@@ -271,7 +275,12 @@ export const getMessages = async (req, res) => {
         const userType = req.user.type
 
         if (userType === "teacher") {
-            let messages = await MessageModel.find().sort({ date: -1 })
+            let messages = await MessageModel.find({
+                $or: [
+                    { target: null },
+                    { target: req.user._id.toString() }
+                ]
+            }).sort({ date: -1 })
 
             return res.status(200).json(messages)
         }
@@ -677,6 +686,63 @@ export const getSingleTeacher = async(req, res)=>{
         }
 
         return res.status(400).json(BuildValidationReturn("Not Authorized.", "error", "Not Authorized."))
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
+    }
+}
+
+export const UpdateUserBanStatus = async(req, res)=>{
+    try {
+        let user = req.user
+        let id = req.params.id
+        let { login_banned } = req.body || {}
+
+        if (user.super_admin !== undefined && user.super_admin === true) {
+            if (login_banned === undefined) {
+                return res.status(400).json(BuildValidationReturn("validation failed.", "error", "Fill all the fields."))
+            }
+
+            let updatedUser = await UserModel.findOneAndUpdate(
+                { _id: new mongoose.Types.ObjectId(id) },
+                { login_banned: login_banned },
+                { new: true }
+            ).select("-password")
+
+            if (!updatedUser) {
+                return res.status(404).json(BuildValidationReturn("Not Found.", "error", "User not found."))
+            }
+
+            return res.status(200).json(updatedUser)
+        }
+
+        return res.status(400).json(BuildValidationReturn("Not Authorized.", "error", "Not Authorized."))
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
+    }
+}
+
+export const NewMessageToUser = async(req, res)=>{
+    try {
+        let user = req.user
+        let {title, description, target} = req.body || {}
+
+        if (!title || !description || !target) {
+            return res.status(400).json(BuildValidationReturn("validaiton failed.", "error", "Fill all the fields."))
+        }
+        if (user.super_admin !== undefined && user.super_admin === true) {
+            let new_msg = MessageModel({
+                title, 
+                description, 
+                read: [], 
+                target: target, 
+                date: new Date()
+            })
+            await new_msg.save()
+            return res.status(201).json("OK")
+        }
+
+        return res.status(400).json(BuildValidationReturn("err", "error", "Cannot create message."))
+
     } catch (error) {
         return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
     }

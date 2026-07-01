@@ -4,6 +4,18 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogContent as DialogContent, // Promenjeno/Zadržano radi stabilnosti
+} from "@/components/ui/alert-dialog"
 import axios from 'axios'
 import React, { useContext, useState } from 'react'
 import { toast } from 'sonner'
@@ -14,6 +26,7 @@ interface TeacherData {
     name: string;
     type: string;
     username: string;
+    login_banned: boolean;
     activegroup?: {
         _id: string;
     };
@@ -27,6 +40,8 @@ interface TeacherData {
 const SATeacherLookup = () => {
     const [selectedTeacherId, setSelectedTeacherId] = useState<string>('')
     const [teacherData, setTeacherData] = useState<TeacherData | null>(null)
+    const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
+    const [isPending, setIsPending] = useState<boolean>(false)
 
     const onSubmit = async (event)=>{
         try {
@@ -47,6 +62,32 @@ const SATeacherLookup = () => {
             }
         } catch (error) {
             toast.error("ERROR.")   
+        }
+    }
+
+    const handleBanToggle = async () => {
+        if (!teacherData) return
+        
+        try {
+            setIsPending(true)
+            const targetStatus = !teacherData.login_banned
+
+            const response = await axios.put(`${import.meta.env.VITE_BACKEND}/user/me/teachers/ban/${teacherData._id}`, {
+                login_banned: targetStatus
+            })
+
+            if (response.status === 200) {
+                toast.success(targetStatus ? "Korisnik uspešno suspendovan." : "Korisnik uspešno aktiviran.")
+                setTeacherData({
+                    ...teacherData,
+                    login_banned: targetStatus
+                })
+            }
+        } catch (error) {
+            toast.error("Greška prilikom izmene statusa.")
+        } finally {
+            setIsPending(false)
+            setIsDialogOpen(false)
         }
     }
 
@@ -78,33 +119,87 @@ const SATeacherLookup = () => {
         </form>
 
         {teacherData && (
-            <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4 mt-4">
-                <h3 className="text-lg font-semibold tracking-tight mb-4">Profil profesora</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <span className="text-muted-foreground block">Ime i prezime:</span>
-                        <span className="font-medium text-base">{teacherData.name}</span>
+            <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4 mt-4 flex flex-col gap-6">
+                <div>
+                    <h3 className="text-lg font-semibold tracking-tight mb-4">Profil profesora</h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span className="text-muted-foreground block">Ime i prezime:</span>
+                            <span className="font-medium text-base">{teacherData.name}</span>
+                        </div>
+                        <div>
+                            <span className="text-muted-foreground block">Korisničko ime:</span>
+                            <span className="font-medium text-base">{teacherData.username}</span>
+                        </div>
+                    
+                        <div>
+                            <span className="text-muted-foreground block">Institucija:</span>
+                            <span className="font-medium text-base">{teacherData.institution}</span>
+                        </div>
+                        <div>
+                            <span className="text-muted-foreground block">Super Admin:</span>
+                            <span className="font-medium text-base">
+                                {teacherData.super_admin ? "Da" : "Ne"}
+                            </span>
+                        </div>
+                        <div>
+                            <span className="text-muted-foreground block">Zabrana prijave:</span>
+                            <span className="font-medium text-base">
+                                {teacherData.login_banned ? "Da" : "Ne"}
+                            </span>
+                        </div>
+                        <div>
+                            <span className="text-muted-foreground block">Kreiran:</span>
+                            <span className="font-medium text-base">
+                                {new Date(teacherData.createdAt).toLocaleDateString('sr-RS')}
+                            </span>
+                        </div>
                     </div>
-                    <div>
-                        <span className="text-muted-foreground block">Korisničko ime:</span>
-                        <span className="font-medium text-base">{teacherData.username}</span>
+                </div>
+
+                {/* Sekcija za promenu statusa se sada nalazi na samom dnu kartice */}
+                <div className="border-t pt-4 flex items-center justify-between">
+                    <div className="space-y-0.5">
+                        <Label htmlFor="login-ban-switch" className="text-base font-medium">Zabrana prijave (Ban)</Label>
+                        <p className="text-sm text-muted-foreground">
+                            {teacherData.login_banned 
+                                ? "Korisniku je trenutno zabranjen pristup sistemu." 
+                                : "Korisnik može nesmetano da se uloguje."}
+                        </p>
                     </div>
-                
-                    <div>
-                        <span className="text-muted-foreground block">Institucija:</span>
-                        <span className="font-medium text-base">{teacherData.institution}</span>
-                    </div>
-                    <div>
-                        <span className="text-muted-foreground block">Super Admin:</span>
-                        <span className="font-medium text-base">
-                            {teacherData.super_admin ? "Da" : "Ne"}
-                        </span>
-                    </div>
-                    <div>
-                        <span className="text-muted-foreground block">Kreiran:</span>
-                        <span className="font-medium text-base">
-                            {new Date(teacherData.createdAt).toLocaleDateString('sr-RS')}
-                        </span>
+
+                    <div className="flex items-center">
+                        {/* Izmešten Switch van AlertDialogTrigger-a kako bi ispravno primao klikove */}
+                        <Switch 
+                            id="login-ban-switch"
+                            checked={teacherData.login_banned}
+                            onCheckedChange={() => setIsDialogOpen(true)}
+                        />
+
+                        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Da li ste sigurni?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        {teacherData.login_banned 
+                                            ? `Ova akcija će omogućiti profesoru ${teacherData.name} ponovni pristup aplikaciji.`
+                                            : `Ova akcija će suspendovati profesora ${teacherData.name} i onemogućiti mu prijavu na sistem.`}
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel disabled={isPending}>Odustani</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                        disabled={isPending} 
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            handleBanToggle()
+                                        }}
+                                    >
+                                        {isPending ? "Ažuriranje..." : "Potvrdi"}
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </div>
                 </div>
             </div>

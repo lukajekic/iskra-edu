@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from '../ui/button'
-import { Building, File, FileText, MessageCircle, Pencil, Phone, PowerOff, SquareUserRound, Users } from 'lucide-react'
+import { Building, File, FileText, Mail, MessageCircle, Pencil, Phone, PowerOff, SquareUserRound, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '../ui/dialog'
 import { Separator } from '../ui/separator'
@@ -314,9 +314,12 @@ if (userID) {
       hover:bg-white hover:border-l-2 hover:border-l-blue-400 hover:cursor-pointer`}
   >
     <p className={`text-xs text-gray-500`}>{moment(item.date).format("DD. MM. YYYY. HH:mm")}</p>
-    <p className={`text-[16px] ${!determineReadCall(item, true) ? "text-[#194872] font-bold" : "text-gray-500"}`}>
-      {item.title}
-    </p>
+    <p className={`text-[16px] flex items-center gap-2 ${!determineReadCall(item, true) ? "text-[#194872] font-bold" : "text-gray-500"}`}>
+  {item.target && (
+    <Mail className='size-5' />
+  )}
+  <span>{item.title}</span>
+</p>
   </div>
 ))}
     </div>
@@ -325,6 +328,10 @@ if (userID) {
       {activeMessage?.title}
     </p>
         <p className={`text-xs text-gray-500`}>{moment(activeMessage?.date).format("D.. MM. YYYY. HH:mm")}</p>
+
+        {activeMessage?.target && (
+          <p className="italic">(Ova poruka poslata je samo Vama.)</p>
+        )}
 
 <Separator className='my-2'></Separator>
 
