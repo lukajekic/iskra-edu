@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from '../ui/button'
-import { Building, File, FileText, Mail, MessageCircle, Pencil, Phone, PowerOff, SquareUserRound, Users } from 'lucide-react'
+import { Building, File, FileText, LayoutDashboard, Mail, MessageCircle, Pencil, Phone, PowerOff, SquareUserRound, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '../ui/dialog'
 import { Separator } from '../ui/separator'
@@ -239,6 +239,12 @@ if (userID) {
               <DropdownMenuItem onClick={()=>{setModalStatus(prev=>({...prev, my_profile: true}))}}>
                 <SquareUserRound></SquareUserRound> Moj profil
               </DropdownMenuItem>
+
+              {myProfile?.super_admin && (
+                <DropdownMenuItem onClick={()=>{location.href = "/admin"}}>
+                <LayoutDashboard></LayoutDashboard> Administrativni portal
+              </DropdownMenuItem>
+              )}
 
               <DropdownMenuItem onClick={()=>{setModalStatus(prev=>({...prev, messages: true}))}}>
                 <MessageCircle></MessageCircle> Poruke

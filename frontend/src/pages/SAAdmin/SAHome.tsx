@@ -15,6 +15,8 @@ import SANewUser from './SANewUser'
 import { toast } from 'sonner'
 import SATeacherLookup from './SATeacherLookup'
 import SANewTargetedMessage from './SANewTargetedMessage'
+import { Button } from '@/components/ui/button'
+import { X } from 'lucide-react'
 export  const TeacherListContext = createContext()
 
 const SAHome = () => {
@@ -69,6 +71,7 @@ const SAHome = () => {
   return (
     <TeacherListContext.Provider value={teacherList}>
       <div className='sa-admin-theme p-5'>
+        <div className="md:justify-end w-full flex pb-2 md:pb-0"><Button onClick={()=>{location.href = "/app/teacher"}} variant={'destructive'}><X></X>Zatvori portal</Button></div>
 
 
 
