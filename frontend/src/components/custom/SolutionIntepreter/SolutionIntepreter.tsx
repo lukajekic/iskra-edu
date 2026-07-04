@@ -26,6 +26,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/compon
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import BagdeTimer from '../BagdeTimer'
+import Loader from '../Loader'
 interface props {
     UserID: string
 }
@@ -83,7 +84,7 @@ const SolutionIntepreter = ({UserID}: props) => {
       // Sve potrebno za grade edit
     const [selectedNewStatus, setSelectedNewStatus] = useState<string|null>(null)
     const [newStatusNote, setNewStatusNote] = useState("")
-
+const [loadingTasks, setLoadingTasks] = useState(false)
 
 
 const [student, setStudent] = useState<Student>()
@@ -92,11 +93,13 @@ const [activeSolution, setActiveSolution] = useState<Solution>()
          if (!studentid) {
             return
         }
+        setLoadingTasks(true)
 
         const response = await axios.get<Student>(`${import.meta.env.VITE_BACKEND}/user/inspect/student/${studentid.toString()}`)
 
         if (response.status === 200) {
 setStudent(response.data)
+setLoadingTasks(false)
         }
         
     }
@@ -186,16 +189,25 @@ if (UserID) {
     </div>
    )}
 
-    {/* Sada će ovaj crveni div popuniti sav preostali prostor do dna kolone */}
     <div className="p-2 flex-1 rounded-[10px] border border-[#cecece] h-auto overflow-y-auto">
       <CardTitle className='mb-2'>Zadaci</CardTitle>
+
+      {loadingTasks && (
+        <div className="flex justify-center">
+          <Loader></Loader>
+        </div>
+      )}
     {student?.solutions.sort((a,b)=>{
-      return new Date(b.grading_date) - new Date(a.grading_date)
+      return new Date(b.grading_date).getTime() - new Date(a.grading_date).getTime()
     }).map((item, index)=>{
+      if (!item?.taskID?.title) {
+        return null;
+      }
+
       if (item.status === 'accepted') {
 return (
   <div onClick={()=>{setActiveSolution(item)}} className={`${item.flags.length > 0 ? "bg-red-100" : ""} w-full hover:cursor-pointer p-2 flex items-center gap-3 border-b hover:shadow-sm transition-shadow hover:rounded`}>
-        <div className="w-5 h-5 bg-green-600 rounded-lg  flex justify-center items-center">
+        <div className="shrink-0 w-5 h-5 bg-green-600 rounded-lg  flex justify-center items-center">
           <Check className='text-white size-4'></Check>
         </div>
         <p>{item?.taskID?.title}</p>
@@ -204,13 +216,14 @@ return (
       } else if (item.status === 'revise') {
         return (
 <div onClick={()=>{setActiveSolution(item)}} className={`${item.flags.length > 0 ? "bg-red-100" : ""} w-full hover:cursor-pointer p-2 flex items-center gap-3 border-b hover:shadow-sm transition-shadow hover:rounded`}>
-        <div className="w-5 h-5 bg-red-600 rounded-lg  flex justify-center items-center">
+        <div className="shrink-0 w-5 h-5 bg-red-600 rounded-lg  flex justify-center items-center">
           <X className='text-white size-4'></X>
         </div>
         <p>{item?.taskID?.title}</p>
       </div>
         )
       }
+      return null;
     })}
 
 
@@ -238,11 +251,11 @@ return (
    <div className="w-[40%] h-full flex flex-col border-r"> {/* Dodato h-full i flex-col ovde */}
   <CardTitle className='text-lg mb-2'>Detalji zadatka</CardTitle>
 
-  <p className="text-2xl font-bold">{activeSolution?.taskID.title || ""}</p>
+  <p className="text-2xl font-bold">{activeSolution?.taskID?.title || ""}</p>
 
   <div
     className="iskra-rich-text max-w-full mt-3 break-words pr-4"
-    dangerouslySetInnerHTML={{ __html: activeSolution?.taskID.richText ?? ""}}
+    dangerouslySetInnerHTML={{ __html: activeSolution?.taskID?.richText ?? ""}}
   />
 
    

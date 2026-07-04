@@ -115,11 +115,11 @@ const GradeExam = () => {
     const getFilteredAndSortedSolutions = () => {
         if (!InitialData) return []
 
-        let result = [...InitialData.solutions]
+        let result = [...InitialData.solutions].filter(item => item?.student_ref && item?.student_ref?.name)
 
         if (searchQuery.trim() !== "") {
             result = result.filter(item => 
-                item.student_ref.name.toLowerCase().includes(searchQuery.toLowerCase())
+                item?.student_ref?.name?.toLowerCase().includes(searchQuery.toLowerCase())
             )
         }
 
@@ -248,7 +248,7 @@ const GradeExam = () => {
                 setInitialData(newInitialData)
 
                 const nextUnassigned = updatedSolutions.find(
-                    (sol) => sol.grade_value === null || sol.grade_value === undefined
+                    (sol) => (sol.grade_value === null || sol.grade_value === undefined) && sol.student_ref && sol.student_ref.name
                 )
 
                 if (nextUnassigned) {
@@ -273,7 +273,7 @@ const GradeExam = () => {
 
     const displayedSolutions = getFilteredAndSortedSolutions()
     
-    const selectedStudentName = InitialData?.solutions.find(sol => sol._id === selectedSolutionID)?.student_ref.name
+    const selectedStudentName = InitialData?.solutions.find(sol => sol._id === selectedSolutionID)?.student_ref?.name
 
     return (
         <main>
@@ -333,7 +333,7 @@ const GradeExam = () => {
                     
                     {displayedSolutions.map((item, index) => (
                         <div onClick={()=>{getSingleCandidate(item._id)}} key={item._id || index} className={`flex justify-between p-2 border-b-1 items-center ${item.grade_value !== null && item.grade_value !== undefined ? "" : "bg-amber-100"} hover:cursor-pointer`}>
-                            <p className={`${item.grade_value ? "" : "font-bold"}`}>{item.student_ref.name}</p>
+                            <p className={`${item.grade_value ? "" : "font-bold"}`}>{item?.student_ref?.name}</p>
                             <div className="flex items-center gap-2">
                                 <p>{item.total_points_awarded}/{item.total_points_possible} bodova</p>
                             </div>
