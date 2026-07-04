@@ -32,6 +32,8 @@ import ExamEditor from './pages/Teacher/ExamEditor/ExamEditor';
 import ExamResults from './pages/Student/Exams/ExamResults';
 import GradeExam from './pages/Teacher/Exams/GradeExam/GradeExam';
 import ExamReports from './pages/Teacher/Exams/ExamReports/ExamReports';
+import  DesktopOnlyGuard from './components/custom/DesktopOnlyGuard';
+import MobileNotAvailable from './components/custom/MobileNotAvailable';
 export function App() {
 
   const router = createBrowserRouter([
@@ -81,6 +83,10 @@ element: <NotFound></NotFound>
           element: <Privacy></Privacy>
         }
       ]
+    },
+    {
+      path: "/not-available-on-mobile",
+      element: <MobileNotAvailable></MobileNotAvailable>
     },
 
     {
@@ -171,18 +177,18 @@ element: <NotFound></NotFound>
 
         {
           path: "student-exams",
-          element: <StudentExams></StudentExams>,
+          element: <DesktopOnlyGuard><StudentExams></StudentExams></DesktopOnlyGuard>,
           
         },
 
         {
           path: "exam/:id",
-          element: <ExamForm></ExamForm>
+          element: <DesktopOnlyGuard><ExamForm></ExamForm></DesktopOnlyGuard>
         },
 
         {
           path: "exam-results/:id",
-          element: <ExamResults></ExamResults>
+          element: <DesktopOnlyGuard><ExamResults></ExamResults></DesktopOnlyGuard>
         }
       ],
 
