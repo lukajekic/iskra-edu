@@ -355,6 +355,9 @@ const GradeExam = () => {
                                 </span> bodova
                             </p>
                             <p className="text-md">Predlog ocene: <span className='text-xl font-bold'>{suggestedGrade}</span></p>
+                            {singleCandidateData?.grade && (
+                                <p className="text-md">Upisana ocena: <span className='text-xl font-bold'>{singleCandidateData?.grade}</span></p>
+                            )}
                             <Separator className='my-2'></Separator>
                             
                             <Label className='italic'>Odaberite ocenu:</Label>
