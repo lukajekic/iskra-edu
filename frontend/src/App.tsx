@@ -32,7 +32,7 @@ import ExamEditor from './pages/Teacher/ExamEditor/ExamEditor';
 import ExamResults from './pages/Student/Exams/ExamResults';
 import GradeExam from './pages/Teacher/Exams/GradeExam/GradeExam';
 import ExamReports from './pages/Teacher/Exams/ExamReports/ExamReports';
-import  DesktopOnlyGuard from './components/custom/DesktopOnlyGuard';
+import  DesktopOnlyGuard from './components/logic/DesktopOnlyGuard';
 import MobileNotAvailable from './components/custom/MobileNotAvailable';
 export function App() {
 

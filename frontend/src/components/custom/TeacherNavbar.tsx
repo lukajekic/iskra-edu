@@ -333,7 +333,7 @@ if (userID) {
     <p className="text-[20px] text-[#194872]">
       {activeMessage?.title}
     </p>
-        <p className={`text-xs text-gray-500`}>{moment(activeMessage?.date).format("D.. MM. YYYY. HH:mm")}</p>
+        <p className={`text-xs text-gray-500`}>{moment(activeMessage?.date).format("D. MM. YYYY. HH:mm")}</p>
 
         {activeMessage?.target && (
           <p className="italic">(Ova poruka poslata je samo Vama.)</p>
