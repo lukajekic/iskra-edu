@@ -304,82 +304,142 @@ if (userID) {
 
 
 
+{/* sistemske poruke */}
+<Dialog open={modalStatus.messages} onOpenChange={(val)=>{setModalStatus(prev => ({...prev, messages: val}))}}>
+  <DialogContent showCloseButton={true} className='max-w-full sm:max-w-5xl w-[95%] sm:w-full h-[85vh] flex flex-col gap-4 p-4 sm:p-6'>
+    
+    <DialogHeader className='text-xl font-bold flex flex-row items-center gap-3 h-fit'>
+      {activeMessage && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="sm:hidden p-0 h-8 w-8" 
+          onClick={() => setActiveMessage(null)}
+        >
+          ←
+        </Button>
+      )}
+      <span>Poruke</span>
+    </DialogHeader>
 
-
-      {/* sistemske poruke */}
-      <Dialog   open={modalStatus.messages} onOpenChange={(val)=>{setModalStatus(prev => ({...prev, messages: val}))}} >
-        <DialogContent showCloseButton={true} className='min-w-[70%] w-[70%] min-h-[80%] h-[80%] flex flex-col gap-2'>
-          <DialogHeader className='text-lg font-bold h-fit'>
-            Poruke
-          </DialogHeader>
-<div className="border-1 w-full h-full overflow-hidden flex items-start rounded-lg">
-    <div className=" w-[30%] h-full flex flex-col gap-0 items-start overflow-y-auto">
-
-     {messages?.map((item, index) => (
-  <div
-  onClick={()=>{setActiveMessage(item),  determineReadCall(item)}}
-    key={index}
-    className={`w-full h-fit p-2 border-b-1 
-      ${determineReadCall(item, true) ? "bg-white" : "bg-[#cecece]/15"} 
-      hover:bg-white hover:border-l-2 hover:border-l-blue-400 hover:cursor-pointer`}
-  >
-    <p className={`text-xs text-gray-500`}>{moment(item.date).format("DD. MM. YYYY. HH:mm")}</p>
-    <p className={`text-[16px] flex items-center gap-2 ${!determineReadCall(item, true) ? "text-[#194872] font-bold" : "text-gray-500"}`}>
-  {item.target && (
-    <Mail className='size-5' />
-  )}
-  <span>{item.title}</span>
-</p>
-  </div>
-))}
-    </div>
-  <div className="p-5 w-[70%] h-full border-[2px] border-[#194872] flex flex-col rounded-r-lg">
-    <p className="text-[20px] text-[#194872]">
-      {activeMessage?.title}
-    </p>
-        <p className={`text-xs text-gray-500`}>{moment(activeMessage?.date).format("D. MM. YYYY. HH:mm")}</p>
-
-        {activeMessage?.target && (
-          <p className="italic">(Ova poruka poslata je samo Vama.)</p>
+    <div className="border border-slate-200 w-full flex-1 overflow-hidden flex items-stretch rounded-xl bg-slate-50/50 min-h-0">
+      
+      {/*Lista poruka */}
+      <div className={`w-full sm:w-[35%] h-full flex flex-col bg-white border-r border-slate-200 overflow-y-auto min-h-0 ${activeMessage ? 'hidden sm:flex' : 'flex'}`}>
+        {messages?.length === 0 ? (
+          <div className="p-8 text-center text-sm text-muted-foreground">Nemate sistemskih poruka.</div>
+        ) : (
+          messages?.map((item, index) => {
+            const isRead = determineReadCall(item, true);
+            const isActive = activeMessage?.id === item.id;
+            
+            return (
+              <div
+                onClick={() => { setActiveMessage(item); determineReadCall(item); }}
+                key={index}
+                className={`w-full p-4 border-b border-slate-100 transition-all duration-100 hover:cursor-pointer flex flex-col gap-1.5 border-l-4
+                  ${isRead ? "bg-white border-l-transparent" : "bg-[#194872]/5 border-l-[#194872]"} 
+                  ${isActive ? "bg-slate-100/90" : "hover:bg-slate-50/80"}`}
+              >
+                <span className="text-[11px] font-medium text-slate-400 tracking-wide">
+                  {moment(item.date).format("DD. MM. YYYY. HH:mm")}
+                </span>
+                
+                <p className={`text-sm flex items-center gap-2.5 leading-snug line-clamp-2 ${!isRead ? "text-[#194872] font-bold" : "text-gray-500"}`}>
+                  {item.target && <Mail className={`size-4 flex-shrink-0 ${!isRead ? 'text-[#194872]' : 'text-slate-400'}`} />}
+                  <span className="break-words">{item.title}</span>
+                </p>
+              </div>
+            );
+          })
         )}
+      </div>
 
-<Separator className='my-2'></Separator>
+      {/*Sadrzaj poruke */}
+      <div className={`w-full sm:w-[65%] h-full bg-white flex flex-col min-h-0 ${activeMessage ? 'flex' : 'hidden sm:flex items-center justify-center text-slate-400 bg-slate-50/30'}`}>
+        {activeMessage ? (
+          <div className="p-5 sm:p-6 h-full flex flex-col min-h-0 w-full animate-in fade-in-50 duration-200">
+            
+            <div className="flex flex-col gap-1 mb-3 flex-shrink-0">
+              <h2 className="text-lg sm:text-xl font-bold text-[#194872] leading-tight break-words">
+                {activeMessage.title}
+              </h2>
+              
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 font-medium mt-1">
+                <span>{moment(activeMessage.date).format("D. MM. YYYY. HH:mm")}</span>
+                {activeMessage.target && (
+                  <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full text-[11px] font-semibold">
+                    Samo za Vas
+                  </span>
+                )}
+              </div>
+            </div>
 
-<div className="flex-1 overflow-y-auto">
-  <p dangerouslySetInnerHTML={{ __html: activeMessage?.description ?? "" }} className='text-[15px] text-gray-700 iskra-rich-text'>
- 
-</p>
-</div>
-  </div>
+            <Separator className='my-3'></Separator>
 
-</div>
+            <div className="flex-1 overflow-y-auto pr-1 min-h-0">
+              <div 
+                dangerouslySetInnerHTML={{ __html: activeMessage.description ?? "" }} 
+                className='text-sm sm:text-base text-slate-700 leading-relaxed iskra-rich-text prose max-w-none'
+              />
+            </div>
+            
+          </div>
+        ) : (
+          <div className="text-center p-6 flex flex-col items-center gap-2">
+            <Mail className="size-8 text-slate-300" />
+            <p className="text-sm font-medium">Izaberite poruku iz liste da biste je pročitali</p>
+          </div>
+        )}
+      </div>
 
-<DialogFooter>
-  <Button variant={'outline'} onClick={()=>{setModalStatus(prev=>({...prev, messages: false}))}}>Zatvori poruke</Button>
-</DialogFooter>
-        </DialogContent>
-      </Dialog>
+    </div>
+
+    <DialogFooter className="flex-shrink-0 sm:justify-end border-t border-slate-100 pt-3">
+      <Button variant='outline' onClick={() => { setModalStatus(prev => ({ ...prev, messages: false })) }}>
+        Zatvori poruke
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
 
 
 
 
       {/* dokumenta */}
-      <Dialog open={modalStatus.documents}  onOpenChange={(val)=>{setModalStatus(prev => ({...prev, documents: val}))}}>
-<DialogContent className='max-h-[80vh] min-w-1/2 flex flex-col min-h-0'>
-          <DialogHeader className='text-lg font-bold'>
-            Uputstva za korisnike
-          </DialogHeader>
-<div className="overflow-y-auto flex-1">
-  {documents.map((item, index)=>(
-  <a key={index} target='_blank' href={item.link}  className="w-full  p-3 border-b-1 flex gap-2 text-[#194872] hover:text-[#c55258] hover:cursor-pointer items-center">
-    <FileText className='w-[24px]'></FileText>
-<span className='text-[16px] flex-1'>{item.title}</span>
-  </a>
-))}
-</div>
+ <Dialog open={modalStatus.documents} onOpenChange={(val)=>{setModalStatus(prev => ({...prev, documents: val}))}}>
+  <DialogContent className='max-w-full sm:max-w-4xl w-[95%] sm:w-full max-h-[80vh] p-6 sm:p-8 flex flex-col min-h-0'>
+    <DialogHeader className='text-xl font-bold mb-4'>
+      Uputstva za korisnike
+    </DialogHeader>
 
-        </DialogContent>
-      </Dialog>
+    <div className="flex flex-col sm:flex-row items-center sm:items-stretch justify-center gap-6 sm:gap-10 flex-1 min-h-0">
+      
+      <div className="flex items-center justify-center flex-shrink-0">
+        <img 
+          src="/undraw_documents_9rcz.svg" 
+          className='w-full max-w-[150px] sm:max-w-[240px] h-auto object-contain' 
+          alt="Documents illustration" 
+        />
+      </div>
+
+      <div className="overflow-y-auto flex-1 w-full border rounded-lg bg-card min-h-0">
+        {documents.map((item, index) => (
+          <a 
+            key={index} 
+            target='_blank' 
+            href={item.link} 
+            className="w-full p-4 border-b last:border-b-0 flex gap-3 text-[#194872] hover:text-[#c55258] hover:bg-slate-50/50 transition-colors items-center"
+          >
+            <FileText className='w-5 h-5 flex-shrink-0' />
+            <span className='text-base font-medium flex-1 line-clamp-2'>{item.title}</span>
+          </a>
+        ))}
+      </div>
+
+    </div>
+  </DialogContent>
+</Dialog>
 
 
 
@@ -455,15 +515,26 @@ if (userID) {
       {/*podrska*/}
 
 <Dialog open={modalStatus.support} onOpenChange={(val)=>{setModalStatus(prev => ({...prev, support: val}))}}>
-  <DialogContent className='min-w-fit p-5'>
-    <DialogHeader className='text-lg font-bold'>Tehnička podrška</DialogHeader>
-    <div className="flex items-center gap-5">
-      <img src="/undraw_envelope_hem0.svg" className='w-[250px]' alt="" />
-      <span className='w-[350px] text-lg text-right'>Molimo Vas da podršku kontaktirate na mejl ispod. Vaš mejl biće zaveden kao slučaj u sistemu za tehničku podršku.
-        <br />
-        <br />
-        <span className='font-bold'>podrska@iskraedu.zohodesk.eu</span>
-      </span>
+  <DialogContent className='max-w-full sm:max-w-4xl w-[95%] sm:w-full p-6 sm:p-8'>
+    <DialogHeader className='text-xl font-bold'>Tehnička podrška</DialogHeader>
+    
+    <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10 mt-6">
+      
+      <img 
+        src="/undraw_envelope_hem0.svg" 
+        className='w-full max-w-[180px] sm:max-w-[280px] h-auto object-contain' 
+        alt="Support illustration" 
+      />
+      
+      <div className='w-full max-w-md sm:max-w-lg text-base sm:text-lg text-center sm:text-left flex flex-col gap-3'>
+        <p className="text-muted-foreground leading-relaxed">
+          Molimo Vas da podršku kontaktirate na mejl ispod. Vaš mejl biće zaveden kao slučaj u sistemu za tehničku podršku.
+        </p>
+        <span className='font-bold text-lg sm:text-xl text-primary block break-all mt-2'>
+          podrska@iskraedu.zohodesk.eu
+        </span>
+      </div>
+
     </div>
   </DialogContent>
 </Dialog>
