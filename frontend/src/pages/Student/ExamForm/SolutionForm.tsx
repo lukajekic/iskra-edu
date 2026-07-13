@@ -212,7 +212,7 @@ const SolutionForm = () => {
         {activeTask?.status === "incorrect" && (
             <div className="p-3 bg-red-600 flex items-center justify-between rounded-t-lg">
             <div id="left">
-                <span className="text-white text-lg inline-flex items-center">
+                <span className="text-white text-lg inline-flex items-center mt-1 gap-2">
                     <X></X>
                     Odbijeno
                 </span>
@@ -226,7 +226,7 @@ const SolutionForm = () => {
         {activeTask.status === 'correct' && (
             <div className="p-3 bg-green-600 flex items-center justify-between rounded-t-lg">
             <div id="left">
-                <span className="text-white text-lg items-center inline-flex">
+                <span className="text-white text-lg items-center inline-flex mt-1 gap-2">
                     <Check></Check>
                     Prihvaćeno
                 </span>
@@ -258,6 +258,8 @@ defaultLanguage='python'
 onChange={(e)=>{setValue(e)}}
 value={value || ""}
 ></Editor>
+
+<div className="h-5 w-full rounded-b-lg bg-[#1e1e1e]"></div>
 
 {activeTask?.status === 'grading' && (
    <div className="absolute inset-y-0 right-0 bg-white/60 dark:bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-50 rounded-lg w-1/3">

@@ -29,6 +29,7 @@ import axios from 'axios'
 import { toast } from 'sonner'
 import { useUserId } from '@/context/UserContext'
 import moment from 'moment-timezone'
+import { CircularBorderSpinner } from './CircularBorderSpinner';
 
 type ModalStatus = {
   my_profile: boolean,
@@ -73,6 +74,7 @@ const TeacherNavbar = () => {
 const [messages, setMessages] = useState<Message[]>()
 const [activeMessage, setActiveMessage] = useState<Message>()
 const [myProfile, setMyProfile] = useState<Profile>()
+const [openFullScreenLoader, SetOpenFullScreenLoader] = useState(true)
 const sendReadStatus = async(messageid:string)=>{
   try {
     const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/me/messages/read`, {
@@ -126,6 +128,9 @@ setDocuments(response.data ?? [])
       const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me?count=true`)
       if (response.status === 200) {
 setMyProfile(response.data ?? {})
+setTimeout(() => {
+  SetOpenFullScreenLoader(false)
+}, 300);
       }
     } catch (error) {
       console.error(error)
@@ -154,7 +159,6 @@ if (response.data.length > 0) {
 }
       }
     } catch (error) {
-      
     }
   }
   useEffect(()=>{
@@ -461,6 +465,13 @@ if (userID) {
         <span className='font-bold'>podrska@iskraedu.zohodesk.eu</span>
       </span>
     </div>
+  </DialogContent>
+</Dialog>
+
+{/* FULL SCREEN LOADER */}
+<Dialog open={openFullScreenLoader}>
+  <DialogContent showCloseButton={false} className='min-w-full rounded-none min-h-screen flex justify-center items-center duration-0'>
+<CircularBorderSpinner size='lg'></CircularBorderSpinner>
   </DialogContent>
 </Dialog>
 
