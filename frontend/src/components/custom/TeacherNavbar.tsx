@@ -592,8 +592,13 @@ if (userID) {
               <p className="text-gray-700 inline-flex items-center gap-2"><Building></Building>{myProfile?.institution}</p>
               <br></br>
               <p className="text-gray-700 inline-flex items-center gap-2"><Users></Users><strong>Ukupno ucenika:</strong>{myProfile?.students_count || 0}</p>
+            <p className="text-gray-700 italic">Za izmenu Vašeg imena ili institucije u kojoj ste zaposleni, <a className="text-primary hover:underline hover:cursor-pointer" onClick={()=>{
+              setModalStatus(prev => ({...prev, my_profile: false})),
+              setModalStatus(prev => ({...prev, support: true}))
+            }}>kontaktirajte korisničku podršku.</a></p>
 
             </div>
+
           </div>
 
           <DialogFooter>
