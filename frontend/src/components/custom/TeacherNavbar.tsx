@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from '../ui/button'
-import { Building, File, FileText, LayoutDashboard, Mail, MessageCircle, Pencil, Phone, PowerOff, SquareUserRound, Users } from 'lucide-react'
+import { Building, File, FileText, LayoutDashboard, Mail, MessageCircle, Pencil, Phone, PowerOff, SquareUserRound, Users, Menu, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '../ui/dialog'
 import { Separator } from '../ui/separator'
@@ -75,6 +75,18 @@ const [messages, setMessages] = useState<Message[]>()
 const [activeMessage, setActiveMessage] = useState<Message>()
 const [myProfile, setMyProfile] = useState<Profile>()
 const [openFullScreenLoader, SetOpenFullScreenLoader] = useState(true)
+const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+// Onemogućavanje skrolovanja pozadine kada je mobilni meni preko celog ekrana otvoren
+useEffect(() => {
+  if (isMobileMenuOpen) {
+    document.body.classList.add('overflow-hidden')
+  } else {
+    document.body.classList.remove('overflow-hidden')
+  }
+  return () => document.body.classList.remove('overflow-hidden')
+}, [isMobileMenuOpen])
+
 const sendReadStatus = async(messageid:string)=>{
   try {
     const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/me/messages/read`, {
@@ -206,7 +218,8 @@ if (userID) {
     <>
       <div className="h-[70px]" />
 
-<div className="max-w-[calc(100%-2rem)] mx-auto h-[60px] fixed top-2 left-4 right-4 bg-white z-50 flex justify-between items-center pl-5  border-1  pb-[2px] rounded-xl shadow-sm">
+      {/* DESKTOP NAVBAR (prikazuje se samo na ekranima srednje veličine i većim - md:) */}
+      <div className="hidden md:flex max-w-[calc(100%-2rem)] mx-auto h-[60px] fixed top-2 left-4 right-4 bg-white z-50 justify-between items-center pl-5 border-1 pb-[2px] rounded-xl shadow-sm">
         <div className="flex items-center gap-2 h-full">
           <img src="/favicon.png" className='size-10' alt="" />
           <div className="flex items-end gap-1">
@@ -301,6 +314,129 @@ if (userID) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* MOBILNI HEADER (Mini traka na vrhu sa hamburger menijem, sakrivena na md:) */}
+      <div className="flex md:hidden max-w-[calc(100%-2rem)] mx-auto h-[60px] fixed top-2 left-4 right-4 bg-white z-50 justify-between items-center px-4 border-1 rounded-xl shadow-sm">
+        <div className="flex items-center gap-2">
+          <img src="/favicon.png" className='size-8' alt="" />
+          <h1 className='text-2xl font-bold'>Iskra</h1>
+        </div>
+        <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
+          <Menu className="size-6" />
+        </Button>
+      </div>
+
+      {/* MOBILNI FULL PAGE MENI (Prekriva ceo ekran, z-index 9999, nema skrolovanja iza) */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 bg-white z-[9999] flex flex-col p-6 animate-in fade-in slide-in-from-bottom-5 duration-200">
+          {/* Mobilni zatvori zaglavlje */}
+          <div className="flex justify-between items-center pb-4 border-b">
+            <div className="flex items-center gap-2">
+              <img src="/favicon.png" className='size-8' alt="" />
+              <h1 className='text-2xl font-bold'>Iskra</h1>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+              <X className="size-6" />
+            </Button>
+          </div>
+
+          {/* Profil informacije */}
+          <div className="my-6 space-y-2">
+            <div className="flex flex-col">
+              <span className="text-xs uppercase tracking-wider text-slate-400 font-bold">Profesor</span>
+              <span className="text-2xl font-bold text-[#194872]">{myProfile?.name}</span>
+            </div>
+            <div className="flex flex-col pt-2">
+              <span className="text-xs uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1">
+                <Building className="size-3.5" /> Obrazovna institucija
+              </span>
+              <span className="text-base text-slate-700">{myProfile?.institution}</span>
+            </div>
+          </div>
+
+          <Separator className="my-2" />
+
+          {/* mobile nav */}
+          <div className="flex-1 overflow-y-auto space-y-3 py-4">
+            <div className="space-y-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-400 px-3 mb-2">Moj nalog</p>
+              
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start gap-3 text-base h-12"
+                onClick={() => { setIsMobileMenuOpen(false); setModalStatus(prev => ({...prev, my_profile: true})) }}
+              >
+                <SquareUserRound className="size-5" /> Moj profil
+              </Button>
+
+              {myProfile?.super_admin && (
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start gap-3 text-base h-12"
+                  onClick={() => { setIsMobileMenuOpen(false); location.href = "/admin" }}
+                >
+                  <LayoutDashboard className="size-5" /> Administrativni portal
+                </Button>
+              )}
+
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start gap-3 text-base h-12"
+                onClick={() => { setIsMobileMenuOpen(false); setModalStatus(prev => ({...prev, messages: true})) }}
+              >
+                <MessageCircle className="size-5" /> Poruke
+              </Button>
+
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start gap-3 text-base h-12"
+                onClick={() => { setIsMobileMenuOpen(false); setModalStatus(prev => ({...prev, support: true})) }}
+              >
+                <Phone className="size-5" /> Tehnička podrška
+              </Button>
+            </div>
+
+            <Separator className="my-4" />
+
+            <div className="space-y-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-400 px-3 mb-2">Dokumentacija</p>
+              
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start gap-3 text-base h-12"
+                onClick={() => { setIsMobileMenuOpen(false); setModalStatus(prev => ({...prev, documents: true})) }}
+              >
+                <File className="size-5" /> Uputstva za korisnike
+              </Button>
+
+              <Link to={'/legal/privacy'} onClick={() => setIsMobileMenuOpen(false)} className="block">
+                <Button variant="ghost" className="w-full justify-start text-base h-12 px-3">
+                  Politika privatnosti
+                </Button>
+              </Link>
+
+              <Link to={'/legal/terms'} onClick={() => setIsMobileMenuOpen(false)} className="block">
+                <Button variant="ghost" className="w-full justify-start text-base h-12 px-3">
+                  Uslovi upotrebe
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <Separator className="my-2" />
+
+          {/* Odjava na dnu */}
+          <div className="pt-4 pb-6">
+            <Button 
+              variant="destructive" 
+              className="w-full h-12 gap-3 text-base"
+              onClick={() => { setIsMobileMenuOpen(false); HandleLogout() }}
+            >
+              <PowerOff className="size-5" /> Odjava
+            </Button>
+          </div>
+        </div>
+      )}
 
 
 
