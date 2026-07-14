@@ -15,5 +15,10 @@ export const SupportedLanguages = [
         label: "Python",
         value: "python",
         icon: '/python.svg'
+    },
+    {
+        label: "Ruby",
+        value: "ruby",
+        icon: "/ruby.png"
     }
 ]

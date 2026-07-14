@@ -92,8 +92,8 @@ const ExamForm = () => {
   useEffect(() => {
     const fetchExamData = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_BACKEND}/api/exams/${id}`);
-        setTasksData(response.data); 
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND}/studentexams/taskdata?test=${id}`);
+        setTasksData(response.data.data); 
       } catch (error) {
         console.error("Greška pri povlačenju podataka:", error);
       }

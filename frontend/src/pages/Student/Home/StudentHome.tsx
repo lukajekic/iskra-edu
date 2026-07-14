@@ -128,7 +128,7 @@ useEffect(() => {
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      clearTimeout(timerRef.current); // Cleanup u slučaju unmount-a
+      clearTimeout(tabTimerRef.current ? tabTimerRef.current : undefined); // Koristimo ispravan ref cleanup
     };
   }, []);
 
@@ -148,22 +148,33 @@ useEffect(() => {
     }, [])
   const socket_data = useOutletContext()
 const [disableSend, setDisableSend] = useState(false)
-const prebrojInpute = (kod:string) => {
+
+const prebrojInpute = (kod: string) => {
+  if (!kod) return 0;
   const bezStringova = kod
     .replace(/"[^"\\]*(?:\\.[^"\\]*)*"/g, '') // Brise duple navodnike
     .replace(/'[^'\\]*(?:\\.[^'\\]*)*'/g, ''); // Brise obicne navodnike
 
-  // Brise komentare
+  // I Python i Ruby koriste # za jednolinijske komentare
   const bezKomentara = bezStringova.replace(/#[^\n]*/g, '');
 
-  // Broji prave pozive
-  const matches = bezKomentara.match(/input\s*\(/g);
-  return matches ? matches.length : 0;
+  const trenutniJezik = task?.language?.toLowerCase() || 'python';
+
+  if (trenutniJezik === 'ruby') {
+    // Broji pozive za gets u Ruby-ju
+    const matches = bezKomentara.match(/gets(\.chomp)?/g);
+    return matches ? matches.length : 0;
+  } else {
+    // Broji prave pozive za input() u Pythonu
+    const matches = bezKomentara.match(/input\s*\(/g);
+    return matches ? matches.length : 0;
+  }
 };
 
 const handleCodeRun = ()=>{
   if (!code){
     toast.error("Morate napisati program kako bi ga pokrenuli.")
+    return;
   }
 
   setTErminalResponse(null)
@@ -231,7 +242,7 @@ const handleSolutionSend = async()=>{
         setGradeStatus(socket_data?.status);
       }
 
-      // Ovde možeš dodati i druge akcije, npr. ako je "accepted" baci konfete
+      // Ovde možeš dodati i druge akcije, npr. ako je "accepted" baci konfete
       if (socket_data?.status === "accepted" || socket_data?.status === 'grading') {
         
         setDisableSend(true)
@@ -365,6 +376,10 @@ const getSolution = async (shouldWait = false) => {
    <div id="student-task-details" className='p-4 md:basis-1/2 md:max-w-1/2 min-w-0 overflow-hidden'> 
   {/* Dodat overflow-hidden ovde ^ */}
   <p className="text-4xl font-bold break-words">{task?.title}</p>
+<div className="border-2 border-dashed p-4 rounded-lg mt-4 w-fit">
+  Programski jezik: {task?.language.charAt(0).toUpperCase() + task?.language.slice(1)}
+</div>
+
   <div
     className="iskra-rich-text max-w-full mt-3 break-words"
     dangerouslySetInnerHTML={{ __html: task?.richText ?? ""}}
@@ -414,28 +429,29 @@ const getSolution = async (shouldWait = false) => {
   <div className="h-5 bg-[#1e1e1e]"></div>
   
   <Editor
-options={{
-  
-    selectOnLineNumbers: true,
-    renderWhitespace: "all",
-    quickSuggestions: {
-      other: true,
-      comments: true,
-      strings: true
-    },
-    suggestOnTriggerCharacters: true,
-    wordBasedSuggestions: "allDocuments", // Ovo će nuditi reči koje si već kucao
-    links: true,
-    colorDecorators: true,
-  }}
-className='rounded-2xl'
-height={500}
-theme='vs-dark'
-defaultLanguage='python'
-onChange={(e)=>{console.log(JSON.stringify(e)), setCode(e)}}
-value={code}
-onMount={handleEditorDidMount}
-></Editor>
+    key={task?.language ? task.language.toLowerCase() : 'python'}
+    options={{
+      selectOnLineNumbers: true,
+      renderWhitespace: "all",
+      quickSuggestions: {
+        other: true,
+        comments: true,
+        strings: true
+      },
+      suggestOnTriggerCharacters: true,
+      wordBasedSuggestions: "allDocuments",
+      links: true,
+      colorDecorators: true,
+    }}
+    className='rounded-2xl'
+    height={500}
+    theme='vs-dark'
+    defaultLanguage='python'
+    language={task?.language ? task.language.toLowerCase() : 'python'}
+    onChange={(value) => { setCode(value || "") }}
+    value={code}
+    onMount={handleEditorDidMount}
+  />
 </div>
     </div>
    </div>
@@ -468,7 +484,7 @@ onMount={handleEditorDidMount}
   </DialogContent>
 </Dialog>
 {openTerminal && (
-  <TerminalRunner codeOrigin={code} onClose={(response)=>{setopenTerminal(false), console.log(response), setTErminalResponse(response)}} count={terminalInputCount}></TerminalRunner>
+  <TerminalRunner language={task?.language ? task.language.toLowerCase() : 'python'} codeOrigin={code} onClose={(response)=>{setopenTerminal(false), console.log(response), setTErminalResponse(response)}} count={terminalInputCount}></TerminalRunner>
 )}
 
 {terminalResponse && (

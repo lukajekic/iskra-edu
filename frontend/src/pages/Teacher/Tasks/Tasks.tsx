@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import foldericon from "../../../assets/folder.png"
 import py_icon from "../../../assets/python.svg"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -293,6 +294,7 @@ const getFolders = async ()=>{
         <SelectGroup>
           <SelectLabel className='uppercase'>Dostupni jezici</SelectLabel>
           <SelectItem value="python"><img src={py_icon} className='w-4'></img>Python</SelectItem>
+          <SelectItem value="ruby"><img src="/ruby.png" className='w-4'></img>Ruby</SelectItem>
 
         </SelectGroup>
       </SelectContent>
@@ -386,7 +388,7 @@ const getFolders = async ()=>{
 <div className="flex flex-col gap-2">
   {activeFolder?.zadaci.map((item, index)=>(
   <div onClick={()=>{openEditor(item._id)}} className="p-2 border-b-1 active:border-2 active:border-blue-400 rounded-lg flex items-center gap-2 hover:cursor-pointer">
-  <img src={py_icon} className='size-6' alt="" />
+  <img src={item.language === "python" ? py_icon : item.language === 'ruby' ? "/ruby.png" : ""} className='size-6' alt="" />
   <span key={index} className="flex-1 break-all">{item.title}</span>
 </div>
 ))}

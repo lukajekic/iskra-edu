@@ -158,7 +158,6 @@ export const InitializeSolution = async (req, res) => {
         return res.status(500).json(BuildValidationReturn(error.message, 'error', 'Unexpected error occured.'))
     }
 }
-
 export const getTasksData = async (req, res) => {
     try {
         const userid = req.user._id
@@ -198,7 +197,17 @@ export const getTasksData = async (req, res) => {
 
         const populatedQuestionsPromises = test.questions.map(async (q) => {
             let populatedData = null;
-            const questionIdStr = q.questionID?.$oid || q.questionID;
+            
+            let questionIdStr = "";
+            if (q.questionID) {
+                if (typeof q.questionID === 'string') {
+                    questionIdStr = q.questionID;
+                } else if (q.questionID.$oid) {
+                    questionIdStr = q.questionID.$oid;
+                } else if (q.questionID.toString) {
+                    questionIdStr = q.questionID.toString();
+                }
+            }
 
             if (q.taskType === "Task") {
                 const excludedTaskFields = '-author -folder -ownerRef -downloaded -ai_users -ai_allowed -tests -published -storeOriginID';
@@ -215,9 +224,11 @@ export const getTasksData = async (req, res) => {
                     .lean();
             }
 
-            const matchingAnswer = Solution.answers?.find(
-                (ans) => ans.question_id.toString() === questionIdStr.toString()
-            );
+            const matchingAnswer = Solution.answers?.find((ans) => {
+                if (!ans.question_id) return false;
+                const ansIdStr = ans.question_id.$oid || ans.question_id.toString();
+                return ansIdStr === questionIdStr;
+            });
 
             let displayStatus = 'none'
 
@@ -237,6 +248,7 @@ export const getTasksData = async (req, res) => {
 
             return {
                 ...q,
+                taskType: q.taskType,
                 status: displayStatus,
                 student_answer: matchingAnswer?.student_answer ?? null,
                 taskDetails: populatedData
@@ -515,12 +527,17 @@ export const CheckTheorySolution = async (req, res) => {
 }
 
 
-
 let activeInstance = -1
 let instances = {
     0: "https://lukajekic-python-judge.hf.space",
     1: "https://lukajekic-python-judge-2.hf.space"
 }
+let activeRubyInstance = -1
+
+let ruby_instances = {
+    0: "https://iskra-edu.onrender.com"
+}
+
 let determineInstance = () => {
     let keys = Object.keys(instances)
     let new_active = -1
@@ -532,6 +549,19 @@ let determineInstance = () => {
     activeInstance = new_active
 
     return instances[activeInstance]
+}
+
+let determineRubyInstance = () => {
+    let keys = Object.keys(ruby_instances)
+    let new_active = -1
+    if (activeRubyInstance + 1 === keys.length) {
+        new_active = 0
+    } else {
+        new_active = activeRubyInstance + 1
+    }
+    activeRubyInstance = new_active
+
+    return ruby_instances[activeRubyInstance]
 }
 
 export const checkPracticalSolution = async (req, res) => {
@@ -598,8 +628,7 @@ export const checkPracticalSolution = async (req, res) => {
         } else {
 
 
-
-            if (ref_task.language === "python") {
+            if (ref_task.language === "python" || ref_task.language === "ruby") {
                 let stderr = ""
                 if (ref_task.outputType === "standard") {
                     console.log(ref_task)
@@ -607,7 +636,13 @@ export const checkPracticalSolution = async (req, res) => {
 
                     for (const test of tests) {
                         let stdin = test.input.join("\n");
-                        let testing_instance = determineInstance()
+                        
+                        let testing_instance = ""
+                        if (ref_task.language === "python") {
+                            testing_instance = determineInstance()
+                        } else if (ref_task.language === "ruby") {
+                            testing_instance = determineRubyInstance()
+                        }
 
                         try {
                             const response = await fetch(`${testing_instance}/run`, {
@@ -678,7 +713,6 @@ export const checkPracticalSolution = async (req, res) => {
         return res.status(500).json(BuildValidationReturn(error.message, 'error', 'Unexpected error occured.'))
     }
 }
-
 
 
 export const getResultData = async (req, res) => {

@@ -1,6 +1,6 @@
 export const validateTaskLanguage = (language) =>{
 
-    let supported = ['python']
+    let supported = ['python', "ruby"]
 
     if (supported.includes(language)) {
         return true

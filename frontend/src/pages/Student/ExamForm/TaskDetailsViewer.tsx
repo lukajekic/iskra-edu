@@ -64,7 +64,11 @@ const TaskDetailsViewer = () => {
                     </Badge>
                     <Badge className='text-sm px-3 py-2' variant={'secondary'}>Maksimalan broj bodova: {activeTask?.points_max}</Badge>
 
-
+{activeTask?.taskType === "Task" && (
+    <div className="border-2 border-dashed p-4 rounded-lg mt-4 w-fit">
+  Programski jezik: {activeTask?.taskDetails?.language?.charAt(0).toUpperCase() + activeTask?.taskDetails?.language?.slice(1)}
+</div>
+)}
     <div
   className="iskra-rich-text max-w-full mt-3 whitespace-pre-wrap [word-break:break-word] [hyphens:auto]"
   dangerouslySetInnerHTML={{ 

@@ -402,10 +402,10 @@ useEffect(()=>{
 
                         <h1 className='text-2xl md:text-3xl font-bold'>Testovi</h1>
 
-{/* python testovi  */}
-{taskData?.taskData.language === 'python' && (
+{/* python i ruby testovi  */}
+{((taskData?.taskData.language === 'python' || taskData?.taskData.language === 'ruby') && (
     <>
-        {/* python standard testovi */}
+        {/* standard testovi */}
 
     {taskData.taskData.outputType === 'standard' && (
         <>
@@ -568,7 +568,7 @@ useEffect(()=>{
                         </>
     )}
     </>
-)}
+))}
                         
                        
 <div className="w-full flex flex-col md:flex-row justify-between items-stretch md:items-end gap-4 mt-8">

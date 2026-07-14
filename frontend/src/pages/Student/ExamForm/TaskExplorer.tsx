@@ -34,7 +34,7 @@ export interface PracticalTask {
   questionID: string
   points_max: number
   _id: string
-  taskDetails: TaskDetails,
+  taskDetails: TaskDetails
   status: ['none', 'grading', 'correct', 'incorrect']
 }
 
@@ -52,7 +52,7 @@ export interface TheoryTask {
   questionID: string
   points_max: number
   _id: string
-  taskDetails: TaskDetails2,
+  taskDetails: TaskDetails2
   status: ['none', 'done']
 }
 
@@ -167,18 +167,18 @@ window.onbeforeunload = function() {
         <p className="text-2xl font-bold border-b pb-2 mb-2">Zadaci</p>
         <p className="text-lg font-semibold">Praktični zadaci</p>
 
-        {tasksData?.practicalTasks.map((item)=>(
+        {tasksData?.practicalTasks?.map((item)=>(
 
           <HoverCard key={item._id} openDelay={250} closeDelay={100}>
       <HoverCardTrigger asChild>
-        <div onClick={()=>{setSearchParams({task: item.taskDetails._id.toString(), type: item.taskType})}} className="p-2 border-b flex items-center gap-2 hover:bg-gray-100 hover:shadow hover:cursor-pointer">
+        <div onClick={()=>{setSearchParams({task: item.taskDetails?._id?.toString() || "", type: item.taskType})}} className="p-2 border-b flex items-center gap-2 hover:bg-gray-100 hover:shadow hover:cursor-pointer">
 <div id="dot-status" className={`w-5! h-5! shrink-0 rounded-[50%] ${statusColors[item?.status] || 'bg-gray-700'}`}></div>
-          <span>{item.taskDetails.title}</span>
+          <span>{item.taskDetails?.title || "Nepoznat zadatak"}</span>
         </div>
       </HoverCardTrigger>
       <HoverCardContent className="flex w-64 flex-col gap-0.5 rounded-none">
         <div className="absolute -top-2 left-6 h-4 w-4 rotate-45 border-l border-t bg-popover" />
-        <div className="font-semibold text-lg">{item.taskDetails.title}</div>
+        <div className="font-semibold text-lg">{item.taskDetails?.title || "Nepoznat zadatak"}</div>
         <div><span className="font-bold text-gray-700">Maks. poena:</span> <span className='font-bold text-gray-600'>{item.points_max}</span></div>
         <hr />
         
@@ -186,7 +186,7 @@ window.onbeforeunload = function() {
         <div 
   className="mt-1 text-xs text-muted-foreground line-clamp-3 overflow-hidden" 
   dangerouslySetInnerHTML={{
-    __html: item.taskDetails.richText
+    __html: item.taskDetails?.richText || ""
   }}
 />
 
@@ -199,10 +199,10 @@ window.onbeforeunload = function() {
 
         <p className="text-lg font-semibold mt-5">Teorijski zadaci</p>
 
-        {tasksData?.theoryTasks.map((item)=>(
-          <div key={item._id} onClick={()=>{setSearchParams({task: item.taskDetails._id.toString(), type: item.taskType})}} className="p-2 border-b flex items-center gap-2 hover:bg-gray-100 hover:shadow hover:cursor-pointer">
+        {tasksData?.theoryTasks?.map((item)=>(
+          <div key={item._id} onClick={()=>{setSearchParams({task: item.taskDetails?._id?.toString() || "", type: item.taskType})}} className="p-2 border-b flex items-center gap-2 hover:bg-gray-100 hover:shadow hover:cursor-pointer">
           <div id="dot-status" className={`w-5 h-5 shrink-0 rounded-[50%] ${statusColors[item?.status] || 'bg-gray-700'}`}></div>
-          <span>{item.taskDetails.title}</span>
+          <span>{item.taskDetails?.title || "Nepoznat zadatak"}</span>
         </div>
         ))}
 

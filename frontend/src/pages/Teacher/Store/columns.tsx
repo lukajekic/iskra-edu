@@ -32,7 +32,7 @@ export const getColumns = ({onPreview}):ColumnDef<Task>[]=>[
     header: "Programski jezik",
     cell({row}) {
       return (
-        <span>{row.original.language === "python" ? "Python" : row.original.language}</span>
+        <span>{row.original.language === "python" ? "Python" : row.original.language === "ruby" ? "Ruby" : row.original.language}</span>
       )
     },
   },

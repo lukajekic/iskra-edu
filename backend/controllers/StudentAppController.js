@@ -131,6 +131,11 @@ let instances = {
     0: "https://lukajekic-python-judge.hf.space",
     1: "https://lukajekic-python-judge-2.hf.space"
 }
+let activeRubyInstance = -1
+
+let ruby_instances = {
+    0: "https://iskra-edu.onrender.com"
+}
 let determineInstance = ()=>{
     let keys = Object.keys(instances)
     let new_active = -1
@@ -142,6 +147,19 @@ let determineInstance = ()=>{
     activeInstance = new_active
 
     return instances[activeInstance]
+}
+
+let determineRubyInstance = ()=>{
+    let keys = Object.keys(ruby_instances)
+    let new_active = -1
+    if (activeRubyInstance + 1 === keys.length) {
+        new_active = 0
+    } else {
+        new_active = activeRubyInstance + 1
+    }
+    activeInstance = new_active
+
+    return ruby_instances[activeInstance]
 }
 export const sendSolution = async(req,res)=>{
     let metrica_http_count = 0
@@ -213,14 +231,19 @@ let new_id = crypto.randomUUID()
             })
 
 
-            if (task.language === "python") {
+            if (task.language === "python" || task.language === "ruby") {
                 let stderr = ""
                 if (task.outputType === "standard") {
                     let tests = task.tests
 
 for (const test of tests) {
     let stdin = test.input.join("\n");
-    let testing_instance = determineInstance()
+    let testing_instance = ""
+    if (task.language === "python") {
+        testing_instance = determineInstance()
+    } else if (task.language === "ruby") {
+        testing_instance = determineRubyInstance()
+    }
 
     try {
         metrica_http_count += 1
@@ -238,7 +261,7 @@ for (const test of tests) {
             student.solutions.push({
                 solutionID: new_id,
                 status: "revise",
-                stderr: `❌ Python nije mogao razumeti tvoj kod: ${stderr}`,
+                stderr: `❌ ${task.language.charAt(0).toUpperCase() + task.language.slice(1)} nije mogao razumeti tvoj kod: ${stderr}`,
                 code: code,
                 taskID: taskID,
                 grading_date,
