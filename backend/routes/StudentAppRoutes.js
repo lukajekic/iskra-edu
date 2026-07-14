@@ -1,5 +1,5 @@
 import express from 'express'
-import { checkIskraAIEligibility, getAIMentorHelp, getFolders, getSolution, getTask, RunCode, sendSolution } from '../controllers/StudentAppController.js'
+import { checkIskraAIEligibility, getAIMentorHelp, getFolders, getSolution, getTask, RunCode, RunRubyCode, sendSolution } from '../controllers/StudentAppController.js'
 import { protect } from '../middleware/protect.js'
 import { Limiter15 } from '../utilities/limiter10.js'
 const router = express.Router()
@@ -12,5 +12,6 @@ router.get('/solution/mentor/:taskID/execute', protect, getAIMentorHelp)
 router.get('/solution/mentor/:taskID/eligible', protect, checkIskraAIEligibility)
 
 router.post('/run', protect, RunCode)
+router.post('/run-ruby', protect, RunRubyCode)
 const StudentAppRoutes = router
 export default StudentAppRoutes

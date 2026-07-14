@@ -182,14 +182,25 @@ const handleCodeRun = ()=>{
   let inputcount = prebrojInpute(code)
   console.log("ocekivani inputi", inputcount)
   setTerminalInputCount(inputcount)
-  setopenTerminal(true)
-
   
+  const trenutniJezik = task?.language?.toLowerCase() || 'python'
+  console.log("DETEKTOVAN JEZIK U handleCodeRun:", trenutniJezik)
+  
+  let url = `${import.meta.env.VITE_BACKEND}/app/student/run`
+  
+  if (trenutniJezik === 'ruby') {
+    url = `${import.meta.env.VITE_BACKEND}/app/student/run-ruby`
+  }
+  
+  console.log("SETOVANI ENDPOINT ZA SLANJE:", url)
+  setTerminalEndpoint(url)
+  setopenTerminal(true)
 }
 
 const [openTerminal, setopenTerminal]= useState(false)
 const [terminalInputCount, setTerminalInputCount] = useState(0)
 const [terminalResponse, setTErminalResponse] = useState()
+const [terminalEndpoint, setTerminalEndpoint] = useState("")
 
 const handleSolutionSend = async()=>{
   try {
@@ -484,7 +495,7 @@ const getSolution = async (shouldWait = false) => {
   </DialogContent>
 </Dialog>
 {openTerminal && (
-  <TerminalRunner language={task?.language ? task.language.toLowerCase() : 'python'} codeOrigin={code} onClose={(response)=>{setopenTerminal(false), console.log(response), setTErminalResponse(response)}} count={terminalInputCount}></TerminalRunner>
+  <TerminalRunner language={task?.language ? task.language.toLowerCase() : 'python'} codeOrigin={code} endpoint={terminalEndpoint} onClose={(response)=>{setopenTerminal(false), console.log(response), setTErminalResponse(response)}} count={terminalInputCount}></TerminalRunner>
 )}
 
 {terminalResponse && (

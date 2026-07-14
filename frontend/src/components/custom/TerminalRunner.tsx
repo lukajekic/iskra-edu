@@ -9,26 +9,31 @@ import LoaderModal from './LoaderModal'
 interface Props {
     codeOrigin: string,
     count: number,
+    language: string, // DODATO: Prihvatamo jezik iz roditelja
+    endpoint: string, // DODATO: Prihvatamo dinamički endpoint iz roditelja
     onClose: (data: any) => void
 }
 
-const TerminalRunner = ({codeOrigin, count, onClose }: Props) => {
+const TerminalRunner = ({ codeOrigin, count, language, endpoint, onClose }: Props) => {
     const [policyBreaking, setPolicyBreaking] = useState("")
     const [loading, setloading]= useState(false)
+
+    // Izmenjeno da vraća string direktno jer nam treba odmah u useEffect-u
     const determinePolicyBreaking = ()=>{
         if (codeOrigin.includes("for")) {
-            setPolicyBreaking('Tvoj kod potencijalno sadrži petlju for, ukoliko si dobio neočikvan rezultat, greška ne mora biti nužno u tvom programu, pošalji na pregled za detaljne preglede.')
+            return 'Tvoj kod potencijalno sadrži petlju for, ukoliko si dobio neočikvan rezultat, greška ne mora biti nužno u tvom programu, pošalji na pregled za detaljne preglede.'
         }
 
         if (codeOrigin.includes("while")) {
-            setPolicyBreaking('Tvoj kod potencijalno sadrži petlju while, ukoliko si dobio neočikvan rezultat, greška ne mora biti nužno u tvom programu, pošalji na pregled za detaljne preglede.')
-
+            return 'Tvoj kod potencijalno sadrži petlju while, ukoliko si dobio neočikvan rezultat, greška ne mora biti nužno u tvom programu, pošalji na pregled za detaljne preglede.'
         }
 
         if (codeOrigin.includes("matplotlib")) {
-            setPolicyBreaking("Tvoj kod potencijalno sadrži uvoz biblioteke matplotlib, ukoliko si dobio neočekivan rezultat, greška ne mora biti u tvom kodu, pošalji zadatak na pregled za detaljnu analizu.")
+            return "Tvoj kod potencijalno sadrži uvoz biblioteke matplotlib, ukoliko si dobio neočekivan rezultat, greška ne mora biti u tvom kodu, pošalji zadatak na pregled za detaljnu analizu."
         }
+        return ""
     }
+
     const [code, setCode] = useState("")
     const [input, setInput] = useState<string[]>([])
     const [innerCount, setInnerCount] = useState(0)
@@ -43,18 +48,19 @@ const TerminalRunner = ({codeOrigin, count, onClose }: Props) => {
     const inputRef = useRef(input)
     inputRef.current = input
 
-    const runCodeServer = async () => {
+    const runCodeServer = async (currentPolicy: string) => {
         try {
             setloading(true)
-            const response = await axios.post(`${import.meta.env.VITE_BACKEND}/app/student/run`, {
+            // IZMENJENO: Koristi se dinamički endpoint koji je prosleđen kroz props
+            const response = await axios.post(endpoint, {
                 "code": codeOrigin,
-                "input_data": inputRef.current.join("\n"), // Vučemo direktno iz refa
+                "input_data": inputRef.current.join("\n"), 
                 "timeout": 5
             })
             if (response.status === 200) {
                 console.log(response)
                 setloading(false)
-                onClose({...response.data, policyBreaking })
+                onClose({...response.data, policyBreaking: currentPolicy })
             }
         } catch (error) {
             toast.error("Greska.")
@@ -64,9 +70,10 @@ const TerminalRunner = ({codeOrigin, count, onClose }: Props) => {
     }
 
     const handleEnterPressed = () => {
+        const currentPolicy = determinePolicyBreaking()
         // Provera da li smo već dostigli limit
         if (innerCountRef.current >= count) {
-            runCodeServer()
+            runCodeServer(currentPolicy)
             return
         }
 
@@ -84,15 +91,17 @@ const TerminalRunner = ({codeOrigin, count, onClose }: Props) => {
 
         // Ako smo ovim unosom stigli do limita, odmah okidamo slanje
         if (noviInnerCount === count) {
-            runCodeServer()
+            runCodeServer(currentPolicy)
         }
     }
 
     // Okidanje odmah ako je count 0
     useEffect(() => {
-        determinePolicyBreaking()
+        const currentPolicy = determinePolicyBreaking()
+        setPolicyBreaking(currentPolicy)
+        
         if (count === 0) {
-            runCodeServer()
+            runCodeServer(currentPolicy)
         }
     }, [count])
 
@@ -113,9 +122,6 @@ const TerminalRunner = ({codeOrigin, count, onClose }: Props) => {
                             </Alert>
                         </div>
 
-                        {/* KLJUČNA PROMENA: Hvatanje Entera u "capture" fazi na divu. 
-                          Ovo presreće Enter pre nego što ga Monaco obradi i unese novi red!
-                        */}
                         <div 
                             className="flex-1 w-full"
                             onKeyDownCapture={(e) => {
@@ -142,7 +148,9 @@ const TerminalRunner = ({codeOrigin, count, onClose }: Props) => {
                                 }}
                                 height="100%"
                                 theme='vs-dark'
-                                defaultLanguage='python'
+                                // IZMENJENO: Prosleđujemo dinamički jezik umesto fiksiranog 'python'
+                                defaultLanguage={language ? language.toLowerCase() : 'python'}
+                                language={language ? language.toLowerCase() : 'python'}
                                 onChange={(e) => setCode(e || "")}
                                 value={code}
                             />

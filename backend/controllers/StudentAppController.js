@@ -493,6 +493,33 @@ export const RunCode = async (req, res) => {
     }
 }
 
+export const RunRubyCode = async (req, res) => {
+    try {
+        const body = req.body;
+        
+        if (!body || Object.keys(body).length === 0) {
+            const errorResponse = BuildValidationReturn("no http body", "error", "Invalid data.");
+            return res.status(400).json(errorResponse);
+        }
+
+        let testing_instance = determineRubyInstance();
+        
+        const response = await fetch(`${testing_instance}/run`, {
+            method: 'POST',
+            body: JSON.stringify(body), 
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+
+        return res.status(response.status).json(data);
+
+    } catch (error) {
+        const errorResponse = BuildValidationReturn(error.message, "error", "Unexpected error occured.");
+        return res.status(500).json(errorResponse);
+    }
+}
+
 export const getAIMentorHelp = async(req, res)=>{
     const html_coimng_soon = `
     <!DOCTYPE html>
