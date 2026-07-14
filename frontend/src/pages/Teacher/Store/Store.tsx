@@ -204,9 +204,10 @@ useEffect(()=>{
       <span>Pretraga</span>
     </div>
 
-    <div className="flex jusitfy-between gap-4 items-center w-full max-w-[1000px] mt-2">
+    {/* Izmenjeno: flex-col na mobilnim uređajima, flex-row na malim i većim (sm:), prilagođena širina dugmeta */}
+    <div className="flex flex-col sm:flex-row justify-between gap-4 items-stretch sm:items-center w-full max-w-[1000px] mt-2">
           <Select onValueChange={(val)=>{modifyQuery("grade", val)}}>
-      <SelectTrigger className="flex-1">
+      <SelectTrigger className="w-full sm:flex-1">
         <SelectValue  placeholder="Izaberite razred..." />
       </SelectTrigger>
       <SelectContent>
@@ -223,7 +224,7 @@ useEffect(()=>{
     </Select>
 
            <Select onValueChange={(val)=>{modifyQuery("language", val)}}>
-      <SelectTrigger className="flex-1">
+      <SelectTrigger className="w-full sm:flex-1">
         <SelectValue placeholder="Izaberite jezik..." />
       </SelectTrigger>
       <SelectContent>
@@ -242,7 +243,7 @@ useEffect(()=>{
       </SelectContent>
     </Select>
 
-    <Button onClick={()=>{fetchData()}}>
+    <Button onClick={()=>{fetchData()}} className="w-full sm:w-auto shrink-0 justify-center">
       <Search></Search>
       Pretrazi
     </Button>
@@ -261,75 +262,79 @@ useEffect(()=>{
     setActiveTask(null)
   }
 }}   direction='right'  >
-  <DrawerContent className='pb-[60px]'>
-    <DrawerHeader className='font-bold text-lg border-b'>
+  {/* Izmenjeno: fiksna ili maksimalna širina na većim ekranima kako fioka sa detaljima ne bi zauzela ceo ekran */}
+  <DrawerContent className='pb-[60px] h-full max-w-full sm:max-w-[500px] md:max-w-[600px] ml-auto'>
+    <DrawerHeader className='font-bold text-lg border-b shrink-0'>
       Detalji zadatka
     </DrawerHeader>
 
-    <div className="overflow-y-auto">
-      <div className="w-full p-4">
-      <p className="text-xl font-bold">{activeTask?.title}</p>
+    <div className="overflow-y-auto flex-1 p-4">
+      <div className="w-full">
+      <p className="text-xl font-bold break-all">{activeTask?.title}</p>
       <Separator className='my-2'></Separator>
      {activeTask?.author && (
        <div id="task-author-info" className="flex justify-between items-center gap-2">
-        <UserCircle/>
-        <div id="author-info-data" className="flex flex-col items-left flex-1">
-          <p className="text-lg font-semibold">{activeTask.author.name}</p>
-          <p className="text-gray-700">{activeTask.author.institution}</p>
+        <UserCircle className="shrink-0"/>
+        <div id="author-info-data" className="flex flex-col items-left flex-1 min-w-0">
+          <p className="text-lg font-semibold truncate">{activeTask.author.name}</p>
+          <p className="text-gray-700 truncate">{activeTask.author.institution}</p>
         </div>
       </div>
      )}
         <div
-  className="iskra-rich-text  max-w-full mt-3"
+  className="iskra-rich-text max-w-full mt-3 overflow-x-auto"
   dangerouslySetInnerHTML={{ __html: activeTask?.richText}}
 />
 
-<Separator></Separator>
-      <p className="text-xl font-bold ">Testovi zadatka</p>
+<Separator className="my-4"></Separator>
+      <p className="text-xl font-bold mb-3">Testovi zadatka</p>
     </div>
 
-   <table id='tests-table' className='w-full'>
+   {/* Izmenjeno: tabela sa testovima je prebačena u fleksibilnu div strukturu koja se ponaša kao grid da se dugački stringovi ne sabijaju */}
+   <div id='tests-container' className='w-full flex flex-col gap-4'>
     {activeTask?.tests.map((item, index)=>(
-      <tr>
-        <td className='text-center text-2xl font-semibold'>
+      <div key={index} className="flex gap-3 border rounded-lg p-3 items-start">
+        <div className='text-center text-2xl font-semibold bg-muted size-10 flex items-center justify-center rounded-md shrink-0'>
           {index+1}
-        </td>
+        </div>
 
-        <td className='p-1'>
-          <span className="font-semibold text-lg">
-            ULAZI:
-          </span>
-          <ul className='list-disc list-inside'>
-            {item?.input.map((testitem , index)=>(
-            <li key={index}>{testitem}</li>
-          ))}
-          </ul>
+        <div className='flex-1 min-w-0 space-y-2'>
+          <div>
+            <span className="font-semibold text-sm text-muted-foreground block mb-1">
+              ULAZI:
+            </span>
+            <ul className='list-disc list-inside bg-slate-50 dark:bg-slate-900 p-2 rounded text-sm font-mono break-all space-y-0.5'>
+              {item?.input.map((testitem , idx)=>(
+                <li key={idx}>{testitem}</li>
+              ))}
+            </ul>
+          </div>
 
           <Separator></Separator>
 
-          <span className="font-semibold text-lg">
-            IZLAZI:
-          </span>
-          <ul className='list-disc list-inside'>
-            {item.output.map((testitem , index)=>(
-            <li key={index}>{testitem}</li>
-          ))}
-          </ul>
-
-
-        </td>
-      </tr>
+          <div>
+            <span className="font-semibold text-sm text-muted-foreground block mb-1">
+              IZLAZI:
+            </span>
+            <ul className='list-disc list-inside bg-slate-50 dark:bg-slate-900 p-2 rounded text-sm font-mono break-all space-y-0.5'>
+              {item.output.map((testitem , idx)=>(
+                <li key={idx}>{testitem}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
     ))}
-   </table>
+   </div>
     </div>
 
-    <DrawerFooter>
-    <Button onClick={()=>{setActiveTask(null)}} variant={'outline'}>Zatvori</Button>
+    <DrawerFooter className="border-t bg-background shrink-0 flex flex-row gap-2">
+    <Button onClick={()=>{setActiveTask(null)}} variant={'outline'} className="flex-1">Zatvori</Button>
     <Button onClick={()=>{
       fetchMyFolders()
       setOpenFolderPicker(true)
      
-    }}><Download></Download>Preuzmi zadatak</Button>
+    }} className="flex-1"><Download></Download>Preuzmi zadatak</Button>
   </DrawerFooter>
   </DrawerContent>
   
@@ -342,19 +347,20 @@ useEffect(()=>{
 
 
 <Dialog open={openFolderPicker} onOpenChange={(val)=>setOpenFolderPicker(val)} >
-  <DialogContent showCloseButton={true}>
+  {/* Izmenjeno: max-w uzeto iz shadcn biblioteke za optimalnu responzivnost dijaloga */}
+  <DialogContent showCloseButton={true} className="max-w-[calc(100%-2rem)] sm:max-w-[425px] rounded-lg">
 <DialogHeader><span>Izaberite Folder</span></DialogHeader>
 
 
-<div className="flex flex-col gap-2">
+<div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-1">
 
   {myFolders.folders.map((item, index)=>(
-  <div onClick={()=>{
+  <div key={index} onClick={()=>{
     setOpenLoader(true)
     downloadTask(item._id)
   }} className="p-2 border-b-1 active:border-2 active:border-blue-400 rounded-lg flex items-center gap-2 hover:cursor-pointer">
-  <img src={foldericon} className='size-6' alt="" />
-  <span key={index} className="flex-1 break-all">{item?.title}</span>
+  <img src={foldericon} className='size-6 shrink-0' alt="" />
+  <span className="flex-1 break-all">{item?.title}</span>
 </div>
 ))}
 

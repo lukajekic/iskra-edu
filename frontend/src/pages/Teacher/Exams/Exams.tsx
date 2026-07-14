@@ -155,7 +155,7 @@ const disableEdits = async (test: ITest) => {
           </Alert>
 
           <div className="flex items-center gap-2 mt-3">
-            <Button onClick={()=>{setNewTestModal(true)}}><PlusSquare className="" />Novi kontrolni zadatak</Button>
+            <Button onClick={()=>{setNewTestModal(true)}} className="w-full sm:w-auto justify-center"><PlusSquare className="" />Novi kontrolni zadatak</Button>
           </div>
         </div>
         <img src="/undraw_document-ready_o5d5.svg" className='h-[150px] hidden lg:block' alt="" />
@@ -166,15 +166,16 @@ const disableEdits = async (test: ITest) => {
           {grades.map((grade) => (
             <AccordionItem value={grade} key={grade}>
               <AccordionTrigger className='font-bold text-md'>{grade}</AccordionTrigger>
-              <AccordionContent className='pl-4 space-y-2'>
+              <AccordionContent className='pl-0 sm:pl-4 space-y-2'>
                 {tests.filter(f => f.grade === grade).length === 0 && (
-                  <p className="italic">Nema kontrolnih zadataka za ovaj razred...</p>
+                  <p className="italic pl-4 sm:pl-0">Nema kontrolnih zadataka za ovaj razred...</p>
                 )}
 
                 {tests.filter(f => f.grade === grade).map(test => (
-                <div key={test._id} className="w-full flex justify-between border rounded-md p-2 items-center">
-                  <div id="left">
-                    <p className='text-lg font-bold !mb-0'>{test.title}</p>
+                /* Izmenjeno: flex-col na mobilnom prenosi desni div ispod, na md: ide sve u jedan red */
+                <div key={test._id} className="w-full flex flex-col md:flex-row justify-between border rounded-md p-4 items-start md:items-center gap-4">
+                  <div id="left" className="min-w-0">
+                    <p className='text-lg font-bold !mb-0 break-all'>{test.title}</p>
                     {test.classes ? (
                       <p className="text-xs text-gray-700">{test.classes}</p>
                     ) : (
@@ -182,7 +183,8 @@ const disableEdits = async (test: ITest) => {
                     )}
                   </div>
 
-                  <div id="right">
+                  {/* Izmenjeno: overflow-x-auto na roditelju sprečava lomljenje ButtonGroup-a i omogućava gladak svajp ako je ekran premali */}
+                  <div id="right" className="w-full md:w-auto overflow-x-auto max-w-full pb-1 md:pb-0">
                     <ButtonGroup>
   {!test.settings?.disableEdits && (
     <Button onClick={()=>{set_de_test(test)}}><Eye /> Prikazi ucenicima</Button>
@@ -210,7 +212,7 @@ const disableEdits = async (test: ITest) => {
       </div>
 
 <Dialog open={newTestModal} onOpenChange={(val)=>{setNewTestModal(val)}}>
-  <DialogContent>
+  <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-[425px] rounded-lg">
     <DialogHeader>
       <DialogTitle>Dodaj kontrolni zadatak</DialogTitle>
     </DialogHeader>
@@ -239,9 +241,9 @@ const disableEdits = async (test: ITest) => {
         </Field>
       </FieldGroup>
 
-    <DialogFooter>
-      <Button variant={'outline'} onClick={()=>{setNewTestModal(false)}}>Odustani</Button>
-      <Button onClick={()=>{initializeTest()}}>Sacuvaj</Button>
+    <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 mt-4">
+      <Button variant={'outline'} onClick={()=>{setNewTestModal(false)}} className="w-full sm:w-auto">Odustani</Button>
+      <Button onClick={()=>{initializeTest()}} className="w-full sm:w-auto">Sacuvaj</Button>
     </DialogFooter>
   </DialogContent>
   </Dialog> 
@@ -249,17 +251,16 @@ const disableEdits = async (test: ITest) => {
 
 
 <AlertDialog open={de_test}>
-
-      <AlertDialogContent>
+      <AlertDialogContent className="max-w-[calc(100%-2rem)] sm:max-w-[500px] rounded-lg">
         <AlertDialogHeader>
           <AlertDialogTitle>Da li ste sigurni?</AlertDialogTitle>
           <AlertDialogDescription>
             Nakon prikaza učenicima, test neće biti moguće naknadno izmeniti ili sakriti.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={()=>{set_de_test(null)}}>Odustani</AlertDialogCancel>
-          <AlertDialogAction onClick={()=>{disableEdits(de_test)}}>Nastavi</AlertDialogAction>
+        <AlertDialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+          <AlertDialogCancel onClick={()=>{set_de_test(null)}} className="w-full sm:w-auto mt-0">Odustani</AlertDialogCancel>
+          <AlertDialogAction onClick={()=>{disableEdits(de_test) }} className="w-full sm:w-auto">Nastavi</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

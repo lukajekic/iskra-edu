@@ -147,18 +147,18 @@ const ExamForm = () => {
 
   return (
     <TasksDataContext.Provider value={{tasksData, setTasksData}}>
-       <div className="h-screen min-h-screen max-h-screen w-full">
-        <div id="grid" className="h-full w-full flex gap-0 items-start">
+       <div className="h-screen min-h-screen md:max-h-screen w-full overflow-y-auto md:overflow-hidden">
+        <div id="grid" className="h-full w-full flex flex-col md:flex-row gap-0 items-start">
              
-            <div id="task-explorer-1" className="h-full w-1/3  overflow-y-auto border-r border-[#cecece]">
+            <div id="task-explorer-1" className="h-[33.33vh] md:h-full w-full md:w-1/3 overflow-y-auto border-b md:border-b-0 md:border-r border-[#cecece]">
               <TaskExplorer></TaskExplorer>
             </div>
             
-            <div id="task-explorer-2" className="h-full w-1/3 overflow-y-auto border-r border-[#cecece]">
+            <div id="task-explorer-2" className="h-[33.33vh] md:h-full w-full md:w-1/3 overflow-y-auto border-b md:border-b-0 md:border-r border-[#cecece]">
               <TaskDetailsViewer></TaskDetailsViewer>
             </div>
 
-            <div id="task-explorer-3" className="h-full w-1/3 overflow-y-auto">
+            <div id="task-explorer-3" className="h-[33.33vh] md:h-full w-full md:w-1/3 overflow-y-auto">
               <SolutionForm></SolutionForm>
             </div>
 

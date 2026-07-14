@@ -4,7 +4,7 @@ import React from 'react'
 const Empty = () => {
   return (
     <div className="w-full flex flex-col items-left">
-        <Undo className='size-[150px] text-amber-600' strokeWidth={1}></Undo>
+        <Undo className='rotate-80 md:rotate-0 size-[150px] text-amber-600' strokeWidth={1}></Undo>
         <div className="flex flex-col items-center gap-2">
             <p className="text-5xl font-bold text-amber-600">
                 Izaberite prikaz

@@ -177,18 +177,18 @@ element: <NotFound></NotFound>
 
         {
           path: "student-exams",
-          element: <DesktopOnlyGuard><StudentExams></StudentExams></DesktopOnlyGuard>,
+          element: <StudentExams></StudentExams>,
           
         },
 
         {
           path: "exam/:id",
-          element: <DesktopOnlyGuard><ExamForm></ExamForm></DesktopOnlyGuard>
+          element: <ExamForm></ExamForm>
         },
 
         {
           path: "exam-results/:id",
-          element: <DesktopOnlyGuard><ExamResults></ExamResults></DesktopOnlyGuard>
+          element: <ExamResults></ExamResults>
         }
       ],
 

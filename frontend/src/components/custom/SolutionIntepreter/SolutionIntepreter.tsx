@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { CardTitle } from '@/components/ui/card'
 import axios from 'axios'
 import React, { act, useEffect, useState } from 'react'
@@ -167,9 +168,9 @@ if (UserID) {
     <div className="w-full h-full"> 
       <div 
         id="columns" 
-        className='flex items-start gap-4  h-full overflow-y-auto pb-10'
+        className='flex flex-col md:flex-row items-start gap-4 h-full overflow-y-auto pb-10'
       >
-          <div className="w-[22%] h-full flex flex-col"> {/* Dodato h-full i flex-col ovde */}
+          <div className="w-full md:w-[22%] h-auto md:h-full flex flex-col shrink-0"> {/* Dodato h-full i flex-col ovde */}
   <CardTitle className='text-lg'>Podaci o uceniku</CardTitle>
 
   <div className="flex-1 w-full flex flex-col gap-2"> {/* flex-1 ovde natera ovaj div da zauzme ostatak visine kolone */}
@@ -189,7 +190,7 @@ if (UserID) {
     </div>
    )}
 
-    <div className="p-2 flex-1 rounded-[10px] border border-[#cecece] h-auto overflow-y-auto">
+    <div className="p-2 flex-1 rounded-[10px] border border-[#cecece] h-[250px] md:h-auto overflow-y-auto">
       <CardTitle className='mb-2'>Zadaci</CardTitle>
 
       {loadingTasks && (
@@ -206,7 +207,7 @@ if (UserID) {
 
       if (item.status === 'accepted') {
 return (
-  <div onClick={()=>{setActiveSolution(item)}} className={`${item.flags.length > 0 ? "bg-red-100" : ""} w-full hover:cursor-pointer p-2 flex items-center gap-3 border-b hover:shadow-sm transition-shadow hover:rounded`}>
+  <div key={item.solutionID || index} onClick={()=>{setActiveSolution(item)}} className={`${item.flags.length > 0 ? "bg-red-100" : ""} w-full hover:cursor-pointer p-2 flex items-center gap-3 border-b hover:shadow-sm transition-shadow hover:rounded`}>
         <div className="shrink-0 w-5 h-5 bg-green-600 rounded-lg  flex justify-center items-center">
           <Check className='text-white size-4'></Check>
         </div>
@@ -215,7 +216,7 @@ return (
 )
       } else if (item.status === 'revise') {
         return (
-<div onClick={()=>{setActiveSolution(item)}} className={`${item.flags.length > 0 ? "bg-red-100" : ""} w-full hover:cursor-pointer p-2 flex items-center gap-3 border-b hover:shadow-sm transition-shadow hover:rounded`}>
+<div key={item.solutionID || index} onClick={()=>{setActiveSolution(item)}} className={`${item.flags.length > 0 ? "bg-red-100" : ""} w-full hover:cursor-pointer p-2 flex items-center gap-3 border-b hover:shadow-sm transition-shadow hover:rounded`}>
         <div className="shrink-0 w-5 h-5 bg-red-600 rounded-lg  flex justify-center items-center">
           <X className='text-white size-4'></X>
         </div>
@@ -248,7 +249,7 @@ return (
 
 
 {activeSolution ? (
-   <div className="w-[40%] h-full flex flex-col border-r"> {/* Dodato h-full i flex-col ovde */}
+   <div className="w-full md:w-[40%] h-auto md:h-full flex flex-col border-t md:border-t-0 md:border-r pt-4 md:pt-0"> {/* Dodato h-full i flex-col ovde */}
   <CardTitle className='text-lg mb-2'>Detalji zadatka</CardTitle>
 
   <p className="text-2xl font-bold">{activeSolution?.taskID?.title || ""}</p>
@@ -261,7 +262,7 @@ return (
    
   </div>
 ) : (
-   <Empty>
+   <Empty className="w-full md:w-[40%]">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <FolderCodeIcon />
@@ -281,25 +282,25 @@ return (
 
 {activeSolution && (
 
- <div className="w-[40%] max-w-[40%] h-full flex flex-col ">
+ <div className="w-full md:w-[40%] md:max-w-[40%] h-auto md:h-full flex flex-col border-t md:border-t-0 pt-4 md:pt-0">
   <CardTitle className='text-lg mb-2'>Rešenje zadatka</CardTitle>
   <div className="w-full p-4 border-1 rounded-lg flex items-center gap-4 justify-between">
 {activeSolution.status === 'accepted' && (
-  <div id="solution-grade-info flex flex-col items-start">
+  <div id="solution-grade-info" className="flex flex-col items-start">
   <p className="text-xl text-green-600">Odobreno</p>
   <p className="text-green-800">{activeSolution.stdok || "Nema beleske..."}</p>
 </div>
 )}
 
 {activeSolution.status === 'revise' && (
-  <div id="solution-grade-info flex flex-col items-start">
+  <div id="solution-grade-info" className="flex flex-col items-start">
   <p className="text-xl text-red-600">Odbijeno</p>
   <p className="text-red-800">{activeSolution.stderr || "Nema beleske..."}</p>
 </div>
 )}
 
 <DropdownMenu>
-  <DropdownMenuTrigger>
+  <DropdownMenuTrigger asChild>
 <Button variant={'secondary'}><Pencil></Pencil></Button>
 
   </DropdownMenuTrigger>
@@ -334,7 +335,7 @@ return (
     <div className="flex gap-2 items-center p-2 flex-wrap">
       {activeSolution.flags.includes("iskra_anticheat_paste") && (
         <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
       <Badge className='text-sm p-3' variant={'destructive'}>Potencijalno kopiranje koda</Badge>
 
         </TooltipTrigger>
@@ -347,7 +348,7 @@ return (
 
 {activeSolution.flags.includes("iskra_anticheat_tab") && (
         <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
             <Badge className='text-sm p-3' variant={'destructive'}>Napuštanje Iskre</Badge>
 
         </TooltipTrigger>

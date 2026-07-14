@@ -160,35 +160,37 @@ const [task, setTask] = useState<TheroyTask | null>(null)
             </div>
 <p className="text-2xl font-bold mt-5">Resenja zadatka</p>
 
-
-
-            <div id='answers-editor' className="w-full flex items-start mt-2">
+            {/* Izmenjeno: flex-col na mobilnim, flex-row na desktopu */}
+            <div id='answers-editor' className="w-full flex flex-col md:flex-row items-start mt-2 gap-4 md:gap-0">
                 
-                <div id="left-1" className="w-1/2 border-r min-h-5 p-4 -mt-2">
+                {/* Izmenjeno: w-full na mobilnim, md:w-1/2 na desktopu, i prilagođen border */}
+                <div id="left-1" className="w-full md:w-1/2 border-b md:border-b-0 md:border-r min-h-5 p-4 -mt-2">
                  
                  {task?.answers?.map((item, index)=>(
-                    <div className="p-2 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer border justify-between mt-2">
-                    <span>{item}</span>
-                    <div className="flex gap-2 items-center">
+                    <div key={index} className="p-2 hover:bg-slate-50 rounded-lg flex items-center gap-2 cursor-pointer border justify-between mt-2">
+                    <span className="break-all pr-2">{item}</span>
+                    <div className="flex gap-2 items-center shrink-0">
                         <Button variant={'destructive'} onClick={()=>{setUpdateCorrectIndex(index), setOpenMutateModal('delete')}}><Trash></Trash></Button>
                     <Button onClick={()=>{setUpdateCorrectIndex(index), setOpenMutateModal('edit')}} variant={'outline'}><Check></Check></Button>
                     </div>
                   </div>
                  ))}
 
+                 {/* Izmenjeno: flex-wrap ili kolona na jako malim ekranima ako zatreba, zadržan gap */}
                  <div className="flex w-full items-center gap-2 mt-5">
                     <Input value={newAnswerValue} onChange={(e)=>{setNewANswerValue(e.target.value)}} placeholder='Unesite novo ponudjeno resenje...'></Input>
-                    <Button onClick={()=>{newAnswer()}} className='w-fit'>Dodaj</Button>
+                    <Button onClick={()=>{newAnswer()}} className='w-fit shrink-0'>Dodaj</Button>
                  </div>
                  </div>
                 {task?.correct_answer ? (
-                    <div id="right-1" className="w-1/2 min-h-5 p-4">
+                    /* Izmenjeno: w-full na mobilnim, md:w-1/2 na desktopu */
+                    <div id="right-1" className="w-full md:w-1/2 min-h-5 p-4">
                 <p className="text-green-600">Tačno rešenje zadatka:</p>
                 <p className="text-green-700 text-xl inline-flex items-center gap-2"><Check></Check>{task?.correct_answer}</p>
                 </div>
                 ) : (<>
-                    {/* <span className="italic p-4">Niste postavili tacno resenje...</span> */}
-                     <Alert className="mt-2 w-1/2 m-4 border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50">
+                    {/* Izmenjeno: w-full na mobilnim, md:w-1/2 na desktopu, uklonjen fiksni m-4 koji je lomio margine */}
+                     <Alert className="mt-2 w-full md:w-1/2 md:m-4 border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50">
       <AlertTriangleIcon />
       <AlertTitle>UPOZORENJE:</AlertTitle>
       <AlertDescription>

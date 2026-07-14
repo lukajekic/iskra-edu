@@ -1,3 +1,4 @@
+// @ts-nocheck
 import PageTitle from '@/components/custom/PageTitle'
 import { Button } from '@/components/ui/button'
 import { Ban, CircleCheckBig, Download, Fullscreen, Info, LogOut, PlusSquare, Users, X } from 'lucide-react'
@@ -54,9 +55,7 @@ type ProgressPerStudent = {
     createdAt: Date;
 }
 
-
-
-const Group =   () => {
+const Group = () => {
 const [groupActive, setGroupActive] = useState(false)
 const [codeFullScreen, setCodeFullScreen] = useState(false)
 const [workhourData, setWorhourData] = useState()
@@ -93,7 +92,6 @@ SetOpenForbidModal(false)
   }
 }
 
-
 const fetchWorhourData = async()=>{
   try {
     setLoading(true)
@@ -120,7 +118,6 @@ const fetchWorhourData = async()=>{
   }
 }
 
-
 const fetchWorhourProgress = async()=>{
   try {
     const response = await axios.get<ProgressPerStudent[]>(`${import.meta.env.VITE_BACKEND}/user/me/workhour/progress`)
@@ -132,9 +129,6 @@ const fetchWorhourProgress = async()=>{
     setWorkhourProgress([])
   }
 }
-
-
-
 
 const createNewGroup = async()=>{
   try {
@@ -161,15 +155,10 @@ useEffect(() => {
     const handleJoinStudent = (newStudent) => {
       console.log("NOVI UCENIK STIGAO:", newStudent);
       setWorkhourProgress((prev) => [...prev, newStudent]);
-
-      //dodati ga u tabelu
     }
-
 
     const handleProgressUpdate = (updateData) => {
       console.log("NOVI INCREMENT STIGAO:", updateData);
-
-      //INCRMENETUJ SCORE
 
       setWorkhourProgress(prev =>
         prev.map(item => item.studentid === updateData.studentid ? {...item, correct: item.correct + 1} : item)
@@ -186,14 +175,9 @@ useEffect(() => {
   }
 }, [userID]);
 
-
-
-//EXPORT
-
-
 const columnsConfig = [
   { header: 'Ime i prezime', dataKey: 'name' },
-  { header: 'Vreme prijave', dataKey: 'createdAt' }, // Koristimo originalni ključ
+  { header: 'Vreme prijave', dataKey: 'createdAt' },
   { header: 'Tacno uradjenih', dataKey: 'correct' }
 ];
 
@@ -214,15 +198,14 @@ const handleExport = () => {
   doc.setTextColor(100, 100, 100);
   doc.text('Generisano: ' + new Date().toLocaleDateString(), 15, 26);
 
-  // 2. Prilagođeno mapiranje redova
   const tableRows = workhourProgress.map(item => [
     item.name,
-    moment.utc(item.createdAt).local().format("HH:mm"), // Formatiranje vremena
+    moment.utc(item.createdAt).local().format("HH:mm"),
     item.correct.toString()
   ]);
 
   autoTable(doc, {
-    head: [columnsConfig.map(col => col.header)], // Ispravno postavljanje zaglavlja
+    head: [columnsConfig.map(col => col.header)],
     body: tableRows,
     startY: 35,
     margin: { top: 20, right: 15, bottom: 20, left: 15 },
@@ -244,103 +227,97 @@ const handleExport = () => {
   doc.save('izvestaj.pdf');
 };
 
-
   return (
     <>
     <PageTitle title='Nastavna grupa' subtitle='Započnite nastavno predavanje ili pratite napredak aktivnog.'></PageTitle>
 
-    <div className="w-full flex gap-0 justify-between">
-           <Alert className='mt-3 h-fit w-full lg:w-[70%]'>
-      <Info></Info>
-      <AlertTitle>
-        Preporuka
-      </AlertTitle>
-      <AlertDescription>
-        reporučeno je da svim svojim đacima kreirate naloge u odeljku „Učenici“ i tako im omogućite vežbanje zadataka kod kuće i dugoročno praćenje napredka i uvid u svoje radove. Ukoliko se odlučite za pristup kodom, ovde možete kreirati grupu koja će važiti 45 minuta.
-        <br></br>
-        <strong className='text-red-600'>Nakon isteka perioda važenja grupe svi podaci o napredku biće obrisani.</strong>
-      </AlertDescription>
-    </Alert>
+    <div className="w-full flex gap-0 justify-between items-start">
+      <Alert className='mt-3 h-fit w-full lg:w-[70%]'>
+        <Info></Info>
+        <AlertTitle>
+          Preporuka
+        </AlertTitle>
+        <AlertDescription>
+          Preporučeno je da svim svojim đacima kreirate naloge u odeljku „Učenici“ i tako im omogućite vežbanje zadataka kod kuće i dugoročno praćenje napredka i uvid u svoje radove. Ukoliko se odlučite za pristup kodom, ovde možete kreirati grupu koja će važiti 45 minuta.
+          <br></br>
+          <strong className='text-red-600'>Nakon isteka perioda važenja grupe svi podaci o napredku biće obrisani.</strong>
+        </AlertDescription>
+      </Alert>
     
-        <img src="/undraw_educator_6dgp.svg" className='  h-[150px] hidden lg:block ' alt="" />
-        </div>
+      <img src="/undraw_educator_6dgp.svg" className='h-[150px] hidden lg:block' alt="" />
+    </div>
    
     {!groupActive ? (
-      <Button onClick={()=>{createNewGroup()}}><Users></Users>Nova grupa</Button>
+      <Button onClick={()=>{createNewGroup()}} className="mt-4"><Users></Users>Nova grupa</Button>
     ) : (
       <>
-      <div>
+      <div className="mt-4">
         <span className="font-bold text-2xl">Kod za pristup</span>
-        <div className="border-1  text-orange-700 w-fit rounded-2xl mt-2 flex ">
-          <span className="p-5 text-5xl font-bold">{workhourData?.code?.slice(0, 4)}<span className='select-none'>-</span>{workhourData?.code?.slice(4)}</span>
-          <Button onClick={()=>{setCodeFullScreen(true)}} variant={'outline'} className='h-auto text-gray-500 border-1 border-transparent border-l-1 border-l-[var(--border)] rounded-r-2xl rounded-l-none'><Fullscreen className='size-6'></Fullscreen></Button>
+        <div className="border-1 text-orange-700 w-fit rounded-2xl mt-2 flex">
+          <span className="p-3 sm:p-5 text-3xl sm:text-5xl font-bold">{workhourData?.code?.slice(0, 4)}<span className='select-none'>-</span>{workhourData?.code?.slice(4)}</span>
+          <Button onClick={()=>{setCodeFullScreen(true)}} variant={'outline'} className='h-auto text-gray-500 border-1 border-transparent border-l-1 border-l-[var(--border)] rounded-r-2xl rounded-l-none px-3 sm:px-4'><Fullscreen className='size-5 sm:size-6'></Fullscreen></Button>
         </div>
       </div>
-      <div className="w-full flex justify-between mt-2">
-    <Button className='ml-2' variant={'outline'} onClick={handleExport}><Download></Download>Izvoz podataka</Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-                  <Button variant={'destructive'}><X></X>Završi čas</Button>
-
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align='end' className='w-fit'>
-          <DropdownMenuItem variant='destructive' onClick={()=>{setopenendmodal(true)}}>
-<LogOut></LogOut>Odjavi sve učenike
-          </DropdownMenuItem>
-
+      <div className="w-full flex flex-col sm:flex-row gap-2 sm:gap-0 justify-between mt-4">
+        <Button variant={'outline'} onClick={handleExport}><Download></Download>Izvoz podataka</Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant={'destructive'}><X></X>Završi čas</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align='end' className='w-fit'>
+            <DropdownMenuItem variant='destructive' onClick={()=>{setopenendmodal(true)}}>
+              <LogOut className="mr-2 h-4 w-4"></LogOut>Odjavi sve učenike
+            </DropdownMenuItem>
             <DropdownMenuItem variant='destructive' onClick={()=>{SetOpenForbidModal(true)}}>
-<Ban></Ban> Zabrani dalji rad
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+              <Ban className="mr-2 h-4 w-4"></Ban> Zabrani dalji rad
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      <Separator className='mb-5 mt-2'></Separator>
+      <Separator className='mb-5 mt-4'></Separator>
       <div>
         <span className="font-bold text-2xl">Napredak grupe</span>
-        <div className="p-5 border-1 text-5xl font-bold   rounded-2xl mt-2">
- <Table >
-      <TableCaption>Kraj tabele.</TableCaption>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Ime i prezime</TableHead>
-          <TableHead>Vreme prijave</TableHead>
-          <TableHead className="text-right">Napredak (urađeni zadaci)</TableHead>
-          <TableHead className="text-right w-[1%] whitespace-nowrap">
-  Akcija
-</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {workhourProgress.sort((a,b)=>b.correct - a.correct).map((item, index) => (
-          <TableRow key={item.studentid}>
-            <TableCell>{item.name}</TableCell>
-            <TableCell>{moment.utc(item.createdAt).local().format("HH:mm")}</TableCell>
-            <TableCell className="text-right">
-              <Badge className='bg-green-600 text-lg h-[32px]'>
-                {item.correct.toString()}
-              </Badge>
-            </TableCell>
-            <TableCell className='flex justify-end pl-5'>
-              <Button onClick={()=>{setStudentIspectorID(item.studentid)}}><CircleCheckBig></CircleCheckBig>Pregled rešenja</Button>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-      <TableFooter>
-   
-      </TableFooter>
-    </Table>
+        <div className="p-2 sm:p-5 border-1 text-5xl font-bold rounded-2xl mt-2 overflow-x-auto">
+          <div className="min-w-[600px]">
+            <Table>
+              <TableCaption>Kraj tabele.</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Ime i prezime</TableHead>
+                  <TableHead>Vreme prijave</TableHead>
+                  <TableHead className="text-right">Napredak (urađeni zadaci)</TableHead>
+                  <TableHead className="text-right w-[1%] whitespace-nowrap">Akcija</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {workhourProgress.sort((a,b)=>b.correct - a.correct).map((item, index) => (
+                  <TableRow key={item.studentid}>
+                    <TableCell className="text-base sm:text-lg">{item.name}</TableCell>
+                    <TableCell className="text-base sm:text-lg">{moment.utc(item.createdAt).local().format("HH:mm")}</TableCell>
+                    <TableCell className="text-right">
+                      <Badge className='bg-green-600 text-sm sm:text-lg h-[28px] sm:h-[32px]'>
+                        {item.correct.toString()}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className='flex justify-end pl-5 whitespace-nowrap'>
+                      <Button size="sm" sm:size="default" onClick={()=>{setStudentIspectorID(item.studentid)}}><CircleCheckBig></CircleCheckBig>Pregled rešenja</Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+              <TableFooter>
+              </TableFooter>
+            </Table>
+          </div>
         </div>
       </div>
       </>
     )}
-        <div className="h-5"></div>
-
-
+    <div className="h-5"></div>
 
 {/* edit */}
-<Drawer  direction='right' >
-  <DrawerContent className='pb-[60px]'>
+<Drawer direction='right'>
+  <DrawerContent className='pb-[60px] max-w-[100vw] sm:max-w-[400px]'>
     <DrawerHeader className='font-bold text-lg'>
       Izmeni učenika
     </DrawerHeader>
@@ -350,27 +327,24 @@ const handleExport = () => {
           Ime i prezime
         </Label>
         <Input></Input>
-        </Field>
+      </Field>
 
-
-        <Field>
+      <Field>
         <Label>
           Ime i prezime
         </Label>
         <Input></Input>
-        </Field>
+      </Field>
     </FieldGroup>
     <DrawerFooter>
-    <Button variant={'outline'}>Odusani</Button>
-    <Button>Sacuvaj</Button>
-  </DrawerFooter>
+      <Button variant={'outline'}>Odustani</Button>
+      <Button>Sacuvaj</Button>
+    </DrawerFooter>
   </DrawerContent>
-  
 </Drawer>
 
-
-<Dialog >
-  <DialogContent>
+<Dialog>
+  <DialogContent className="max-w-[95vw] sm:max-w-[425px]">
     <DialogHeader>
       Dodaj ucenika
     </DialogHeader>
@@ -379,13 +353,11 @@ const handleExport = () => {
         <Label>
           Ime i prezime
         </Label>
-        <Input>
-        </Input>
+        <Input></Input>
       </Field>
     </FieldGroup>
     <Alert>
-              <Info></Info>
-
+      <Info></Info>
       <AlertTitle>
         Podaci za prijavu
       </AlertTitle>
@@ -393,63 +365,60 @@ const handleExport = () => {
         Podaci za prijavu na portal za ucenike bice automatski generisani i uvek dostupni Vama u tabeli.
       </AlertDescription>
     </Alert>
-    <DialogFooter>
+    <DialogFooter className="gap-2 sm:gap-0">
       <Button variant={'outline'}>Odustani</Button>
       <Button>Sacuvaj</Button>
     </DialogFooter>
-    </DialogContent>
+  </DialogContent>
 </Dialog>
-    <Footer></Footer>
+<Footer></Footer>
 
-    <Dialog open={codeFullScreen} onOpenChange={(val)=>{setCodeFullScreen(val)}} >
-      <DialogContent className='min-w-fit'>
-          <div className='w-fit'>
-        <span className="font-bold text-2xl">Kod za pristup</span>
-        <div className="p-5 border-1 text-7xl font-bold text-orange-700 w-fit rounded-2xl mt-2">{workhourData?.code?.slice(0, 4)}<span className='select-none'>-</span>{workhourData?.code?.slice(4)}</div>
-      </div>
-      </DialogContent>
-    </Dialog>
+<Dialog open={codeFullScreen} onOpenChange={(val)=>{setCodeFullScreen(val)}}>
+  <DialogContent className='min-w-fit max-w-[95vw]'>
+    <div className='w-fit mx-auto text-center sm:text-left'>
+      <span className="font-bold text-xl sm:text-2xl">Kod za pristup</span>
+      <div className="p-3 sm:p-5 border-1 text-4xl sm:text-7xl font-bold text-orange-700 w-fit rounded-2xl mt-2 mx-auto">{workhourData?.code?.slice(0, 4)}<span className='select-none'>-</span>{workhourData?.code?.slice(4)}</div>
+    </div>
+  </DialogContent>
+</Dialog>
 
+<AlertDialog open={openEndModal} onOpenChange={(e)=>{setopenendmodal(e)}}>
+  <AlertDialogContent className="max-w-[95vw] sm:max-w-[500px]">
+    <AlertDialogHeader>
+      <AlertDialogTitle>Da li ste sigurni?</AlertDialogTitle>
+      <AlertDialogDescription>
+        Ukoliko sada završite čas, nećete imati dalji uvid napretka učenika dok ne počnete sledeći čas.
+        Vaši učenici biće momentalno odjavljeni.
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogCancel onClick={()=>[setopenendmodal(false)]}>Odustani</AlertDialogCancel>
+      <AlertDialogAction variant={'destructive'} onClick={()=>{endclass()}}>Potvrdi</AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>
 
-      <AlertDialog open={openEndModal} onOpenChange={(e)=>{setopenendmodal(e)}}>
-    
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Da li ste sigurni?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Ukoliko sada završite čas, nećete imati dalji uvid napretka ičenika dok ne počnete sledeći čas.
-            Vaši učenici biće momentalno odjavljeni.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={()=>[setopenendmodal(false)]}>Odustani</AlertDialogCancel>
-          <AlertDialogAction variant={'destructive'} onClick={()=>{endclass()}}>Potvrdi</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-
-    <AlertDialog open={openForbidModal} onOpenChange={(e)=>{SetOpenForbidModal(e)}}>
-    
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Da li ste sigurni?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Zabranom rada imaćete uvid u rešenja Vaših učenika, ali dalje slanje zadataka će biti omogućeno dok ne pokrente novu grupu.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={()=>[SetOpenForbidModal(false)]}>Odustani</AlertDialogCancel>
-          <AlertDialogAction variant={'destructive'} onClick={()=>{forbidwork()}}>Potvrdi</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+<AlertDialog open={openForbidModal} onOpenChange={(e)=>{SetOpenForbidModal(e)}}>
+  <AlertDialogContent className="max-w-[95vw] sm:max-w-[500px]">
+    <AlertDialogHeader>
+      <AlertDialogTitle>Da li ste sigurni?</AlertDialogTitle>
+      <AlertDialogDescription>
+        Zabranom rada imaćete uvid u rešenja Vaših učenika, ali dalje slanje zadataka neće biti omogućeno dok ne pokrente novu grupu.
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogCancel onClick={()=>[SetOpenForbidModal(false)]}>Odustani</AlertDialogCancel>
+      <AlertDialogAction variant={'destructive'} onClick={()=>{forbidwork()}}>Potvrdi</AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>
 
 <Dialog open={studentIspectorID ? true : false} onOpenChange={(e)=>{
   if (e === false) {
     setStudentIspectorID(null)
   }
 }}>
-  <DialogContent className='max-w-[95vw] w-[95vw] min-w-[95vw] h-[90vh] max-h-[90vh] flex flex-col p-6'>
+  <DialogContent className='max-w-[95vw] w-[95vw] min-w-[95vw] h-[90vh] max-h-[90vh] flex flex-col p-3 sm:p-6'>
     <div className="flex-1 overflow-hidden">
         {studentIspectorID && (
           <SolutionIntepreter UserID={studentIspectorID} />

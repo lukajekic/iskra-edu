@@ -284,7 +284,7 @@ if (openSaveModal === true) {
 }, [openSaveModal])
    
     return (
-        <div>
+        <div className="w-full overflow-hidden">
             <PageTitle title='Kreiranje kontrolnog zadatka' subtitle='Ovde možete urediti kontrolni zadatak.'></PageTitle>
             <Alert className='mt-2'>
                 <InfoIcon></InfoIcon>
@@ -296,8 +296,9 @@ if (openSaveModal === true) {
 
             <section className="mt-5 border-b-1 pb-2">
                 <h2 className="text-2xl font-bold pb-2">Osnovni podaci</h2>
-                <div id="info-wrapper-1" className="flex items-center justify-between w-full gap-5">
-                    <Field>
+                {/* Izmenjeno: flex-col na mobilnim uređajima, flex-row na desktopu (md:) */}
+                <div id="info-wrapper-1" className="flex flex-col md:flex-row items-stretch md:items-center justify-between w-full gap-3 md:gap-5">
+                    <Field className="w-full">
                         <Label>
                             Naziv kontrolnog zadatka
                         </Label>
@@ -306,7 +307,7 @@ if (openSaveModal === true) {
                             onChange={(e) => updateTestField('title', e.target.value)} 
                         />
                     </Field>
-                    <Field>
+                    <Field className="w-full">
                         <Label>Razred</Label>
                         <Select 
                             value={test?.grade || ''} 
@@ -341,16 +342,17 @@ if (openSaveModal === true) {
 
     </Alert>
 
-
-                <div className="flex items-start w-full gap-5">
+                {/* Izmenjeno: flex-col na mobilnom uređaju omogućava slaganje praktičnih i teorijskih zadataka jedan ispod drugog */}
+                <div className="flex flex-col md:flex-row items-start w-full gap-5">
                     {/* LEVA STRANA - PRAKTICNI ZADACI */}
-                    <div id="left" className='border-r-1 w-1/2 pr-3'>
+                    {/* Izmenjeno: širina w-full na mobilnom, border i padding prilagođeni mobilnom rasporedu */}
+                    <div id="left" className='border-r-0 md:border-r-1 border-b md:border-b-0 pb-4 md:pb-0 w-full md:w-1/2 pr-0 md:pr-3'>
                         <h3 className="text-xl font-bold mb-2">Praktični zadaci</h3>
                         <Accordion type='single' collapsible>
                             {practicalTasks.map((folder, index)=>{
                                 return(
                                     <AccordionItem key={folder?.folderName || index} value={folder?.folderName}>
-                                        <AccordionTrigger className='font-bold text-md'>{folder?.folderName}</AccordionTrigger>
+                                        <AccordionTrigger className='font-bold text-md text-left'>{folder?.folderName}</AccordionTrigger>
                                         <AccordionContent>
                                             {folder?.zadaci.map((task, index)=>{
                                                 // Provera da li se trenutni zadatak nalazi u listi selektovanih pitanja
@@ -377,7 +379,8 @@ if (openSaveModal === true) {
                     </div>
 
                     {/* DESNA STRANA - TEORIJSKI ZADACI */}
-                    <div id="right" className='w-1/2 pl-3'>
+                    {/* Izmenjeno: širina w-full na mobilnom, resetovano levo rastojanje */}
+                    <div id="right" className='w-full md:w-1/2 pl-0 md:pl-3'>
                         <h3 className="text-xl font-bold mb-2">Teorijski zadaci</h3>
                         <Accordion type='single' collapsible>
                             {lessons.map((lesson, index)=>{
@@ -386,7 +389,7 @@ if (openSaveModal === true) {
 
                                 return(
                                     <AccordionItem key={lesson?._id || index} value={lesson?.title}>
-                                        <AccordionTrigger className='font-bold text-md'>{lesson?.title} <span className='font-normal text-gray-600'>- [{lesson?.grade}]</span></AccordionTrigger>
+                                        <AccordionTrigger className='font-bold text-md text-left'>{lesson?.title} <span className='font-normal text-gray-600 ml-1'>- [{lesson?.grade}]</span></AccordionTrigger>
                                         <AccordionContent>
                                             {currentLessonTasks.map((task, index)=>{
                                                 // Provera da li se trenutni teorijski zadatak nalazi u listi selektovanih pitanja
@@ -423,10 +426,11 @@ if (openSaveModal === true) {
 
     </Alert>
 
+    {/* Izmenjeno: flex-col i w-full na mobilnim, sm: i lg: širine su optimizovane da popune prostor bez pucanja dizajna */}
     <div className="flex gap-2 flex-wrap">
         {test?.questions.map((question, index)=>(
-            <div className="p-4 shadow-sm w-[400px] border-1 rounded-md" key={question.questionID || index}>
-                <p className="text-md font-semibold">
+            <div className="p-4 shadow-sm w-full sm:w-[calc(50%-0.5rem)] lg:w-[400px] border-1 rounded-md" key={question.questionID || index}>
+                <p className="text-md font-semibold break-words">
                     {getTaskTitle(question.questionID, question.taskType)}
                 </p>
                 <hr className="my-2" />
@@ -452,86 +456,92 @@ if (openSaveModal === true) {
     </Alert>
 
     <p className='text-lg my-2'>Vaš test nosi maksimalno <span className='font-bold'>{testMaxPoints} bodova</span>.</p>
-<table className="table-fixed border-separate border-spacing-0 border border-slate-200 rounded-md overflow-hidden">
-    <thead>
-        <tr className="bg-slate-50">
-            <th className="w-[50px] h-[30px] text-center  font-semibold text-slate-600 border-b border-r border-slate-200">1</th>
-            <th className="w-[50px] h-[30px] text-center  font-semibold text-slate-600 border-b border-r border-slate-200">2</th>
-            <th className="w-[50px] h-[30px] text-center  font-semibold text-slate-600 border-b border-r border-slate-200">3</th>
-            <th className="w-[50px] h-[30px] text-center  font-semibold text-slate-600 border-b border-r border-slate-200">4</th>
-            <th className="w-[50px] h-[30px] text-center font-semibold text-slate-600 border-b">5</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td className="w-[50px] h-[35px] p-0 border-r border-slate-200 bg-white shadow-inner">
-                <Input value={0} disabled className="w-full h-full text-center border-none rounded-none  bg-transparent p-0 m-0" />
-            </td>
-            <td className="w-[50px] h-[35px] p-0 border-r border-slate-200 bg-white shadow-inner">
-                <Input 
-                    type="number"
-                    value={test?.scale?.two ?? ''} 
-                    onChange={(e) => handleScaleChange('two', Number(e.target.value))}
-                    className="w-full h-full text-center border-none rounded-none  bg-transparent p-0 m-0" 
-                />
-            </td>
-            <td className="w-[50px] h-[35px] p-0 border-r border-slate-200 bg-white shadow-inner">
-                <Input 
-                    type="number"
-                    value={test?.scale?.three ?? ''} 
-                    onChange={(e) => handleScaleChange('three', Number(e.target.value))}
-                    className="w-full h-full text-center border-none rounded-none  bg-transparent p-0 m-0" 
-                />
-            </td>
-            <td className="w-[50px] h-[35px] p-0 border-r border-slate-200 bg-white shadow-inner">
-                <Input 
-                    type="number"
-                    value={test?.scale?.four ?? ''} 
-                    onChange={(e) => handleScaleChange('four', Number(e.target.value))}
-                    className="w-full h-full text-center border-none rounded-none  bg-transparent p-0 m-0" 
-                />
-            </td>
-            <td className="w-[50px] h-[35px] p-0 bg-white shadow-inner">
-                <Input 
-                    type="number"
-                    value={test?.scale?.five ?? ''} 
-                    onChange={(e) => handleScaleChange('five', Number(e.target.value))}
-                    className="w-full h-full text-center border-none rounded-none  bg-transparent p-0 m-0" 
-                />
-            </td>
-        </tr>
-    </tbody>
-</table>
+{/* Izmenjeno: Spakovano u overflow kontejner kako tabela ne bi slomila stranu na mobilnim ekranima od 320px */}
+<div className="w-full overflow-x-auto pb-1">
+  <table className="table-fixed border-separate border-spacing-0 border border-slate-200 rounded-md overflow-hidden min-w-[280px]">
+      <thead>
+          <tr className="bg-slate-50">
+              <th className="w-[50px] h-[30px] text-center  font-semibold text-slate-600 border-b border-r border-slate-200">1</th>
+              <th className="w-[50px] h-[30px] text-center  font-semibold text-slate-600 border-b border-r border-slate-200">2</th>
+              <th className="w-[50px] h-[30px] text-center  font-semibold text-slate-600 border-b border-r border-slate-200">3</th>
+              <th className="w-[50px] h-[30px] text-center  font-semibold text-slate-600 border-b border-r border-slate-200">4</th>
+              <th className="w-[50px] h-[30px] text-center font-semibold text-slate-600 border-b">5</th>
+          </tr>
+      </thead>
+      <tbody>
+          <tr>
+              <td className="w-[50px] h-[35px] p-0 border-r border-slate-200 bg-white shadow-inner">
+                  <Input value={0} disabled className="w-full h-full text-center border-none rounded-none  bg-transparent p-0 m-0" />
+              </td>
+              <td className="w-[50px] h-[35px] p-0 border-r border-slate-200 bg-white shadow-inner">
+                  <Input 
+                      type="number"
+                      value={test?.scale?.two ?? ''} 
+                      onChange={(e) => handleScaleChange('two', Number(e.target.value))}
+                      className="w-full h-full text-center border-none rounded-none  bg-transparent p-0 m-0" 
+                  />
+              </td>
+              <td className="w-[50px] h-[35px] p-0 border-r border-slate-200 bg-white shadow-inner">
+                  <Input 
+                      type="number"
+                      value={test?.scale?.three ?? ''} 
+                      onChange={(e) => handleScaleChange('three', Number(e.target.value))}
+                      className="w-full h-full text-center border-none rounded-none  bg-transparent p-0 m-0" 
+                  />
+              </td>
+              <td className="w-[50px] h-[35px] p-0 border-r border-slate-200 bg-white shadow-inner">
+                  <Input 
+                      type="number"
+                      value={test?.scale?.four ?? ''} 
+                      onChange={(e) => handleScaleChange('four', Number(e.target.value))}
+                      className="w-full h-full text-center border-none rounded-none  bg-transparent p-0 m-0" 
+                  />
+              </td>
+              <td className="w-[50px] h-[35px] p-0 bg-white shadow-inner">
+                  <Input 
+                      type="number"
+                      value={test?.scale?.five ?? ''} 
+                      onChange={(e) => handleScaleChange('five', Number(e.target.value))}
+                      className="w-full h-full text-center border-none rounded-none  bg-transparent p-0 m-0" 
+                  />
+              </td>
+          </tr>
+      </tbody>
+  </table>
+</div>
 </section>
 
-<section id="actions" className='mt-2 flex justify-between'>
-    <Button onClick={()=>{setOpenSaveModal(true)}}>Sacuvaj kontrolni zadatak</Button>
-    <Button variant={'destructive'} onClick={()=>{setOpenDeleteModal(true)}} disabled>Obrisi kontrolni zadatak</Button>
+{/* Izmenjeno: flex-col-reverse i širina w-full na mobilnim uređajima, gap na dugmićima */}
+<section id="actions" className='mt-4 flex flex-col-reverse sm:flex-row gap-2 sm:justify-between w-full'>
+    <Button onClick={()=>{setOpenSaveModal(true)}} className="w-full sm:w-auto">Sačuvaj kontrolni zadatak</Button>
+    <Button variant={'destructive'} onClick={()=>{setOpenDeleteModal(true)}} disabled className="w-full sm:w-auto">Obriši kontrolni zadatak</Button>
 </section>
 
 
 <AlertDialog open={openSaveModal} onOpenChange={(val)=>{setOpenSaveModal(val)}}>
-      <AlertDialogContent>
+      {/* Izmenjeno: max-w-[calc(100%-2rem)] i rounded-lg za lepši prikaz na telefonu */}
+      <AlertDialogContent className="max-w-[calc(100%-2rem)] sm:max-w-[425px] rounded-lg">
         <AlertDialogHeader>
           <AlertDialogTitle className='text-center w-full'>Da li želite da sačuvate promene?</AlertDialogTitle>
 
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={()=>{setOpenSaveModal(false)}}>Odustani</AlertDialogCancel>
-          <AlertDialogAction onClick={()=>{saveTest()}}>Sacuvaj</AlertDialogAction>
+        <AlertDialogFooter className="flex flex-col-reverse sm:flex-row gap-2 mt-4">
+          <AlertDialogCancel onClick={()=>{setOpenSaveModal(false)}} className="w-full sm:w-auto mt-0">Odustani</AlertDialogCancel>
+          <AlertDialogAction onClick={()=>{saveTest()}} className="w-full sm:w-auto">Sačuvaj</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
 
 <AlertDialog open={openDeleteModal} onOpenChange={(val)=>{setOpenDeleteModal(val)}}>
-      <AlertDialogContent>
+      {/* Izmenjeno: max-w-[calc(100%-2rem)] i rounded-lg za lepši prikaz na telefonu */}
+      <AlertDialogContent className="max-w-[calc(100%-2rem)] sm:max-w-[425px] rounded-lg">
         <AlertDialogHeader>
           <AlertDialogTitle className='text-center w-full'>Da li želite da obrišete kontrolni zadatak?</AlertDialogTitle>
 
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={()=>{setOpenDeleteModal(false)}}>Odustani</AlertDialogCancel>
-          <AlertDialogAction variant={'destructive'}>Obrisi</AlertDialogAction>
+        <AlertDialogFooter className="flex flex-col-reverse sm:flex-row gap-2 mt-4">
+          <AlertDialogCancel onClick={()=>{setOpenDeleteModal(false)}} className="w-full sm:w-auto mt-0">Odustani</AlertDialogCancel>
+          <AlertDialogAction variant={'destructive'} className="w-full sm:w-auto">Obriši</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

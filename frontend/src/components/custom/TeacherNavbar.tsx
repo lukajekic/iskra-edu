@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from '../ui/button'
-import { Building, File, FileText, LayoutDashboard, Mail, MessageCircle, Pencil, Phone, PowerOff, SquareUserRound, Users, Menu, X } from 'lucide-react'
+import { Building, File, FileText, LayoutDashboard, Mail, MessageCircle, Pencil, Phone, PowerOff, SquareUserRound, Users, Menu, X, ChevronLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '../ui/dialog'
 import { Separator } from '../ui/separator'
@@ -452,7 +452,7 @@ if (userID) {
           className="sm:hidden p-0 h-8 w-8" 
           onClick={() => setActiveMessage(null)}
         >
-          ←
+          <ChevronLeft></ChevronLeft>
         </Button>
       )}
       <span>Poruke</span>

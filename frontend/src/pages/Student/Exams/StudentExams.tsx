@@ -56,12 +56,12 @@ setLoadingExam(false)
     }, [])
   return (
     <>
-    <section className='p-5'>
+    <section className='p-4 md:p-5'>
     <PageTitle title='Kontrolni zadaci' subtitle='Ovde možeš pogledati sve kontrolne zadatke.'></PageTitle>
 
-  <div className="flex flex-wrap gap-2 mt-5">
+  <div className="flex flex-wrap gap-4 mt-5">
   {data?.assigned_tests?.map((item, index) => (
-    <div key={index} className="p-5 shadow-[0_2px_6px_rgba(0,0,0,0.2)] w-fit">
+    <div key={index} className="p-5 shadow-[0_2px_6px_rgba(0,0,0,0.2)] w-full sm:w-[350px] break-words rounded-[5px]">
       <span><span className="font-bold">Naziv: </span>{item.title}</span>
       <br />
       
@@ -73,32 +73,32 @@ setLoadingExam(false)
         </div>
       </div>
       
-      <Button onClick={() => { setOpenConfirmationModal(true), setActiveExamID(item._id) }} className='rounded-[5px] mt-2'>Pokreni</Button>
+      <Button onClick={() => { setOpenConfirmationModal(true), setActiveExamID(item._id) }} className='rounded-[5px] mt-2 w-full sm:w-auto'>Pokreni</Button>
     </div>
   ))}
 </div>
 
    <AlertDialog open={openConfirmaitonModal}>
-      <AlertDialogContent className='rounded-[5px]'>
+      <AlertDialogContent className='rounded-[5px] max-w-[calc(100%-2rem)] mx-auto'>
         <AlertDialogHeader>
           <AlertDialogTitle>Da li ste sigurni?</AlertDialogTitle>
           <AlertDialogDescription>
             Kontrolnom zadatku možete pristupiti samo jednom. Nakon izlaza sa platforme kontrolni zadatak će biti završen.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <Button onClick={()=>{setOpenConfirmationModal(false)}} variant={'outline'} className='rounded-[5px]'>Odustani</Button>
-          <Button onClick={()=>{setOpenConfirmationModal(false), setOpenTermsModal(true)}} className='rounded-[5px]'>Nastavi</Button>
+        <AlertDialogFooter className='flex flex-col-reverse sm:flex-row gap-2 mt-4'>
+          <Button onClick={()=>{setOpenConfirmationModal(false)}} variant={'outline'} className='rounded-[5px] w-full sm:w-auto'>Odustani</Button>
+          <Button onClick={()=>{setOpenConfirmationModal(false), setOpenTermsModal(true)}} className='rounded-[5px] w-full sm:w-auto'>Nastavi</Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
 
     <Dialog open={openTermsModal}>
-        <DialogContent showCloseButton={false} className='rounded-[5px]'>
+        <DialogContent showCloseButton={false} className='rounded-[5px] max-w-[calc(100%-2rem)] mx-auto'>
             <DialogHeader>
                 <DialogTitle className='text-lg font-bold'>Pravila kontrolnog zadatka</DialogTitle>
             </DialogHeader>
-<ul className="list-disc list-inside space-y-2">
+<ul className="list-disc list-inside space-y-2 text-sm md:text-base">
     <li>
         Napuštanje platforme ISKRA je zabranjeno, kontrolni će biti obeležen kao nevažeći ukoliko napustite platformu.
     </li>
@@ -112,11 +112,11 @@ setLoadingExam(false)
     <li>Nemojte ometati ostale učesnike.</li>
 </ul>
 
-            <DialogFooter>
+            <DialogFooter className='flex flex-col-reverse sm:flex-row gap-2 mt-4'>
                 {!loadingExam && (
-                    <Button onClick={()=>{setOpenTermsModal(false)}} className='rounded-[5px]' variant={'outline'}>Odustani</Button>
+                    <Button onClick={()=>{setOpenTermsModal(false)}} className='rounded-[5px] w-full sm:w-auto' variant={'outline'}>Odustani</Button>
                 )}
-                <Button disabled={loadingExam} onClick={()=>{[setLoadingExam(true), StartExam()]}} className='rounded-[5px]'>
+                <Button disabled={loadingExam} onClick={()=>{[setLoadingExam(true), StartExam()]}} className='rounded-[5px] w-full sm:w-auto'>
                     {loadingExam ? (
                         <Spinner data-icon="inline-start" />
                     ) : (
@@ -127,10 +127,10 @@ setLoadingExam(false)
         </DialogContent>
     </Dialog>
     </section>
-    <section className='p-5'>
+    <section className='p-4 md:p-5'>
     <PageTitle title='Ocenjene provere' subtitle='Ovde možeš pogledati sve ocenjene kontrolne zadatke.'></PageTitle>
 
-   <div className="flex flex-wrap gap-2 mt-5">
+   <div className="flex flex-wrap gap-4 mt-5">
      {data?.graded_solutions?.slice()
   ?.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).map((item, index) => {
   // index ide od 0 do 4, pa dobijamo ocene od 5 do 1
@@ -145,44 +145,44 @@ setLoadingExam(false)
   }[ocena];
 
   return (
-    <div key={index} className={`p-5 shadow-[0_2px_6px_rgba(0,0,0,0.2)] w-fit border-t-[2px] ${boje.border}`}>
+    <div key={index} className={`p-5 shadow-[0_2px_6px_rgba(0,0,0,0.2)] w-full sm:w-[350px] break-words border-t-[2px] rounded-[5px] ${boje.border}`}>
       <span><span className="font-bold">Naziv: </span>{item?.test_ref?.title}</span>
       <br />
       <span><span className="font-bold">Vreme rada: </span>{moment(item?.started_at).tz("Europe/Belgrade").format("DD. MM. YYYY. HH:mm")}</span>
       <br />
-      <hr />
+      <hr className='my-2' />
       <span className='text-lg'>
         <span className="font-bold">Ocena: </span>
         <span className={boje.text}>{ocena}</span>
       </span>
       <br />
-      <Button variant={'outline'} onClick={() => { navigate(`/app/exam-results/${item?.test_ref?._id}`) }} className='rounded-[5px] mt-2'>Otvori</Button>
+      <Button variant={'outline'} onClick={() => { navigate(`/app/exam-results/${item?.test_ref?._id}`) }} className='rounded-[5px] mt-2 w-full sm:w-auto'>Otvori</Button>
     </div>
   );
 })}
    </div>
 
    <AlertDialog open={openConfirmaitonModal}>
-      <AlertDialogContent className='rounded-[5px]'>
+      <AlertDialogContent className='rounded-[5px] max-w-[calc(100%-2rem)] mx-auto'>
         <AlertDialogHeader>
           <AlertDialogTitle>Da li ste sigurni?</AlertDialogTitle>
           <AlertDialogDescription>
             Kontrolnom zadatku možete pristupiti samo jednom. Nakon izlaza sa platforme kontrolni zadatak će biti završen.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <Button onClick={()=>{setOpenConfirmationModal(false)}} variant={'outline'} className='rounded-[5px]'>Odustani</Button>
-          <Button onClick={()=>{setOpenConfirmationModal(false), setOpenTermsModal(true)}} className='rounded-[5px]'>Nastavi</Button>
+        <AlertDialogFooter className='flex flex-col-reverse sm:flex-row gap-2 mt-4'>
+          <Button onClick={()=>{setOpenConfirmationModal(false)}} variant={'outline'} className='rounded-[5px] w-full sm:w-auto'>Odustani</Button>
+          <Button onClick={()=>{setOpenConfirmationModal(false), setOpenTermsModal(true)}} className='rounded-[5px] w-full sm:w-auto'>Nastavi</Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
 
     <Dialog open={openTermsModal}>
-        <DialogContent showCloseButton={false} className='rounded-[5px]'>
+        <DialogContent showCloseButton={false} className='rounded-[5px] max-w-[calc(100%-2rem)] mx-auto'>
             <DialogHeader>
                 <DialogTitle className='text-lg font-bold'>Pravila kontrolnog zadatka</DialogTitle>
             </DialogHeader>
-<ul className="list-disc list-inside space-y-2">
+<ul className="list-disc list-inside space-y-2 text-sm md:text-base">
     <li>
         Napuštanje platforme ISKRA je zabranjeno, kontrolni će biti obeležen kao nevažeći ukoliko napustite platformu.
     </li>
@@ -196,11 +196,11 @@ setLoadingExam(false)
     <li>Nemojte ometati ostale učesnike.</li>
 </ul>
 
-            <DialogFooter>
+            <DialogFooter className='flex flex-col-reverse sm:flex-row gap-2 mt-4'>
                 {!loadingExam && (
-                    <Button onClick={()=>{setOpenTermsModal(false)}} className='rounded-[5px]' variant={'outline'}>Odustani</Button>
+                    <Button onClick={()=>{setOpenTermsModal(false)}} className='rounded-[5px] w-full sm:w-auto' variant={'outline'}>Odustani</Button>
                 )}
-                <Button disabled={loadingExam} onClick={()=>{[setLoadingExam(true), StartExam()]}} className='rounded-[5px]'>
+                <Button disabled={loadingExam} onClick={()=>{[setLoadingExam(true), StartExam()]}} className='rounded-[5px] w-full sm:w-auto'>
                     {loadingExam ? (
                         <Spinner data-icon="inline-start" />
                     ) : (
