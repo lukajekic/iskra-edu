@@ -30,9 +30,11 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp"
 import Footer from '@/components/custom/Footer'
+import Reveal from './Reveal'
 import axios from 'axios'
 import { toast } from 'sonner'
 import Loader from '@/components/custom/Loader'
+import './onboarding.css'
 
 const Onboarding = () => {
 const [btnLoading, setBtnLoading] = useState(false)
@@ -117,175 +119,174 @@ handleOnboarding()
     const [accesscode, setaccesscode] = useState<string>("")
   return (
     <div className="min-h-screen w-full bg-white relative">
-      {/* Amber Glow Background */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: `
-            radial-gradient(125% 125% at 50% 10%, #ffffff 40%, #dc7702 100%)
-          `,
-          backgroundSize: "100% 100%",
-        }}
-      />
-      
+      {/* Amber Glow Background - mekši, izveden iz brand primary boje */}
+      <div className="onboarding-glow absolute inset-0 z-0" />
+
       {/* Glavni kontejner postavljen na relative i z-10 kako bi bio iznad pozadine */}
       <div className="relative z-10 flex flex-col min-h-screen">
-        
+
         {/* Središnji deo koji gura footer na dno pomoću flex-1 */}
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="flex flex-col gap-2 max-w-4xl w-full text-center md:text-left">
-            
-            {/* Naslov koji je nedostajao / bio pomeren */}
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Prijava na Iskra platformu</h1>
-            
+
+            <Reveal>
+              <div className="flex flex-col gap-3 items-center md:items-start">
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">Prijava na Iskra platformu</h1>
+              </div>
+            </Reveal>
+
             <div className="flex items-stretch gap-5 mt-5 md:flex-row flex-col justify-center">
-                <Card className="relative w-full max-w-md pt-0 bg-white/80 backdrop-blur-sm">
-                  <img
-                    src="/undraw_lecture_hul3.svg"
-                    alt="Event cover"
-                    className="object-contain size-50 self-center mx-auto mt-4"
-                  />
-                  <CardHeader>
-                    <CardTitle>Pristupni kod</CardTitle>
-                    <CardDescription>
-                      Unesite kod za prijavu na platformu, važi 45 minuta od momenta generisanja od strane predmetnog profesora.
-                      <br />
-                      <br />
-                    </CardDescription>
-                  </CardHeader>
-                  <CardFooter>
-                    <Dialog 
-                      onOpenChange={(e) => {
-                        console.log(e);
-                        if (!e) {
-                          setaccesscode("");
-                        }
-                      }}
-                    >
-                      <form className='w-full' onSubmit={(e)=>{e.preventDefault()}}>
-                        <DialogTrigger className='w-full' asChild>
-                          <Button className="w-full">Prijava kodom</Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-sm">
-                          <DialogHeader>
-                            <DialogTitle>Prijava kodom</DialogTitle>
-                            <DialogDescription>
-                              Unesi pristupni kod <strong>za učenike</strong>.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <FieldGroup>
-                            <Field>
-                              <FieldLabel htmlFor="name">Tvoje ime i prezime</FieldLabel>
-                              <Input
-                                ref={nameField}
-                                id="name"
-                                type="text"
-                                placeholder="Unesi svoje ime"
-                              />
-                            </Field>
+                <Reveal delay={80} className="w-full max-w-md">
+                  <Card className="onboarding-card relative w-full h-full pt-0 bg-white/80 backdrop-blur-sm">
+                    <img
+                      src="/undraw_lecture_hul3.svg"
+                      alt="Event cover"
+                      className="object-contain size-50 self-center mx-auto mt-4"
+                    />
+                    <CardHeader>
+                      <CardTitle>Pristupni kod</CardTitle>
+                      <CardDescription>
+                        Unesite kod za prijavu na platformu, važi 45 minuta od momenta generisanja od strane predmetnog profesora.
+                        <br />
+                        <br />
+                      </CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                      <Dialog
+                        onOpenChange={(e) => {
+                          console.log(e);
+                          if (!e) {
+                            setaccesscode("");
+                          }
+                        }}
+                      >
+                        <form className='w-full' onSubmit={(e)=>{e.preventDefault()}}>
+                          <DialogTrigger className='w-full' asChild>
+                            <Button className="w-full">Prijava kodom</Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-sm">
+                            <DialogHeader>
+                              <DialogTitle>Prijava kodom</DialogTitle>
+                              <DialogDescription>
+                                Unesi pristupni kod <strong>za učenike</strong>.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <FieldGroup>
+                              <Field>
+                                <FieldLabel htmlFor="name">Tvoje ime i prezime</FieldLabel>
+                                <Input
+                                  ref={nameField}
+                                  id="name"
+                                  type="text"
+                                  placeholder="Unesi svoje ime"
+                                />
+                              </Field>
 
-                            <Field>
-                              <FieldLabel htmlFor="otp">Pristupni kod</FieldLabel>
-                              <InputOTP inputMode='text' pattern='.*' id='otp' value={accesscode} maxLength={8} onChange={(e)=>{console.log(e), setaccesscode(e)}}>
-                                <InputOTPGroup>
-                                  <InputOTPSlot index={0} />
-                                  <InputOTPSlot index={1} />
-                                  <InputOTPSlot index={2} />
-                                  <InputOTPSlot index={3} />
-                                </InputOTPGroup>
-                                <InputOTPSeparator></InputOTPSeparator>
-                                <InputOTPGroup>
-                                  <InputOTPSlot index={4} />
-                                  <InputOTPSlot index={5} />
-                                  <InputOTPSlot index={6} />
-                                  <InputOTPSlot index={7} />
-                                </InputOTPGroup>
-                              </InputOTP>
-                            </Field>
-                          </FieldGroup>
-                          <DialogFooter>
-                            <DialogClose asChild>
-                              <Button variant="outline" onClick={()=>{setaccesscode("")}}>Odustani</Button>
-                            </DialogClose>
-                            <Button disabled={btnLoading} onClick={()=>{handleCodeLogin()}} type="submit">{btnLoading ? (
-                              <Loader small></Loader>
-                            ) : ("Prijavi se")}</Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </form>
-                    </Dialog>
-                  </CardFooter>
-                </Card>
+                              <Field>
+                                <FieldLabel htmlFor="otp">Pristupni kod</FieldLabel>
+                                <InputOTP inputMode='text' pattern='.*' id='otp' value={accesscode} maxLength={8} onChange={(e)=>{console.log(e), setaccesscode(e)}}>
+                                  <InputOTPGroup>
+                                    <InputOTPSlot index={0} />
+                                    <InputOTPSlot index={1} />
+                                    <InputOTPSlot index={2} />
+                                    <InputOTPSlot index={3} />
+                                  </InputOTPGroup>
+                                  <InputOTPSeparator></InputOTPSeparator>
+                                  <InputOTPGroup>
+                                    <InputOTPSlot index={4} />
+                                    <InputOTPSlot index={5} />
+                                    <InputOTPSlot index={6} />
+                                    <InputOTPSlot index={7} />
+                                  </InputOTPGroup>
+                                </InputOTP>
+                              </Field>
+                            </FieldGroup>
+                            <DialogFooter>
+                              <DialogClose asChild>
+                                <Button variant="outline" onClick={()=>{setaccesscode("")}}>Odustani</Button>
+                              </DialogClose>
+                              <Button disabled={btnLoading} onClick={()=>{handleCodeLogin()}} type="submit">{btnLoading ? (
+                                <Loader small></Loader>
+                              ) : ("Prijavi se")}</Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </form>
+                      </Dialog>
+                    </CardFooter>
+                  </Card>
+                </Reveal>
 
-                <Card className="relative w-full max-w-md pt-0 bg-white/80 backdrop-blur-sm">
-                  <img
-                    src="/undraw_mention_t7iw.svg"
-                    alt="Event cover"
-                    className="object-contain size-50 self-center mx-auto mt-4"
-                  />
-                  <CardHeader>
-                    <CardTitle>Korisničko ime i lozinka</CardTitle>
-                    <CardDescription>
-                      Unesite kredencijale za prijavu i pristupite stalno dostupnim zadacima sa časova.
-                      <br /><br />
-                    </CardDescription>
-                  </CardHeader>
-                  <CardFooter>
-                    <Dialog 
-                      onOpenChange={(e) => {
-                        console.log(e);
-                        if (!e) {
-                          setaccesscode("");
-                        }
-                      }}
-                    >
-                      <form className='w-full'>
-                        <DialogTrigger className='w-full' asChild>
-                          <Button className="w-full">Prijava korisničkim imenom i lozinkom</Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-sm">
-                          <DialogHeader>
-                            <DialogTitle>Prijava kredencijalima</DialogTitle>
-                            <DialogDescription>
-                              Unesi svoje podatke za prijavu na <strong>portal za učenike i profesore</strong>.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <FieldGroup>
-                            <Field>
-                              <FieldLabel htmlFor="username">Korisničko ime</FieldLabel>
-                              <Input
-                                ref={usernameField}
-                                id="username"
-                                type="text"
-                                placeholder="Unesi korisničko ime"
-                              />
-                            </Field>
-                            <Field>
-                              <FieldLabel htmlFor="password">Lozinka</FieldLabel>
-                              <Input
-                                ref={passwordField}
-                                id="password"
-                                type="password"
-                                placeholder="Unesi lozinku"
-                              />
-                            </Field>
-                          </FieldGroup>
-                          <DialogFooter>
-                            <DialogClose asChild>
-                              <Button variant="outline" onClick={()=>{setaccesscode("")}}>Odustani</Button>
-                            </DialogClose>
-                            <Button disabled={btnLoading} onClick={()=>{handleCredentialLogin()}} type="submit">{btnLoading ? (
-                              <Loader small></Loader>
-                            ) : ("Prijavi se")}</Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </form>
-                    </Dialog>
-                  </CardFooter>
-                </Card>
+                <Reveal delay={160} className="w-full max-w-md">
+                  <Card className="onboarding-card relative w-full h-full pt-0 bg-white/80 backdrop-blur-sm">
+                    <img
+                      src="/undraw_mention_t7iw.svg"
+                      alt="Event cover"
+                      className="object-contain size-50 self-center mx-auto mt-4"
+                    />
+                    <CardHeader>
+                      <CardTitle>Korisničko ime i lozinka</CardTitle>
+                      <CardDescription>
+                        Unesite kredencijale za prijavu i pristupite stalno dostupnim zadacima sa časova.
+                        <br /><br />
+                      </CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                      <Dialog
+                        onOpenChange={(e) => {
+                          console.log(e);
+                          if (!e) {
+                            setaccesscode("");
+                          }
+                        }}
+                      >
+                        <form className='w-full'>
+                          <DialogTrigger className='w-full' asChild>
+                            <Button className="w-full">Prijava korisničkim imenom i lozinkom</Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-sm">
+                            <DialogHeader>
+                              <DialogTitle>Prijava kredencijalima</DialogTitle>
+                              <DialogDescription>
+                                Unesi svoje podatke za prijavu na <strong>portal za učenike i profesore</strong>.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <FieldGroup>
+                              <Field>
+                                <FieldLabel htmlFor="username">Korisničko ime</FieldLabel>
+                                <Input
+                                  ref={usernameField}
+                                  id="username"
+                                  type="text"
+                                  placeholder="Unesi korisničko ime"
+                                />
+                              </Field>
+                              <Field>
+                                <FieldLabel htmlFor="password">Lozinka</FieldLabel>
+                                <Input
+                                  ref={passwordField}
+                                  id="password"
+                                  type="password"
+                                  placeholder="Unesi lozinku"
+                                />
+                              </Field>
+                            </FieldGroup>
+                            <DialogFooter>
+                              <DialogClose asChild>
+                                <Button variant="outline" onClick={()=>{setaccesscode("")}}>Odustani</Button>
+                              </DialogClose>
+                              <Button disabled={btnLoading} onClick={()=>{handleCredentialLogin()}} type="submit">{btnLoading ? (
+                                <Loader small></Loader>
+                              ) : ("Prijavi se")}</Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </form>
+                      </Dialog>
+                    </CardFooter>
+                  </Card>
+                </Reveal>
             </div>
           </div>
-        </div> 
+        </div>
 
         {/* Footer je sada pravilno smešten na dno stranice */}
         <Footer />

@@ -1,0 +1,20 @@
+/* Pozadinski glow - mekši prelaz, izveden iz brand primary boje */
+.onboarding-glow {
+    background-image: radial-gradient(
+        125% 125% at 50% 10%,
+        #ffffff 32%,
+        color-mix(in srgb, var(--color-primary), white 25%) 68%,
+        var(--color-primary) 100%
+    );
+    background-size: 100% 100%;
+}
+
+/* Hover lift na login karticama, isti jezik kao whycard na landingu */
+.onboarding-card {
+    transition: transform 0.35s ease, box-shadow 0.35s ease, background-color 0.35s ease;
+}
+
+.onboarding-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 28px 56px -28px color-mix(in srgb, var(--color-primary), transparent 55%);
+}

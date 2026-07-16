@@ -32,11 +32,25 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    transition: background-color 0.35s ease, color 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease;
 }
 
 .whycard:hover{
     background-color: var(--color-primary);
     color: white !important;
+    transform: translateY(-6px);
+    box-shadow: 0 24px 48px -24px color-mix(in srgb, var(--color-primary), transparent 35%);
+}
+
+.whycard-icon {
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
+    transition: border-color 0.35s ease, color 0.35s ease;
+}
+
+.whycard:hover .whycard-icon {
+    border-color: white;
+    color: white;
 }
 
 .whycard h1 {
@@ -60,4 +74,46 @@
 
 html {
     scroll-behavior: smooth;
+}
+
+/* Scroll-reveal: koristi Reveal.tsx komponentu */
+.reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reveal {
+        transition: none;
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* Okvir oko mockup screenshotova (Explainer sekcija) */
+.mockup-frame {
+    position: relative;
+    padding: 14px;
+    border-radius: 24px;
+    border: 1px solid color-mix(in srgb, var(--color-primary), transparent 80%);
+    background: linear-gradient(160deg, color-mix(in srgb, var(--color-primary), transparent 92%), transparent 55%);
+    box-shadow: 0 30px 70px -35px color-mix(in srgb, var(--color-primary), transparent 30%);
+}
+
+/* Feature chipovi ispod uvodnog teksta (Explainer sekcija) */
+.feature-chip {
+    border-color: color-mix(in srgb, var(--color-primary), transparent 70%);
+    background-color: color-mix(in srgb, var(--color-primary), transparent 95%);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.feature-chip:hover {
+    transform: translateY(-3px);
+    background-color: color-mix(in srgb, var(--color-primary), transparent 88%);
 }

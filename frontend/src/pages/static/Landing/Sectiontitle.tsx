@@ -4,7 +4,10 @@ interface props {
 }
 const Sectiontitle = ({text}:props) => {
   return (
-    <h1 className="text-4xl font-bold">{text}</h1>
+    <div className="flex flex-col gap-3">
+      <h1 className="text-4xl font-bold">{text}</h1>
+      <span className="block h-1 w-16 rounded-full bg-primary"></span>
+    </div>
   )
 }
 
