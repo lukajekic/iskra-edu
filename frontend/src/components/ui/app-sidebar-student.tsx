@@ -86,14 +86,16 @@ let [tasks, setTasks] = useState<Task[]>()
     <span className="flex-1 text-gray-500 break-all">Kontrolni zadaci</span>
   </div>
 )}
-{folders?.map((item ,index)=>{
-  return (
-    <div onClick={()=>{setTasks(item.zadaci), setOpenTaskPicker(true)}} key={index} className="noselect w-full h-fit p-2 flex items-center rounded-lg border-2 border-transparent active:border-blue-500 gap-2 hover:cursor-pointer">
-      <img src={foldericon} className="w-[20px]" alt="" />
-      <span className="flex-1 text-gray-500 break-all">{item.folderName}</span>
-    </div>
-  )
-})}
+{!folders?.length ? (
+  <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 text-sm text-gray-500">
+    Nema dostupnih zadataka za ovaj nalog.
+  </div>
+) : folders.map((item, index) => (
+  <div onClick={()=>{setTasks(item.zadaci), setOpenTaskPicker(true)}} key={index} className="noselect w-full h-fit p-2 flex items-center rounded-lg border-2 border-transparent active:border-blue-500 gap-2 hover:cursor-pointer">
+    <img src={foldericon} className="w-[20px]" alt="" />
+    <span className="flex-1 text-gray-500 break-all">{item.folderName}</span>
+  </div>
+))}
 
 
             

@@ -8,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 
 import { 
@@ -37,6 +38,8 @@ const items = [
 export function AppSidebar() {
   const location = useLocation();
   const [myWorkhour, setMyWorkhour] = useState<string>()
+const {setOpenMobile} = useSidebar()
+  const isGroupActive = location.pathname === "/app/teacher/group" || location.pathname.startsWith("/app/teacher/group/")
 
   const getWorkhour = async()=>{
     try {
@@ -62,11 +65,11 @@ export function AppSidebar() {
             <SidebarMenuItem>
                              <Link to={'/app/teacher/group'}>
 
-              <SidebarMenuButton className={` pl-3 py-5 bg-gray-800 text-white [&:hover,&:active]:bg-gray-900 [&:hover,&:active]:text-white ${location.pathname === "/app/teacher/group" ? "w-[calc(100%-6px)]" : "w-full"}  `}>
+              <SidebarMenuButton className={` pl-3 py-5 bg-gray-800 text-white [&:hover,&:active]:bg-gray-900 [&:hover,&:active]:text-white ${isGroupActive ? "w-[calc(100%-6px)]" : "w-full"}  `}>
                {/* <CirclePile></CirclePile> */}
                Nastavna grupa 
 {myWorkhour && <Badge className="ml-auto"><BagdeTimer date={myWorkhour}></BagdeTimer></Badge>}
-{location.pathname === "/app/teacher/group" && (
+{isGroupActive && (
                         <div className="ml-auto h-full w-1 rounded-full bg-primary absolute -right-[2px] " />
                       )}
               </SidebarMenuButton>
@@ -75,10 +78,10 @@ export function AppSidebar() {
 
             <Separator className="my-2"></Separator>
             {items.map((item) => {
-              const isActive = location.pathname === item.url;
+              const isActive = location.pathname === item.url || location.pathname.startsWith(`${item.url}/`);
 
               return (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem onClick={()=>{setOpenMobile(false)}} key={item.title}>
                   <SidebarMenuButton className="text-[15px] py-5" asChild isActive={isActive}>
                     <Link to={item.url}>
                       <item.icon className="!size-5" />

@@ -5,9 +5,9 @@ import { validateTaskLanguage, validateTaskOutput } from "../utilities/validateT
 import { UserModel } from "../models/UserModel.js";
 import { Foldermodel } from "../models/FolderModel.js";
 
-export const MyTasks = async(req, res)=>{
+export const MyTasks = async (req, res) => {
     try {
-        let {folder} = req.body || {}
+        let { folder } = req.body || {}
 
         let filters = {
             ownerRef: req.user._id
@@ -24,13 +24,13 @@ export const MyTasks = async(req, res)=>{
     }
 }
 
-export const CreateTask = async(req,res)=>{
+export const CreateTask = async (req, res) => {
     try {
         if (!req.user || req.user.type !== "teacher") {
             return res.status(400).json(BuildValidationReturn("lacking role or req.user", "error", "You are not allowed to create tasks."))
         }
 
-        let {title, language, folder, outputType} = req.body || {}
+        let { title, language, folder, outputType } = req.body || {}
 
         if (!title || !language || !folder || !outputType) {
             return res.status(400).json(BuildValidationReturn("validation failed", "error", "Please fill all fields."))
@@ -40,24 +40,25 @@ export const CreateTask = async(req,res)=>{
             return res.status(400).json(BuildValidationReturn("invalid output or lang", "error", "Invalid output type or programming language."))
         }
 
-        let newitem = new TaskModel({title, language, folder, outputType, author: req.user._id, ownerRef: req.user._id})
+        let newitem = new TaskModel({ title, language, folder, outputType, author: req.user._id, ownerRef: req.user._id })
 
         await newitem.save()
 
-return res.status(200).json({
-    ...BuildValidationReturn("ok", "success", "Create new Task successfully."),
-    _id: newitem._id
-});    } catch (error) {
+        return res.status(200).json({
+            ...BuildValidationReturn("ok", "success", "Create new Task successfully."),
+            _id: newitem._id
+        });
+    } catch (error) {
         return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
     }
 }
 
 
-export const DeleteTask = async(req,res)=>{
+export const DeleteTask = async (req, res) => {
     try {
         const userid = req.user._id
 
-        const {taskID} = req.body || {}
+        const { taskID } = req.body || {}
 
         if (!taskID) {
             return res.status(400).json(BuildValidationReturn("no taskid", "error", "Please provide Task ID."))
@@ -82,10 +83,10 @@ export const DeleteTask = async(req,res)=>{
     }
 }
 
-export const EditTask = async(req, res)=>{
+export const EditTask = async (req, res) => {
     try {
         const userid = req.user._id
-        const {taskID} = req.body || {}
+        const { taskID } = req.body || {}
 
         if (!taskID) {
             return res.status(400).json(BuildValidationReturn("no taskid", "error", "Please provide Task ID."))
@@ -102,7 +103,7 @@ export const EditTask = async(req, res)=>{
         }
 
 
-        let {title, richText, folder, tests, ai_allowed} = req.body || {}
+        let { title, richText, folder, tests, ai_allowed } = req.body || {}
 
         if (title) {
             task.title = title
@@ -134,18 +135,18 @@ export const EditTask = async(req, res)=>{
 }
 
 
-export const MySingleTask = async(req, res)=>{
+export const MySingleTask = async (req, res) => {
     try {
         if (req.user.type !== 'teacher') {
             return res.status(400).json(BuildValidationReturn("lacking role.", "error", "You cannot access this resource."))
         }
 
-        let {taskID} = req.body || {}
+        let { taskID } = req.body || {}
         if (!taskID) {
             return res.status(400).json(BuildValidationReturn("lacking task id.", "error", "Please provide Task ID."))
         }
 
-        let task = await TaskModel.findOne({_id: taskID, ownerRef: req.user._id}).populate('folder')
+        let task = await TaskModel.findOne({ _id: taskID, ownerRef: req.user._id }).populate('folder')
         if (!task) {
             return res.status(404).json(BuildValidationReturn("not found.", "error", "Task not found."))
         }
@@ -177,7 +178,7 @@ export const deleteTasksLogic = async (tasks, userId) => {
     for (let task_id of tasks) {
         try {
             const task = await TaskModel.findById(task_id);
-            
+
             if (!task) {
                 throw new Error(`Task ${task_id} nije pronađen.`);
             }
@@ -191,9 +192,15 @@ export const deleteTasksLogic = async (tasks, userId) => {
                 { "solutions.taskID": task_id },
                 { $pull: { solutions: { taskID: task_id } } }
             );
-            
+
+            const storeOriginID = task.storeOriginID
+
             await TaskModel.findByIdAndDelete(task_id);
-            
+
+            await TaskModel.findByIdAndUpdate(storeOriginID, {
+                $pull: { downloaded: new mongoose.Types.ObjectId(userId) }
+            });
+
             success += 1;
             deleted.push(task_id);
         } catch (error) {
@@ -208,7 +215,7 @@ export const DeleteTasks = async (req, res) => {
     try {
         let tasks = req.body.tasks ?? [];
         const result = await deleteTasksLogic(tasks, req.user._id);
-        
+
         return res.status(200).json({
             deleted: result.deleted,
             successful: result.success,
@@ -225,8 +232,8 @@ export const DeleteFolder = async (req, res) => {
         if (!mongoose.Types.ObjectId.isValid(folderId)) {
             return res.status(400).json(BuildValidationReturn("Invalid folder ID format", "error", "Neispravan ID foldera."));
         }
-        const tasks = await TaskModel.find({ 
-            folderRef: new mongoose.Types.ObjectId(folderId) 
+        const tasks = await TaskModel.find({
+            folderRef: new mongoose.Types.ObjectId(folderId)
         }).select('_id')
 
         const taskIds = tasks.map(t => t._id.toString());

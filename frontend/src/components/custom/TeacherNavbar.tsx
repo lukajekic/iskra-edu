@@ -74,7 +74,7 @@ const TeacherNavbar = () => {
 const [messages, setMessages] = useState<Message[]>()
 const [activeMessage, setActiveMessage] = useState<Message>()
 const [myProfile, setMyProfile] = useState<Profile>()
-const [openFullScreenLoader, SetOpenFullScreenLoader] = useState(true)
+const [openFullScreenLoader, SetOpenFullScreenLoader] = useState(false)
 const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
 // Onemogućavanje skrolovanja pozadine kada je mobilni meni preko celog ekrana otvoren
@@ -137,6 +137,9 @@ setDocuments(response.data ?? [])
 
     const getProfile = async()=>{
     try {
+      if (location.pathname !== "/app/teacher/group") {
+        SetOpenFullScreenLoader(true)
+      }
       const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me?count=true`)
       if (response.status === 200) {
 setMyProfile(response.data ?? {})

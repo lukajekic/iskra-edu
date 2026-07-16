@@ -33,6 +33,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import LoaderModal from '@/components/custom/LoaderModal'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
+import { SupportedLanguages } from '@/assets/constants'
 
 
 type ModalStatus = {
@@ -293,8 +294,15 @@ const getFolders = async ()=>{
       <SelectContent>
         <SelectGroup>
           <SelectLabel className='uppercase'>Dostupni jezici</SelectLabel>
-          <SelectItem value="python"><img src={py_icon} className='w-4'></img>Python</SelectItem>
-          <SelectItem value="ruby"><img src="/ruby.png" className='w-4'></img>Ruby</SelectItem>
+          {SupportedLanguages.map((item, index)=>{
+                      return (
+                        <SelectItem value={item.value} key={index}>
+                          {item.icon && (
+                            <img src={item.icon} alt="" className='size-5' />
+                          )}
+                          {item.label}</SelectItem>
+                      )
+                    })}
 
         </SelectGroup>
       </SelectContent>
