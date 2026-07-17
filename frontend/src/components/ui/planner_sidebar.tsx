@@ -298,7 +298,7 @@ export function PlannerSidebar() {
               <div className="font-semibold text-muted-foreground">Tip naloga:</div>
               <div className="text-right capitalize">{user.type}</div>
               <div className="font-semibold text-muted-foreground">Krediti (trenutno):</div>
-              <div className="text-right font-bold text-primary">{user.coins.current}</div>
+              <div className="text-right font-bold text-primary">{user?.plannerTokenBalance}</div>
             </div>
 
             <div className="rounded-lg bg-muted p-4 text-xs">

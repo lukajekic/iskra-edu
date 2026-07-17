@@ -11,7 +11,10 @@ const DEFAULT_DAILY_BALANCE = 20000;
 const cleanText = (value, maxLength) => String(value || "").trim().slice(0, maxLength);
 
 function getBalance(user) {
-  return Number.isFinite(user.plannerTokenBalance) ? user.plannerTokenBalance : DEFAULT_DAILY_BALANCE;
+  // 1. Koristi .toObject() da dobiješ čist JS objekat ako je u pitanju Mongoose dokument
+  const userData = (user && typeof user.toObject === 'function') ? user.toObject() : user;
+    
+  return userData?.plannerTokenBalance ?? DEFAULT_DAILY_BALANCE;
 }
 
 function titleFromTopic(topic) {
@@ -93,9 +96,24 @@ async function requestGroq(messages, maxTokens) {
 }
 
 export const getPlannerBalance = async (req, res) => {
-  const balance = getBalance(req.user);
-  if (req.user.plannerTokenBalance === undefined) await UserModel.findByIdAndUpdate(req.user._id, { plannerTokenBalance: balance });
-  return res.json({ balance, dailyLimit: DEFAULT_DAILY_BALANCE, used: DEFAULT_DAILY_BALANCE - balance, cycleStartedAt: req.user.plannerTokenCycleStartedAt || null, resetAt: req.user.plannerTokenResetAt || null });
+  // 1. Osveži podatke o korisniku direktno iz baze da izbegneš zastarele podatke u req.user
+  const freshUser = await UserModel.findById(req.user._id);
+  
+  const balance = getBalance(freshUser); // Koristi osveženog korisnika
+  
+  if (freshUser.plannerTokenBalance === undefined) {
+    await UserModel.findByIdAndUpdate(freshUser._id, { plannerTokenBalance: balance });
+  }
+
+ 
+ 
+  return res.status(200).json({ 
+    balance, 
+    dailyLimit: DEFAULT_DAILY_BALANCE, 
+    used: DEFAULT_DAILY_BALANCE - balance, 
+    cycleStartedAt: freshUser.plannerTokenCycleStartedAt || null, 
+    resetAt: freshUser.plannerTokenResetAt || null 
+  });
 };
 
 export const listPlannerFolders = async (req, res) => {
