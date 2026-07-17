@@ -7,7 +7,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss(),
     Sitemap({ 
       hostname: 'https://iskra-edu.vercel.app', // Zameni sa svojim domenom
-      dynamicRoutes: ['/'] // Stavili smo samo početnu stranu
+      dynamicRoutes: ['/'], // Stavili smo samo početnu stranu
+      robots: [{ userAgent: '*', allow: '/' }]
     })
   ],
   resolve: {
