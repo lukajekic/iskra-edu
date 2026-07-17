@@ -34,7 +34,6 @@ import GradeExam from './pages/Teacher/Exams/GradeExam/GradeExam';
 import ExamReports from './pages/Teacher/Exams/ExamReports/ExamReports';
 import  DesktopOnlyGuard from './components/logic/DesktopOnlyGuard';
 import MobileNotAvailable from './components/custom/MobileNotAvailable';
-import IskraPlanner from './pages/Teacher/IskraPlanner';
 import PlannerWrapper from './pages/Planner/PlannerWrapper';
 import Welcome from './pages/Planner/Welcome';
 import IskraPlannerViewPage from './pages/Planner/PlanViewer';
