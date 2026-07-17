@@ -18,6 +18,7 @@ import TestRouter from './routes/TestRoutes.js'
 dotenv.config()
 import  visualizer  from 'express-routes-visualizer'
 import StudentExamsRouter from './routes/StudentExamsRoutes.js'
+import PlannerRouter, { aiRouter } from './routes/PlannerRoutes.js'
 const app = express()
 connectMongoDB()
 
@@ -85,6 +86,8 @@ app.use('/store', StoreRoutes)
 app.use('/my/students', MyStudentsRoutes)
 app.use('/app/student', StudentAppRoutes)
 app.use('/studentexams', StudentExamsRouter)
+app.use('/planner', PlannerRouter)
+app.use('/api/ai', aiRouter)
 async function runPythonCode(index) {
   const url = "https://lukajekic-python-judge.hf.space/run";
   

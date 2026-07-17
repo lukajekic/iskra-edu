@@ -2,22 +2,22 @@ import express from "express";
 import { protect } from "../middleware/protect.js";
 import { createPlannerFolder, deletePlannerFolder, deletePlannerPlan, generatePlan, getPlannerBalance, getPlannerPlan, listPlannerFolders, listPlannerPlans, renamePlannerFolder, revisePlannerPlan, updatePlannerPlan } from "../controllers/PlannerController.js";
 
-const router = express.Router();
-router.use(protect);
+const PlannerRouter = express.Router();
+PlannerRouter.use(protect);
 
-router.get("/balance", getPlannerBalance);
-router.get("/folders", listPlannerFolders);
-router.post("/folders", createPlannerFolder);
-router.patch("/folders/:id", renamePlannerFolder);
-router.delete("/folders/:id", deletePlannerFolder);
-router.get("/plans", listPlannerPlans);
-router.get("/plan/:id", getPlannerPlan);
-router.patch("/plan/:id", updatePlannerPlan);
-router.delete("/plan/:id", deletePlannerPlan);
-router.post("/plan/:id/revise", revisePlannerPlan);
+PlannerRouter.get("/balance", getPlannerBalance);
+PlannerRouter.get("/folders", listPlannerFolders);
+PlannerRouter.post("/folders", createPlannerFolder);
+PlannerRouter.patch("/folders/:id", renamePlannerFolder);
+PlannerRouter.delete("/folders/:id", deletePlannerFolder);
+PlannerRouter.get("/plans", listPlannerPlans);
+PlannerRouter.get("/plan/:id", getPlannerPlan);
+PlannerRouter.patch("/plan/:id", updatePlannerPlan);
+PlannerRouter.delete("/plan/:id", deletePlannerPlan);
+PlannerRouter.post("/plan/:id/revise", revisePlannerPlan);
 
 export const aiRouter = express.Router();
 aiRouter.use(protect);
 aiRouter.post("/generate-plan", generatePlan);
 
-export default router;
+export default PlannerRouter;
