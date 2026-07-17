@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from '../ui/button'
-import { Building, File, FileText, LayoutDashboard, Mail, MessageCircle, Pencil, Phone, PowerOff, SquareUserRound, Users, Menu, X, ChevronLeft } from 'lucide-react'
+import { Building, File, FileText, LayoutDashboard, Mail, MessageCircle, Pencil, Phone, PowerOff, SquareUserRound, Users, Menu, X, ChevronLeft, BookOpen, LayoutGrid, ChevronDown, Check } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '../ui/dialog'
 import { Separator } from '../ui/separator'
@@ -61,6 +61,7 @@ type Profile = {
     institution:    string;
     __v:            number;
     students_count?: number;
+    super_admin?:   boolean;
 }
 
 type Activegroup = {
@@ -71,11 +72,18 @@ type Activegroup = {
 const TeacherNavbar = () => {
   const {userID, setUserID} = useUserId()
   const [documents, setDocuments] = useState<Document[]>([])
-const [messages, setMessages] = useState<Message[]>()
-const [activeMessage, setActiveMessage] = useState<Message>()
-const [myProfile, setMyProfile] = useState<Profile>()
-const [openFullScreenLoader, SetOpenFullScreenLoader] = useState(false)
-const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [messages, setMessages] = useState<Message[]>()
+  const [activeMessage, setActiveMessage] = useState<Message>()
+  const [myProfile, setMyProfile] = useState<Profile>()
+  const [openFullScreenLoader, SetOpenFullScreenLoader] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const [currentApp] = useState("lms")
+  const apps = [
+    { id: "lms", name: "Iskra LMS", url: "/app/teacher", icon: BookOpen },
+    { id: "planner", name: "Iskra Planner", url: "/app/planner", icon: LayoutGrid },
+  ];
+  const activeApp = apps.find((a) => a.id === currentApp);
 
 // Onemogućavanje skrolovanja pozadine kada je mobilni meni preko celog ekrana otvoren
 useEffect(() => {
@@ -239,83 +247,110 @@ if (userID) {
           </div>
         </div>
 
-        {/* auth */}
-        <DropdownMenu>
-          <DropdownMenuTrigger className='rounded-r-xl' asChild>
-            <Button
-              variant="outline"
-              className='h-[59px] rounded-r-xl rounded-l-none border-0 border-l shadow-none flex flex-col items-end gap-0 border-1 border-b-0'
-            >
-              <span className="font-bold">Profesor</span>
-              <span className='text-lg font-light'>
-                {myProfile?.name}
-              </span>
-            </Button>
-          </DropdownMenuTrigger>
+        <div className="flex items-center">
+            {/* Switch Dropdown (Levi deo) */}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button
+                    variant="outline"
+                    className='h-[59px] rounded-l-none rounded-r-none border-0 border-r-0  shadow-none flex items-center gap-2 px-4 border-1 border-b-0'
+                >
+                    {activeApp && <activeApp.icon className="size-5 text-primary" />}
+                    <span className="font-bold text-primary">{activeApp?.name}</span>
+                    <ChevronDown className="size-4 ml-1 text-primary" />
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 mt-[10px] ml-[20px]">
+                <DropdownMenuLabel>Iskra aplikacije</DropdownMenuLabel>
+                {apps.map((app) => (
+                    <DropdownMenuItem key={app.id} onClick={() => location.href = app.url} className="flex justify-between items-center cursor-pointer">
+                    <span className="flex items-center gap-2">
+                        <app.icon className="size-4" /> {app.name}
+                    </span>
+                    {app.id === currentApp && <Check className="size-4 text-emerald-600" />}
+                    </DropdownMenuItem>
+                ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
 
-          <DropdownMenuContent className="w-50 mt-[10px] mr-[20px]" >
-            <DropdownMenuGroup className=''>
-              <DropdownMenuLabel>Moj nalog</DropdownMenuLabel>
-              <DropdownMenuItem onClick={()=>{setModalStatus(prev=>({...prev, my_profile: true}))}}>
-                <SquareUserRound></SquareUserRound> Moj profil
-              </DropdownMenuItem>
+            {/* Profil */}
+            <DropdownMenu>
+            <DropdownMenuTrigger className='rounded-r-xl' asChild>
+                <Button
+                variant="outline"
+                className='h-[59px] rounded-r-xl rounded-l-none border-0 border-l shadow-none flex flex-col items-end gap-0 border-1 border-b-0'
+                >
+                <span className="font-bold">Profesor</span>
+                <span className='text-lg font-light'>
+                    {myProfile?.name}
+                </span>
+                </Button>
+            </DropdownMenuTrigger>
 
-              {myProfile?.super_admin && (
-                <DropdownMenuItem onClick={()=>{location.href = "/admin"}}>
-                <LayoutDashboard></LayoutDashboard> Administrativni portal
-              </DropdownMenuItem>
-              )}
+            <DropdownMenuContent className="w-50 mt-[10px] mr-[20px]" >
+                <DropdownMenuGroup className=''>
+                <DropdownMenuLabel>Moj nalog</DropdownMenuLabel>
+                <DropdownMenuItem onClick={()=>{setModalStatus(prev=>({...prev, my_profile: true}))}}>
+                    <SquareUserRound></SquareUserRound> Moj profil
+                </DropdownMenuItem>
 
-              <DropdownMenuItem onClick={()=>{setModalStatus(prev=>({...prev, messages: true}))}}>
-                <MessageCircle></MessageCircle> Poruke
-              </DropdownMenuItem>
+                {myProfile?.super_admin && (
+                    <DropdownMenuItem onClick={()=>{location.href = "/admin"}}>
+                    <LayoutDashboard></LayoutDashboard> Administrativni portal
+                </DropdownMenuItem>
+                )}
 
-              <DropdownMenuItem onClick={()=>{setModalStatus(prev=>({...prev, support: true}))}}>
-                <Phone></Phone> Tehnička podrška
-              </DropdownMenuItem>
+                <DropdownMenuItem onClick={()=>{setModalStatus(prev=>({...prev, messages: true}))}}>
+                    <MessageCircle></MessageCircle> Poruke
+                </DropdownMenuItem>
 
-
-            <DropdownMenuSeparator />
-             </DropdownMenuGroup>
-
-            
-           <DropdownMenuGroup>
-               <DropdownMenuLabel className='capitalize'>dokumentacija</DropdownMenuLabel>
-              <DropdownMenuItem onClick={()=>{setModalStatus(prev=>({...prev, documents: true}))}}>
-                <File></File> Uputstva za korisnike
-              </DropdownMenuItem>
-
-               <Link target='_blank' to={'/legal/privacy'}>
-               <DropdownMenuItem>
-                Politika privatnosti
-              </DropdownMenuItem>
-              </Link>
-
-               <Link target='_blank' to={'/legal/terms'}>
-               <DropdownMenuItem>
-                Uslovi upotrebe
-              </DropdownMenuItem>
-              </Link>
+                <DropdownMenuItem onClick={()=>{setModalStatus(prev=>({...prev, support: true}))}}>
+                    <Phone></Phone> Tehnička podrška
+                </DropdownMenuItem>
 
 
+                <DropdownMenuSeparator />
+                </DropdownMenuGroup>
 
-           </DropdownMenuGroup>
-                          <DropdownMenuSeparator />
+                
+            <DropdownMenuGroup>
+                <DropdownMenuLabel className='capitalize'>dokumentacija</DropdownMenuLabel>
+                <DropdownMenuItem onClick={()=>{setModalStatus(prev=>({...prev, documents: true}))}}>
+                    <File></File> Uputstva za korisnike
+                </DropdownMenuItem>
 
-             <DropdownMenuGroup>
-                <DropdownMenuItem onClick={()=>{HandleLogout()}} variant='destructive'>
-                <PowerOff></PowerOff>
-                Odjava
-              </DropdownMenuItem>
+                <Link target='_blank' to={'/legal/privacy'}>
+                <DropdownMenuItem>
+                    Politika privatnosti
+                </DropdownMenuItem>
+                </Link>
+
+                <Link target='_blank' to={'/legal/terms'}>
+                <DropdownMenuItem>
+                    Uslovi upotrebe
+                </DropdownMenuItem>
+                </Link>
+
+
+
             </DropdownMenuGroup>
+                            <DropdownMenuSeparator />
 
-             
+                <DropdownMenuGroup>
+                    <DropdownMenuItem onClick={()=>{HandleLogout()}} variant='destructive'>
+                    <PowerOff></PowerOff>
+                    Odjava
+                </DropdownMenuItem>
+                </DropdownMenuGroup>
+
+                
 
 
 
 
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
       </div>
 
       {/* MOBILNI HEADER (Mini traka na vrhu sa hamburger menijem, sakrivena na md:) */}
@@ -470,7 +505,7 @@ if (userID) {
         ) : (
           messages?.map((item, index) => {
             const isRead = determineReadCall(item, true);
-            const isActive = activeMessage?.id === item.id;
+            const isActive = activeMessage?._id === item._id;
             
             return (
               <div
@@ -485,7 +520,7 @@ if (userID) {
                 </span>
                 
                 <p className={`text-sm flex items-center gap-2.5 leading-snug line-clamp-2 ${!isRead ? "text-[#194872] font-bold" : "text-gray-500"}`}>
-                  {item.target && <Mail className={`size-4 flex-shrink-0 ${!isRead ? 'text-[#194872]' : 'text-slate-400'}`} />}
+                  <Mail className={`size-4 flex-shrink-0 ${!isRead ? 'text-[#194872]' : 'text-slate-400'}`} />
                   <span className="break-words">{item.title}</span>
                 </p>
               </div>
@@ -506,11 +541,6 @@ if (userID) {
               
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 font-medium mt-1">
                 <span>{moment(activeMessage.date).format("D. MM. YYYY. HH:mm")}</span>
-                {activeMessage.target && (
-                  <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full text-[11px] font-semibold">
-                    Samo za Vas
-                  </span>
-                )}
               </div>
             </div>
 
