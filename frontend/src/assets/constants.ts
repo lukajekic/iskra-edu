@@ -1,3 +1,5 @@
+import { BookOpen, LayoutGrid } from "lucide-react";
+
 export const Grades = [
     'Peti razred osnovne škole',
     'Šesti razred osnovne škole',
@@ -22,3 +24,8 @@ export const SupportedLanguages = [
         icon: "/ruby.png"
     }
 ]
+
+export const IskraApps = [
+    { id: "lms", name: "Iskra LMS", url: "/app/teacher", icon: BookOpen },
+    { id: "planner", name: "Iskra Planner", url: "/app/planner", icon: LayoutGrid },
+  ];

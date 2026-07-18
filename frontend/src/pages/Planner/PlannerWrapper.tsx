@@ -1,3 +1,4 @@
+import { IskraApps } from '@/assets/constants'
 import { TokenBalanceIndicator } from '@/components/custom/Planner/CoinsBalanxe'
 import { AppSidebar } from '@/components/ui/app-sidebar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -61,10 +62,7 @@ export const PlannerDataContext = createContext<PlannerData | null>(null)
 const PlannerWrapper = () => {
     const [currentApp] = useState("planner")
 
-  const apps = [
-    { id: "lms", name: "Iskra LMS", url: "/app/teacher", icon: BookOpen },
-    { id: "planner", name: "Iskra Planner", url: "/app/planner", icon: LayoutGrid },
-  ];
+  const apps = IskraApps
 
   const activeApp = apps.find((a) => a.id === currentApp);
     const [user, setUser] = useState<UserType | null>(null)

@@ -30,6 +30,7 @@ import { toast } from 'sonner'
 import { useUserId } from '@/context/UserContext'
 import moment from 'moment-timezone'
 import { CircularBorderSpinner } from './CircularBorderSpinner';
+import { IskraApps } from '@/assets/constants';
 
 type ModalStatus = {
   my_profile: boolean,
@@ -79,10 +80,7 @@ const TeacherNavbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const [currentApp] = useState("lms")
-  const apps = [
-    { id: "lms", name: "Iskra LMS", url: "/app/teacher", icon: BookOpen },
-    { id: "planner", name: "Iskra Planner", url: "/app/planner", icon: LayoutGrid },
-  ];
+  const apps = IskraApps
   const activeApp = apps.find((a) => a.id === currentApp);
 
 // Onemogućavanje skrolovanja pozadine kada je mobilni meni preko celog ekrana otvoren
