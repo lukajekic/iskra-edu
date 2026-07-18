@@ -98,7 +98,9 @@ async function requestGroq(messages, maxTokens) {
 export const getPlannerBalance = async (req, res) => {
   // 1. Osveži podatke o korisniku direktno iz baze da izbegneš zastarele podatke u req.user
   const freshUser = await UserModel.findById(req.user._id);
-  
+  if (freshUser.type !== "teacher") {
+    return res.status(401).json({"message": "Pristup dozvoljen samo profesorima."})
+  }
   const balance = getBalance(freshUser); // Koristi osveženog korisnika
   
   if (freshUser.plannerTokenBalance === undefined) {

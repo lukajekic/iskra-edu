@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from '../ui/button'
-import { Building, File, FileText, MessageCircle, Pencil, PowerOff, SquareUserRound, User, UserCircle, Users } from 'lucide-react'
+import { Building, Check, ChevronDown, File, FileText, MessageCircle, Pencil, PowerOff, SquareUserRound, User, UserCircle, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '../ui/dialog'
 import { Separator } from '../ui/separator'
@@ -27,6 +27,7 @@ import { toast } from 'sonner'
 import { HandleLogout } from '@/utils/logout'
 import axios from 'axios'
 import StudentTimer from './StudentTimer'
+import { IskraApps } from '@/assets/constants'
 
 type ModalStatus = {
   my_profile: boolean,
@@ -56,7 +57,11 @@ type StudentNavbarProps = {
 
 const StudentNavbar = ({ myProfile }: StudentNavbarProps) => {
 
+const [currentApp] = useState("lms_student")
 
+  const apps = IskraApps.filter(app => app.students === true)
+
+  const activeApp = apps.find((a) => a.id === currentApp);
   const [modalStatus, setModalStatus] = useState<ModalStatus>({
     my_profile: false,
     messages: false,
@@ -64,9 +69,11 @@ const StudentNavbar = ({ myProfile }: StudentNavbarProps) => {
   })
   return (
     <>
-      <div id='height_manager' className="md:h-[62px] h-[70px] mt-2 w-full flex justify-center" />
+      {/* POPRAVLJENO: Smanjen visinski menadžer na mobilnom sa 120px na 78px da se ukloni veliki prazan prostor */}
+      <div id='height_manager' className="md:h-[62px] h-[78px] mt-2 w-full flex justify-center" />
 
-      <div id='student-navbar-main' className=" w-[calc(100%-40px)] left-1/2 -translate-x-1/2 h-[70px] pt-2 pb-2 md:pt-0 md:h-[60px] fixed top-2  bg-white z-50 flex justify-between items-center  border-[1px] pl-3 border-[#cecece]/75 rounded-lg pb-[2px]">
+      {/* POPRAVLJENO: Zadržan kompaktan izgled na mobilnom bez suvišnog vertikalnog širenja */}
+      <div id='student-navbar-main' className="w-[calc(100%-20px)] md:w-[calc(100%-40px)] left-1/2 -translate-x-1/2 h-auto min-h-[60px] md:h-[60px] py-1.5 md:py-0 fixed top-2 bg-white z-50 flex flex-wrap md:flex-nowrap justify-between items-center border-[1px] px-3 border-[#cecece]/75 rounded-lg gap-2">
         <div className="flex items-center gap-2 h-full">
           <img src="/favicon.png" className='size-10' alt="" />
           <div className="flex items-end gap-1">
@@ -101,35 +108,63 @@ const StudentNavbar = ({ myProfile }: StudentNavbarProps) => {
         {/* auth */}
     
 
-    <div className="h-full  flex-1 min-w-0 flex justify-end pr-4">
+    <div className="h-full flex-1 min-w-0 flex justify-end pr-0 md:pr-4 items-center gap-3">
 
-      <div className="flex  gap-2 md:flex-row flex-row items-end md:items-center pb-2 md:pb-0">
+  <DropdownMenu>
+      <DropdownMenuTrigger className="flex items-center h-[40px] gap-2 px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-slate-200 dark:border-slate-800">
+        {activeApp?.icon && <activeApp.icon className="w-4 h-4 text-primary" />}
+        <span className="font-semibold text-sm">{activeApp?.name}</span>
+        <ChevronDown className="w-4 h-4 text-slate-400" />
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="start" className="w-64 p-2">
+        <div className="px-2 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider">
+          Iskra aplikacije
+        </div>
+        {apps.map((app) => {
+          const Icon = app.icon;
+          const isActive = app.id === currentApp;
+          
+          return (
+            <DropdownMenuItem
+              key={app.id}
+              className={`flex items-center justify-between p-2 cursor-pointer ${isActive ? "bg-slate-100 dark:bg-slate-800" : ""}`}
+              onClick={() => window.location.href = app.url}
+            >
+              <div className="flex items-center gap-2">
+                <Icon className="w-4 h-4" />
+                <span className="font-medium">{app.name}</span>
+              </div>
+              {isActive && <Check className="w-4 h-4 text-emerald-600" />}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+
+      <div className="flex gap-2 items-center">
         <UserCircle className='size-[30px] mr-2 text-gray-700 md:block hidden'></UserCircle>
-        <div className="flex flex-col items-end md:items-start">
+        <div className="flex flex-col items-end md:items-start text-xs md:text-sm">
           <span className="text-gray-700 uppercase break-all">{
             myProfile?.type === 'student_permanent' ? (<>Trajni nalog</>) : myProfile?.type === 'student_temp' ? (<>
             <div className=''><StudentTimer date={myProfile?.userExpiry}></StudentTimer></div>
             </>) : (<>/</>)
             }</span>
-          <span className='break-all text-right md:text-left'>{myProfile?.name}</span>
+          <span className='break-all text-right md:text-left font-medium'>{myProfile?.name}</span>
         </div>
-        <Button onClick={()=>{ HandleLogout()}} variant={'destructive'}><PowerOff></PowerOff>Odjava</Button>
+        <Button onClick={()=>{ HandleLogout()}} variant={'destructive'} size="sm" className="h-9 md:h-10 md:px-4 px-3"><PowerOff className="size-4 md:mr-2"></PowerOff><span className="hidden sm:inline">Odjava</span></Button>
       </div>
     </div>
       </div>
 
-
-
-
-
       {/* sistemske poruke */}
-      <Dialog   open={modalStatus.messages} onOpenChange={(val)=>{setModalStatus(prev => ({...prev, messages: val}))}} >
-        <DialogContent showCloseButton={true} className='min-w-[70%] w-[70%] min-h-[80%] h-[80%] flex flex-col gap-2'>
+      <Dialog open={modalStatus.messages} onOpenChange={(val)=>{setModalStatus(prev => ({...prev, messages: val}))}} >
+        <DialogContent showCloseButton={true} className='w-full max-w-5xl md:w-[70%] h-[90vh] md:h-[80%] flex flex-col gap-2 p-4 md:p-6'>
           <DialogHeader className='text-lg font-bold h-fit'>
             Poruke
           </DialogHeader>
-<div className="border-1 w-full h-full overflow-hidden flex items-start">
-    <div className=" w-[30%] h-full flex flex-col gap-0 items-start overflow-y-auto">
+<div className="border-1 w-full h-full overflow-hidden flex flex-col md:flex-row items-stretch gap-2">
+    <div className="w-full md:w-[30%] h-[35%] md:h-full flex flex-col gap-0 items-start overflow-y-auto border-b md:border-b-0 md:border-r border-gray-200">
 
      {Array.from({ length: 5 }, (_, index) => ({
   unread: index === 1 || index === 2,
@@ -141,14 +176,14 @@ const StudentNavbar = ({ myProfile }: StudentNavbarProps) => {
       hover:bg-white hover:border-l-2 hover:border-l-blue-400`}
   >
     <p className={`text-xs text-gray-500`}>00. 00. 0000. 00:00</p>
-    <p className={`text-[16px] ${item.unread ? "text-[#194872] font-bold" : "text-gray-500"}`}>
+    <p className={`text-[14px] md:text-[16px] ${item.unread ? "text-[#194872] font-bold" : "text-gray-500"}`}>
       Nadogradnja sistema
     </p>
   </div>
 ))}
     </div>
-  <div className="p-5 w-[70%] h-full border-[2px] border-[#194872] flex flex-col">
-    <p className="text-[20px] text-[#194872]">
+  <div className="p-3 md:p-5 w-full md:w-[70%] h-[65%] md:h-full border-[2px] border-[#194872] flex flex-col min-h-0">
+    <p className="text-[18px] md:text-[20px] text-[#194872] font-semibold">
       Najavljivanje nadogradnje sistema
     </p>
         <p className={`text-xs text-gray-500`}>00. 00. 0000. 00:00</p>
@@ -156,7 +191,7 @@ const StudentNavbar = ({ myProfile }: StudentNavbarProps) => {
 <Separator className='my-2'></Separator>
 
 <div className="flex-1 overflow-y-auto">
-  <p className='text-[15px] text-gray-700'>Ovde postaviti rezultate rich text editora.
+  <p className='text-[14px] md:text-[15px] text-gray-700'>Ovde postaviti rezultate rich text editora.
   Ovde postaviti rezultate rich text editora.
   Ovde postaviti rezultate rich text editora.
   Ovde postaviti rezultate rich text editora.
@@ -210,7 +245,7 @@ const StudentNavbar = ({ myProfile }: StudentNavbarProps) => {
 
 </div>
 
-<DialogFooter>
+<DialogFooter className="flex-row justify-end gap-2 pt-2">
   <Button variant={'outline'} onClick={()=>{setModalStatus(prev=>({...prev, messages: false}))}}>Zatvori poruke</Button>
 </DialogFooter>
         </DialogContent>
@@ -221,15 +256,15 @@ const StudentNavbar = ({ myProfile }: StudentNavbarProps) => {
 
       {/* dokumenta */}
       <Dialog open={modalStatus.documents}  onOpenChange={(val)=>{setModalStatus(prev => ({...prev, documents: val}))}}>
-<DialogContent className='max-h-[80vh] min-w-1/2 flex flex-col min-h-0'>
+<DialogContent className='max-h-[80vh] w-full max-w-xl flex flex-col min-h-0 p-4 md:p-6'>
           <DialogHeader className='text-lg font-bold'>
             Uputstva za korisnike
           </DialogHeader>
 <div className="overflow-y-auto flex-1">
   {Array.from({length: 10}).map((item, index)=>(
-  <div className="w-full  p-3 border-b-1 flex gap-2 text-[#194872] hover:text-[#c55258] hover:cursor-pointer items-center">
+  <div key={index} className="w-full  p-3 border-b-1 flex gap-2 text-[#194872] hover:text-[#c55258] hover:cursor-pointer items-center">
     <FileText className='w-[24px]'></FileText>
-<span className='text-[16px] flex-1'>Naziv uputstva za korisnike.pdf</span>
+<span className='text-[16px] flex-1 text-ellipsis overflow-hidden whitespace-nowrap'>Naziv uputstva za korisnike.pdf</span>
   </div>
 ))}
 </div>
@@ -241,24 +276,23 @@ const StudentNavbar = ({ myProfile }: StudentNavbarProps) => {
 
       {/* profil */}
       <Dialog open={modalStatus.my_profile} onOpenChange={(val)=>{setModalStatus(prev => ({...prev, my_profile: val}))}} >
-        <DialogContent className='min-w-[40%]'>
+        <DialogContent className='w-full max-w-xl p-4 md:p-6'>
           <DialogHeader className='font-bold text-lg'>Moj profil</DialogHeader>
-          <div className="w-full flex items-center gap-3">
-            <img src={usericon} className='w-[100px] rounded-[50%] shadow-sm' alt="" />
-            <div id="profileinfo">
+          <div className="w-full flex flex-col sm:flex-row items-center sm:items-start gap-4">
+            <img src={usericon} className='w-[100px] h-[100px] rounded-[50%] shadow-sm object-cover' alt="" />
+            <div id="profileinfo" className="text-center sm:text-left flex-1">
               <p className="text-xl font-bold">Ime i prezime</p>
               <p className="text-gray-700">@lukajekic</p>
-              <br></br>
-              <p className="text-gray-700 inline-flex items-center gap-2"><Building></Building>Gimazija „Svetozar Markovic“ Novi Sad</p>
-              <br></br>
-              <p className="text-gray-700 inline-flex items-center gap-2"><Users></Users><strong>Ukupno ucenika:</strong>309</p>
-
+              <div className="my-2 space-y-1">
+                <p className="text-gray-700 flex items-center justify-center sm:justify-start gap-2 text-sm"><Building className="size-4 shrink-0"></Building>Gimazija „Svetozar Markovic“ Novi Sad</p>
+                <p className="text-gray-700 flex items-center justify-center sm:justify-start gap-2 text-sm"><Users className="size-4 shrink-0"></Users><span><strong>Ukupno ucenika: </strong>309</span></p>
+              </div>
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant={'outline'}><Pencil></Pencil>Izmeni profil</Button>
-            <Button onClick={()=>{setModalStatus(prev=>({...prev, my_profile: false}))}}>Zatvori</Button>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-4">
+            <Button variant={'outline'} className="w-full sm:w-auto"><Pencil className="size-4 mr-2"></Pencil>Izmeni profil</Button>
+            <Button onClick={()=>{setModalStatus(prev=>({...prev, my_profile: false}))}} className="w-full sm:w-auto">Zatvori</Button>
           </DialogFooter>
 
 
@@ -270,7 +304,7 @@ const StudentNavbar = ({ myProfile }: StudentNavbarProps) => {
 <Dialog >
       <form action="">
 
-  <DialogContent>
+  <DialogContent className="w-full max-w-md">
     <DialogHeader className='text-lg font-bold'>
       Izmeni profil
     </DialogHeader>
@@ -292,9 +326,9 @@ const StudentNavbar = ({ myProfile }: StudentNavbarProps) => {
         </Field>
       </FieldGroup>
 
-      <DialogFooter>
-        <Button type='button' variant={'outline'}>Odustani</Button>
-        <Button type='submit'>Sacuvaj</Button>
+      <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-4">
+        <Button type='button' variant={'outline'} className="w-full sm:w-auto">Odustani</Button>
+        <Button type='submit' className="w-full sm:w-auto">Sacuvaj</Button>
       </DialogFooter>
   </DialogContent>
       </form>

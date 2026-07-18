@@ -1,4 +1,4 @@
-import { BookOpen, LayoutGrid } from "lucide-react";
+import { BookOpen, LayoutGrid, Waypoints } from "lucide-react";
 
 export const Grades = [
     'Peti razred osnovne škole',
@@ -26,6 +26,8 @@ export const SupportedLanguages = [
 ]
 
 export const IskraApps = [
-    { id: "lms", name: "Iskra LMS", url: "/app/teacher", icon: BookOpen },
-    { id: "planner", name: "Iskra Planner", url: "/app/planner", icon: LayoutGrid },
+    { id: "lms", name: "Iskra LMS", url: "/app/teacher", icon: BookOpen, students: false, teachers: true },
+    { id: "lms_student", name: "Iskra za ucenike", url: "/app/student/home", icon: BookOpen, students: true, teachers: false },
+    { id: "planner", name: "Iskra Planner", url: "/app/planner", icon: LayoutGrid, students: false, teachers: true },
+    { id: "canvas", name: "Iskra Canvas", url: "/app/canvas", icon: Waypoints, students: true, teachers: true },
   ];

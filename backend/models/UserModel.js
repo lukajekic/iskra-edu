@@ -59,6 +59,22 @@ const schema = new mongoose.Schema({
     default: null,
   },
 
+  // Canvas ima nezavisan fond kredita i sopstveni satni ciklus.
+  canvasTokenBalance: {
+    type: Number,
+    default: 200,
+  },
+
+  canvasTokenCycleStartedAt: {
+    type: Date,
+    default: null,
+  },
+
+  canvasTokenResetAt: {
+    type: Date,
+    default: null,
+  },
+
   solutions: {
     type: [{
       solutionID: String,

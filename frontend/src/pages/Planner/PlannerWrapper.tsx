@@ -10,7 +10,6 @@ import React, { createContext, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { toast } from 'sonner'
 
-// PROMENJENO: Definisani TypeScript interfejsi na osnovu tvog response-a
 interface ActiveGroup {
   expiry: string | null
   code: string | null
@@ -31,7 +30,6 @@ export interface UserType {
   login_banned: boolean
 }
 
-// PROMENJENO: Kreiran kontekst VAN komponente sa ispravnim tipom (UserType | null)
 export const UserContext = createContext<UserType | null>(null)
 
 export interface PlannerFolder {
@@ -61,11 +59,17 @@ export const PlannerDataContext = createContext<PlannerData | null>(null)
 
 const PlannerWrapper = () => {
     const [currentApp] = useState("planner")
-
-  const apps = IskraApps
-
-  const activeApp = apps.find((a) => a.id === currentApp);
     const [user, setUser] = useState<UserType | null>(null)
+
+    const apps = user?.type === "teacher" 
+        ? IskraApps.filter(app => app.teachers === true) 
+        : IskraApps.filter(app => app.students === true);
+
+    const activeApp = apps.find((a) => a.id === currentApp);
+    
+    // IZMENJENO: Dinamički izvlačimo ikonicu bezbedno, ako activeApp ne postoji koristimo LayoutGrid kao fallback
+    const ActiveAppIcon = activeApp?.icon || LayoutGrid;
+
     const [balance, setBalance] = useState(0)
     const [dailyLimit, setDailyLimit] = useState(20000)
     const [resetAt, setResetAt] = useState<string | null>(null)
@@ -74,7 +78,6 @@ const PlannerWrapper = () => {
 
     const getUser = async() =>{
         try {
-            // PROMENJENO: Tipiziran axios get zahtev sa <UserType>
             const response = await axios.get<UserType>(`${import.meta.env.VITE_BACKEND}/user/me`, { withCredentials: true })
             if (response.status === 200) {
                 setUser(response.data)
@@ -101,7 +104,6 @@ const PlannerWrapper = () => {
         setFolders(foldersResponse.data.folders || [])
         setPlans(plansResponse.data.plans || [])
       } catch (error) {
-        // Profil može da postoji dok Planner API još nije dostupan; ne prekidamo ostatak aplikacije.
         console.error("Greška pri učitavanju Planner podataka:", error)
       }
     }, [])
@@ -112,7 +114,6 @@ const PlannerWrapper = () => {
 
   return (
     <>
-    {/* PROMENJENO: userContext promenjen u UserContext (veliko slovo i spoljna definicija) */}
     <UserContext.Provider value={user}>
     <PlannerDataContext.Provider value={{ balance, dailyLimit, resetAt, folders, plans, refreshPlannerData }}>
         <SidebarProvider >
@@ -125,9 +126,11 @@ const PlannerWrapper = () => {
           <main className='p-5 pt-16 w-full md:pt-5'>
             <div className="pb-2 border-b-1 flex justify-between">
                 <DropdownMenu>
+      
+      {/* IZMENJENO: Upotrebljena bezbedna ActiveAppIcon i dodat optional chaining za name */}
       <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-slate-200 dark:border-slate-800">
-        <activeApp.icon className="w-4 h-4 text-primary" />
-        <span className="font-semibold text-sm">{activeApp?.name}</span>
+        <ActiveAppIcon className="w-4 h-4 text-primary" />
+        <span className="font-semibold text-sm">{activeApp?.name || "Učitavanje..."}</span>
         <ChevronDown className="w-4 h-4 text-slate-400" />
       </DropdownMenuTrigger>
 

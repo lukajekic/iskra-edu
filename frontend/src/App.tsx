@@ -37,6 +37,8 @@ import MobileNotAvailable from './components/custom/MobileNotAvailable';
 import PlannerWrapper from './pages/Planner/PlannerWrapper';
 import Welcome from './pages/Planner/Welcome';
 import IskraPlannerViewPage from './pages/Planner/PlanViewer';
+import CanvasWrapper from './pages/Canvas/CanvasWrapper';
+import CanvasPage from './pages/Canvas/CanvasPage';
 export function App() {
 
   const router = createBrowserRouter([
@@ -208,6 +210,11 @@ element: <NotFound></NotFound>
               element: <IskraPlannerViewPage></IskraPlannerViewPage>
             }
           ]
+        },
+        {
+          path: "canvas",
+          element: <CanvasWrapper></CanvasWrapper>,
+          children: [{ index: true, element: <CanvasPage></CanvasPage> }]
         }
       ],
 

@@ -80,7 +80,7 @@ const TeacherNavbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const [currentApp] = useState("lms")
-  const apps = IskraApps
+  const apps = IskraApps.filter(app => app.teachers === true)
   const activeApp = apps.find((a) => a.id === currentApp);
 
 // Onemogućavanje skrolovanja pozadine kada je mobilni meni preko celog ekrana otvoren
@@ -357,9 +357,32 @@ if (userID) {
           <img src="/favicon.png" className='size-8' alt="" />
           <h1 className='text-2xl font-bold'>Iskra</h1>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
-          <Menu className="size-6" />
-        </Button>
+        
+        <div className="flex items-center gap-1">
+            {/* Iskra Apps dropdown za mobilni */}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-primary">
+                        <LayoutGrid className="size-6" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 mt-[10px]">
+                    <DropdownMenuLabel>Iskra aplikacije</DropdownMenuLabel>
+                    {apps.map((app) => (
+                        <DropdownMenuItem key={app.id} onClick={() => location.href = app.url} className="flex justify-between items-center cursor-pointer">
+                        <span className="flex items-center gap-2">
+                            <app.icon className="size-4" /> {app.name}
+                        </span>
+                        {app.id === currentApp && <Check className="size-4 text-emerald-600" />}
+                        </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
+                <Menu className="size-6" />
+            </Button>
+        </div>
       </div>
 
       {/* MOBILNI FULL PAGE MENI (Prekriva ceo ekran, z-index 9999, nema skrolovanja iza) */}
@@ -517,7 +540,7 @@ if (userID) {
                   {moment(item.date).format("DD. MM. YYYY. HH:mm")}
                 </span>
                 
-                <p className={`text-sm flex items-center gap-2.5 leading-snug line-clamp-2 ${!isRead ? "text-[#194872] font-bold" : "text-gray-500"}`}>
+                <p className={`text-sm flex items-center gap-2.5 leading-snug line-clamp-2 ${!isRead ? "text-[#194872] font-bold" : "gray-500"}`}>
                   <Mail className={`size-4 flex-shrink-0 ${!isRead ? 'text-[#194872]' : 'text-slate-400'}`} />
                   <span className="break-words">{item.title}</span>
                 </p>
