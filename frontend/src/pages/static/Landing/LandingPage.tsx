@@ -9,6 +9,7 @@ import Explainer from './Explainer'
 import WhyIskra from './WhyIskra'
 import Signup from './Signup'
 import Loader from '@/components/custom/Loader';
+import IskraApps from './IskraApps'
 
 const LandingPage = () => {
 
@@ -91,6 +92,10 @@ const LandingPage = () => {
 
     <section id='why'>
         <WhyIskra></WhyIskra>
+    </section>
+
+    <section id='apps'>
+      <IskraApps></IskraApps>
     </section>
 
     <section id="contact">

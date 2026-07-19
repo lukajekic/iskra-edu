@@ -47,7 +47,7 @@ const WhyIskra = () => {
         ))}
       </div>
 
-      <a href="#contact" className='self-center mt-4'>
+      <a href="#apps" className='self-center mt-4'>
         <Button className='h-12 w-12 md:h-15 md:w-15 flex items-center justify-center rounded-full' variant={'outline'}>
           <ArrowDown className='size-6 md:size-10'></ArrowDown>
         </Button>
