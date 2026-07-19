@@ -51,6 +51,7 @@ type Message = {
     description: string;
     read:        string[];
     date:        Date;
+    target:     string|null
 }
 
 type Profile = {
@@ -541,7 +542,9 @@ if (userID) {
                 </span>
                 
                 <p className={`text-sm flex items-center gap-2.5 leading-snug line-clamp-2 ${!isRead ? "text-[#194872] font-bold" : "gray-500"}`}>
-                  <Mail className={`size-4 flex-shrink-0 ${!isRead ? 'text-[#194872]' : 'text-slate-400'}`} />
+                  {item?.target && (
+                    <Mail className={`size-4 flex-shrink-0 ${!isRead ? 'text-[#194872]' : 'text-slate-400'}`} />
+                  )}
                   <span className="break-words">{item.title}</span>
                 </p>
               </div>
@@ -562,6 +565,11 @@ if (userID) {
               
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 font-medium mt-1">
                 <span>{moment(activeMessage.date).format("D. MM. YYYY. HH:mm")}</span>
+                {activeMessage?.target && (
+                  <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full text-[11px] font-semibold">
+                    Samo za Vas
+                  </span>
+                )}
               </div>
             </div>
 
