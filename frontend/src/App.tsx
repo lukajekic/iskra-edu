@@ -39,8 +39,18 @@ import Welcome from './pages/Planner/Welcome';
 import IskraPlannerViewPage from './pages/Planner/PlanViewer';
 import CanvasWrapper from './pages/Canvas/CanvasWrapper';
 import CanvasPage from './pages/Canvas/CanvasPage';
+import { useEffect } from 'react';
 export function App() {
-
+useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then((reg) => console.log('Service Worker spreman:', reg))
+          .catch((err) => console.error('Greška pri SW registraciji:', err));
+      });
+    }
+  }, []);
   const router = createBrowserRouter([
    {
     element: <MaintenanceGuard></MaintenanceGuard>,
