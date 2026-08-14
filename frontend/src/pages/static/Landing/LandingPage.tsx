@@ -17,6 +17,8 @@ const LandingPage = () => {
     CreateMetricaView(import.meta.env.VITE_METRICA)
   }, [])
 
+  const [longLoading, setLongLoading] = useState(false);
+
   const [btnLoading, setBtnLoading] = useState(false)
 
   const words = ["svete.", "obrazovanju.", "budućnosti.", "Iskra."]
@@ -54,16 +56,25 @@ const LandingPage = () => {
     return () => clearTimeout(timer);
   }, [currentText, isDeleting, currentWordIndex]);
 
-  const hadleRedirect = async()=>{
+  const handleRedirect = async()=>{
+    const longLoadingTimer = setTimeout(() => {
+        setLongLoading(true);
+      }, 1000);
     try {
       setBtnLoading(true)
+      
       const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/redirect`)
       if (response.data) {
         setBtnLoading(false)
+        clearTimeout(longLoadingTimer) // PROMENJENO: clearTimeout umesto clearInterval
+        setLongLoading(false)
         location.href = response.data.redirect
+        
       }
     } catch (error) {
       console.error(error)
+      clearTimeout(longLoadingTimer) // PROMENJENO: clearTimeout umesto clearInterval
+      setLongLoading(false)
       setBtnLoading(false)
     }
   }
@@ -79,8 +90,9 @@ const LandingPage = () => {
             )}
         </h1>
         <div id="actions" className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md">
-            <Button disabled={btnLoading} className="w-full sm:w-auto" onClick={()=>{hadleRedirect()}} size={'lg'}>{
-              btnLoading ? (<Loader small></Loader>) : (<><ArrowUpRight/>Pristupi platformi</>)
+            {/* PROMENJENO: Poziv ispravljenog naziva funkcije handleRedirect */}
+            <Button disabled={btnLoading} className="w-full sm:w-auto" onClick={()=>{handleRedirect()}} size={'lg'}>{
+              btnLoading ? (<><Loader small></Loader>{longLoading && ("Pokretanje platforme u toku...")}</>) : (<><ArrowUpRight/>Pristupi platformi</>)
               }</Button>
             <a href="#explainer" className="w-full sm:w-auto"><Button className="w-full sm:w-auto" size={'lg'} variant={'outline'}>Saznaj vise</Button></a>
         </div>
