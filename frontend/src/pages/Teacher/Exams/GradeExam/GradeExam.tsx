@@ -13,11 +13,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import axios from 'axios'
-import { Check, X, Info } from 'lucide-react'
+import { Check, X, Info, AlertTriangle, FileText } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import LoaderModal from '@/components/custom/LoaderModal'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export interface StudentRef {
   _id: string;
@@ -278,6 +279,34 @@ const GradeExam = () => {
     return (
         <main className="px-1 md:px-0">
             <PageTitle title='Oceni kontrolni zadatak' subtitle={InitialData?.test_title}></PageTitle>
+            
+
+
+
+
+            <Alert  className="border-yellow-500/50 bg-yellow-500/10 text-yellow-900 dark:text-yellow-200 my-2">
+      <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full ml-2">
+        <div>
+          <AlertTitle className="font-semibold text-base">
+            Uputstvo za unos ocena u zvaničnu evidenciju
+          </AlertTitle>
+          <AlertDescription className="text-sm mt-1 text-amber-800/90 dark:text-amber-300/90">
+            Zbog propisa koji zahtevaju fizički dokaz na papiru za kontrolne zadatke, radove sa platforme Iskra u dnevnik unosite kao <strong className="font-semibold">Praktičan rad</strong>, <strong className="font-semibold">Vežbe</strong> ili <strong className="font-semibold">Ostalo</strong>.
+          </AlertDescription>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => window.open("https://lukajekic.github.io/iskra-documents/Unos%20ocena%20-%20pravni%20saveti.pdf", "_blank")}
+        >
+          <FileText className="h-4 w-4" />
+          PDF Uputstvo
+        </Button>
+      </div>
+    </Alert>
+
+
 
             {/* Izmenjeno: flex-col na mobilnom i tabletima, lg:flex-row za desktop trokolonski prikaz */}
             <div className="flex flex-col lg:flex-row w-full items-start mt-3 gap-4 lg:gap-0">
