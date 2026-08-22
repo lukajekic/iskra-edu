@@ -20,6 +20,7 @@ import  visualizer  from 'express-routes-visualizer'
 import StudentExamsRouter from './routes/StudentExamsRoutes.js'
 import PlannerRouter, { aiRouter } from './routes/PlannerRoutes.js'
 import CanvasRouter from './routes/CanvasRoutes.js'
+import ParentReportRoutes from './routes/ParentReportRoutes.js'
 const app = express()
 connectMongoDB()
 
@@ -90,6 +91,7 @@ app.use('/studentexams', StudentExamsRouter)
 app.use('/planner', PlannerRouter)
 app.use('/api/ai', aiRouter)
 app.use('/api/canvas', CanvasRouter)
+app.use('/parent-report', ParentReportRoutes)
 async function runPythonCode(index) {
   const url = "https://lukajekic-python-judge.hf.space/run";
   

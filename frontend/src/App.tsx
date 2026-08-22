@@ -40,6 +40,7 @@ import IskraPlannerViewPage from './pages/Planner/PlanViewer';
 import CanvasWrapper from './pages/Canvas/CanvasWrapper';
 import CanvasPage from './pages/Canvas/CanvasPage';
 import { useEffect } from 'react';
+import ParentReportPage from './pages/ParentReportPage';
 export function App() {
 useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -186,6 +187,16 @@ element: <NotFound></NotFound>
             {
               path: "home",
               element: <StudentHome></StudentHome>
+            }
+          ]
+        },
+
+        {
+          path: "parent",
+          children: [
+            {
+              path: "report",
+              element: <ParentReportPage></ParentReportPage>
             }
           ]
         },
