@@ -17,11 +17,13 @@ import SATeacherLookup from './SATeacherLookup'
 import SANewTargetedMessage from './SANewTargetedMessage'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
+import SAGdprDeleteUser from './SAGdprDeleteUser'
 export  const TeacherListContext = createContext()
 
 const SAHome = () => {
 
   const [teacherList, setTeacherList] = useState([])
+  const [authorized, setAuthorized] = useState<boolean | null>(null)
 
   const getTeachers = async()=>{
     try {
@@ -34,8 +36,21 @@ const SAHome = () => {
     }
   }
 
-  useEffect(()=>{
-    getTeachers()
+  useEffect(() => {
+    const verifyAccess = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/superadmin`, { withCredentials: true })
+        if (response.data?.super_admin) {
+          setAuthorized(true)
+          getTeachers()
+          return
+        }
+      } catch {
+        // Ne otkrivamo sadržaj panela korisniku bez dozvole.
+      }
+      setAuthorized(false)
+    }
+    verifyAccess()
   }, [])
 
     const consent = sessionStorage.getItem("sa_consent") && sessionStorage.getItem("sa_consent") === 'true'
@@ -62,12 +77,16 @@ const SAHome = () => {
         {
           title: "Nova poruka korisniku",
           element: <SANewTargetedMessage></SANewTargetedMessage>
+        },
+        {
+          title: "GDPR brisanje naloga",
+          element: <SAGdprDeleteUser></SAGdprDeleteUser>
         }
     ]
 
-    useEffect(()=>{
-        axios.get(`${import.meta.env.VITE_BACKEND}/user/me/superadmin`)
-    }, [])
+  if (authorized === null) return <div className='sa-admin-theme p-5'>Provera pristupa administrativnom panelu…</div>
+  if (!authorized) return <div className='sa-admin-theme p-5'>Nemate ovlašćenje za pristup administrativnom panelu.</div>
+
   return (
     <TeacherListContext.Provider value={teacherList}>
       <div className='sa-admin-theme p-5'>

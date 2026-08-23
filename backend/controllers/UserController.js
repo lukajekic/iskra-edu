@@ -5,6 +5,18 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { DocumentModel } from "../models/DocumentModel.js";
 import { MessageModel } from "../models/MessageModel.js";
+import { Foldermodel } from "../models/FolderModel.js";
+import { TaskModel } from "../models/TaskModel.js";
+import { LessonModel } from "../models/LessonModel.js";
+import { TheroyTAskModel } from "../models/TheoryTaskModel.js";
+import { TestModel } from "../models/TestModel.js";
+import { SolutionModel } from "../models/TestSolutionModel.js";
+import { ParentConsentModel } from "../models/ParentConsentModel.js";
+import { PlannerFolderModel } from "../models/PlannerFolderModel.js";
+import { PlannerPlanModel } from "../models/PlannerPlanModel.js";
+import { CanvasMapModel } from "../models/CanvasMapModel.js";
+
+const isSuperAdmin = (user) => user?.super_admin === true || user?.super_admin === "true";
 
 export const createAccount = async (req, res) => {
     let body = req.body || {}
@@ -428,10 +440,13 @@ export const endWorkhour = async(req, res)=>{
             return res.status(400).json(BuildValidationReturn("lacking role", "error", "You are not allowed to access workhour groups."))
         }
 
-        //brisanje ucenika prethodne grupe
-if (user.activegroup?.code) {
-    await UserModel.deleteMany({type: "student_temp", groupCodeRef: user.activegroup.code})
-}
+        // Pre brisanja šaljemo otvorenim sesijama signal za trenutnu odjavu.
+        if (user.activegroup?.code) {
+            const temporaryStudents = await UserModel.find({ type: "student_temp", groupCodeRef: user.activegroup.code }).select("_id").lean()
+            const io = req.app.get('socketio')
+            temporaryStudents.forEach((student) => io?.to(student._id.toString()).emit("workhour_ended"))
+            await UserModel.deleteMany({type: "student_temp", groupCodeRef: user.activegroup.code})
+        }
 
 user.activegroup = {
     expiry: null,
@@ -630,13 +645,116 @@ export const CheckSuperAdminRole = async(req,res)=>{
     try {
         let user = req.user
 
-        if (user && (user.super_admin === true || user.super_admin === "true")) {
+        if (isSuperAdmin(user)) {
             return res.status(200).json({"super_admin": true})
         } else {
             return res.status(401).json({"super_admin": false})
         }
     } catch (error) {
         return res.status(500).json(BuildValidationReturn(error.message, "error", "Unexpected error occured."))
+    }
+}
+
+/**
+ * GDPR pravo na brisanje. Briše sve dokumente koji su u ovoj aplikaciji
+ * direktno povezivi sa nalogom. AILog nije obuhvaćen jer ne čuva user ID,
+ * teacher ID ili drugi identifikator koji bi ga povezao sa konkretnim licem.
+ */
+export const DeleteUserForGdpr = async (req, res) => {
+    try {
+        if (!isSuperAdmin(req.user)) {
+            return res.status(403).json(BuildValidationReturn("Not Authorized.", "error", "Samo super-admin može trajno obrisati nalog."));
+        }
+
+        const { id } = req.params;
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).json(BuildValidationReturn("Invalid user ID.", "error", "Neispravan identifikator korisnika."));
+        }
+        if (id === req.user._id.toString()) {
+            return res.status(400).json(BuildValidationReturn("Self deletion forbidden.", "error", "Super-admin ne može obrisati sopstveni nalog kroz ovaj panel."));
+        }
+
+        const target = await UserModel.findById(id);
+        if (!target) {
+            return res.status(404).json(BuildValidationReturn("User not found.", "error", "Korisnik nije pronađen."));
+        }
+        if (isSuperAdmin(target)) {
+            return res.status(400).json(BuildValidationReturn("Protected account.", "error", "Nalog drugog super-admina ne može biti obrisan kroz ovaj panel."));
+        }
+        if (!["teacher", "student_permanent", "student_temp"].includes(target.type)) {
+            return res.status(400).json(BuildValidationReturn("Unsupported account type.", "error", "Moguće je obrisati samo učenika ili profesora."));
+        }
+
+        const targetId = target._id;
+        let userIds = [targetId];
+        let testIds = [];
+
+        if (target.type === "teacher") {
+            const students = await UserModel.find({ teacherRef: targetId }).select("_id").lean();
+            const studentIds = students.map((student) => student._id);
+            userIds = [targetId, ...studentIds];
+
+            const tests = await TestModel.find({ author: targetId }).select("_id").lean();
+            testIds = tests.map((test) => test._id);
+
+            await Promise.all([
+                Foldermodel.deleteMany({ teacherRef: targetId }),
+                TaskModel.deleteMany({ $or: [{ author: targetId }, { ownerRef: targetId }] }),
+                LessonModel.deleteMany({ owner: targetId }),
+                TheroyTAskModel.deleteMany({ owner: targetId }),
+                TestModel.deleteMany({ author: targetId }),
+                PlannerPlanModel.deleteMany({ userRef: targetId }),
+                PlannerFolderModel.deleteMany({ userRef: targetId }),
+                CanvasMapModel.deleteMany({ userRef: targetId }),
+            ]);
+        } else {
+            // Učenik nema samostalne resurse; njegova rešenja i saglasnosti se brišu ispod.
+        }
+
+        const relatedSolutions = [{ student_ref: { $in: userIds } }];
+        if (testIds.length) relatedSolutions.push({ test_ref: { $in: testIds } });
+
+        const userIdStrings = userIds.map((userId) => userId.toString());
+        await Promise.all([
+            SolutionModel.deleteMany({ $or: relatedSolutions }),
+            ParentConsentModel.deleteMany({ studentRef: { $in: userIds } }),
+            // Poruke upućene obrisanom korisniku su lični podatak i zato se uklanjaju.
+            MessageModel.deleteMany({ target: { $in: userIdStrings } }),
+            MessageModel.updateMany({}, { $pull: { read: { $in: userIdStrings } } }),
+        ]);
+
+        await UserModel.deleteMany({ _id: { $in: userIds } });
+
+        return res.status(200).json({
+            message: "GDPR brisanje je uspešno završeno.",
+            deletedUserCount: userIds.length,
+            deletedAccountType: target.type,
+        });
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "GDPR brisanje nije uspešno završeno."));
+    }
+}
+
+export const GetUsersForGdprDeletion = async (req, res) => {
+    try {
+        if (!isSuperAdmin(req.user)) {
+            return res.status(403).json(BuildValidationReturn("Not Authorized.", "error", "Samo super-admin ima pristup ovoj listi."));
+        }
+
+        const type = req.query.type;
+        const allowedTypes = ["teacher", "student_permanent", "student_temp"];
+        if (!allowedTypes.includes(type)) {
+            return res.status(400).json(BuildValidationReturn("Invalid account type.", "error", "Odaberite učenika ili profesora."));
+        }
+
+        const users = await UserModel.find({ type, super_admin: { $ne: true } })
+            .select("_id name username type teacherRef")
+            .populate("teacherRef", "name username")
+            .sort({ name: 1, username: 1 })
+            .lean();
+        return res.status(200).json(users);
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Lista korisnika nije dostupna."));
     }
 }
 

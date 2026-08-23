@@ -1,5 +1,5 @@
 import express from 'express'
-import { CheckSuperAdminRole, createAccount, createWorkhourGroup, Documentation, endWorkhour, ForbidWork, getAllTeachers, getMessages, getSingleStudentProgress, getSingleTeacher, Login, Logout, MyProfile, MyWorkhourGroup, NewMessage, NewMessageToUser, readMessage, RedirectMe, ReGrade, UpdateUserBanStatus, WorkhourPorgress, WorkhourTimer } from '../controllers/UserController.js'
+import { CheckSuperAdminRole, createAccount, createWorkhourGroup, DeleteUserForGdpr, Documentation, endWorkhour, ForbidWork, getAllTeachers, GetUsersForGdprDeletion, getMessages, getSingleStudentProgress, getSingleTeacher, Login, Logout, MyProfile, MyWorkhourGroup, NewMessage, NewMessageToUser, readMessage, RedirectMe, ReGrade, UpdateUserBanStatus, WorkhourPorgress, WorkhourTimer } from '../controllers/UserController.js'
 import { protect } from '../middleware/protect.js'
 import { inject_req_data } from '../middleware/inject_req_data.js'
 let router = express.Router()
@@ -30,5 +30,7 @@ router.post('/me/messages-specific', protect, NewMessageToUser)
 router.get("/me/teachers/all", protect, getAllTeachers)
 router.get("/me/teachers/:id", protect, getSingleTeacher)
 router.put('/me/teachers/ban/:id', protect, UpdateUserBanStatus)
+router.get('/me/gdpr/users', protect, GetUsersForGdprDeletion)
+router.delete('/me/gdpr/users/:id', protect, DeleteUserForGdpr)
 
 export default router

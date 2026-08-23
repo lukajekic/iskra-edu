@@ -60,6 +60,7 @@ const [groupActive, setGroupActive] = useState(false)
 const [codeFullScreen, setCodeFullScreen] = useState(false)
 const [workhourData, setWorhourData] = useState()
 const [openEndModal, setopenendmodal] = useState(false)
+const [classEnded, setClassEnded] = useState(false)
 const [openForbidModal, SetOpenForbidModal] = useState(false)
 const [loading, setLoading] = useState<boolean>(true)
 const [progress, setProgress] = useState([])
@@ -72,7 +73,9 @@ const endclass = async()=>{
     setLoading(true)
     const response = await axios.delete(`${import.meta.env.VITE_BACKEND}/user/me/workhour/end`)
     if (response.status === 200) {
-      location.reload()
+      setLoading(false)
+      setopenendmodal(false)
+      setClassEnded(true)
     }
   } catch (error) {
     console.error(error)
@@ -393,7 +396,21 @@ const handleExport = () => {
     </AlertDialogHeader>
     <AlertDialogFooter>
       <AlertDialogCancel onClick={()=>[setopenendmodal(false)]}>Odustani</AlertDialogCancel>
-      <AlertDialogAction variant={'destructive'} onClick={()=>{endclass()}}>Potvrdi</AlertDialogAction>
+      <AlertDialogAction variant={'destructive'} onClick={(event)=>{event.preventDefault(); endclass()}}>Potvrdi završetak časa</AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>
+
+<AlertDialog open={classEnded} onOpenChange={setClassEnded}>
+  <AlertDialogContent className="max-w-[95vw] sm:max-w-[500px]">
+    <AlertDialogHeader>
+      <AlertDialogTitle>Čas je završen</AlertDialogTitle>
+      <AlertDialogDescription>
+        Nastavna grupa je zatvorena. Svi učenici iz ove privremene grupe su odjavljeni, a njihovi nalozi, rešenja i podaci o napretku trajno su obrisani.
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogAction onClick={() => location.reload()}>U redu</AlertDialogAction>
     </AlertDialogFooter>
   </AlertDialogContent>
 </AlertDialog>

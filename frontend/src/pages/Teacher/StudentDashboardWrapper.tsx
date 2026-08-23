@@ -73,12 +73,21 @@ const [work_forbidden, set_work_forbidden] = useState(false)
       setopenforbiddialog(true)
     })
 
+    socket.on("workhour_ended", async () => {
+      try {
+        await axios.post(`${import.meta.env.VITE_BACKEND}/user/logout`, {}, { withCredentials: true })
+      } finally {
+        location.href = '/auth/onboarding'
+      }
+    })
+
     handleOnboarding(socket)
 
     return () => {
     socket.off("solution_status_update");
     socket.off("metrica_pyjudge");
     socket.off("work_forbidden_action");
+    socket.off("workhour_ended");
     socket.disconnect();
   };
   }, [])
