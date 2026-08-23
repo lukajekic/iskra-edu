@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea'
 import axios from 'axios'
 import React, { useState } from 'react'
 import { toast } from 'sonner'
+import posthog from '@/lib/posthog'
 
 const SANewMessage = () => {
     const onSubmit =async (event)=>{
@@ -18,6 +19,7 @@ const SANewMessage = () => {
         const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/me/messages`, data)
 
         if (response.status === 201) {
+            posthog.capture('admin_message_sent')
             toast.success("OK.")
         }
         } catch (error) {

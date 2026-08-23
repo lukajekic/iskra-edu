@@ -4,12 +4,16 @@ import './index.css'
 import App from './App.tsx'
 import axios from 'axios'
 import { toast } from 'sonner'
+import './lib/posthog.ts'
 axios.defaults.withCredentials = true
-axios.interceptors.response.use(response => response, error =>{
-    if (error.response.status === 401) {
-        if (location.pathname !== '/auth/onboarding') {
-            location.href = '/auth/onboarding'
+const PUBLIC_PATHS = ['/', '/about', '/legal/terms', '/legal/privacy', '/maintenance', '/not-available-on-mobile']
 
+axios.interceptors.response.use(response => response, error => {
+    if (error.response?.status === 401) {
+        const isPublicPath = PUBLIC_PATHS.includes(location.pathname)
+        const alreadyOnOnboarding = location.pathname === '/auth/onboarding'
+        if (!isPublicPath && !alreadyOnOnboarding) {
+            location.href = '/auth/onboarding'
         }
     }else if (error.response.status === 400) {
         if (error.response.data.toast) {

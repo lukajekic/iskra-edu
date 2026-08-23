@@ -19,6 +19,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import LoaderModal from '@/components/custom/LoaderModal'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import posthog from '@/lib/posthog'
 
 export interface StudentRef {
   _id: string;
@@ -229,6 +230,11 @@ const GradeExam = () => {
             const response = await axios.post(`${import.meta.env.VITE_BACKEND}/studentexams/grade-candidate`, payload)
 
             if (response.status === 200) {
+                posthog.capture('student_exam_graded', {
+                    grade: Number(selectedGrade),
+                    total_points: singleCandidateData.total_points,
+                    max_points: singleCandidateData.max_points,
+                })
                 toast.success("Uspešno sačuvana ocena!")
 
                 const updatedSolutions = InitialData.solutions.map((sol) => {

@@ -65,6 +65,7 @@ import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
 import LoaderModal from '@/components/custom/LoaderModal'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import posthog from '@/lib/posthog'
 const Editor = () => {
     const params = useParams()
     const navigate = useNavigate()
@@ -147,6 +148,9 @@ const updateTask = async(pushToStore:boolean=false)=>{
 
         const update_response = await axios.put(`${import.meta.env.VITE_BACKEND}/my/tasks/edit`, updateBody)
         if (update_response.status === 200) {
+            posthog.capture('task_updated', {
+                published_to_store: pushToStore,
+            })
             if (pushToStore && selfPublished === false) {
                 setOpenPublisher(true)
                 setOpenSaveModal(false)
@@ -179,6 +183,10 @@ taskID: taskID
         })
 
         if (response.status === 200) {
+            posthog.capture('task_published_to_store', {
+                grade: publisherData.grade,
+                anonymous: publisherData.anon,
+            })
             setLoading(false)
               playAnimation()
                 setTimeout(() => {

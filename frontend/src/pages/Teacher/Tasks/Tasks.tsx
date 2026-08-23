@@ -34,6 +34,7 @@ import LoaderModal from '@/components/custom/LoaderModal'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
 import { SupportedLanguages } from '@/assets/constants'
+import posthog from '@/lib/posthog'
 
 
 type ModalStatus = {
@@ -75,6 +76,7 @@ const Tasks =   () => {
       })
 
       if (response.status === 201) {
+        posthog.capture('folder_created')
         getFolders()
         setModalState(prev => ({...prev, newfolder: false}))
         setNewFodlerName("")
@@ -135,6 +137,10 @@ const initializeTask = async()=>{
     setLoading(true)
     const response = await axios.post(`${import.meta.env.VITE_BACKEND}/my/tasks/initialize`, newTaskForm)
     if (response.status === 200) {
+      posthog.capture('task_created', {
+        language: newTaskForm.language,
+        output_type: newTaskForm.outputType,
+      })
       setLoading(false)
       setModalState(prev => ({...prev, newtask: false}))
       setNewTaskForm({
@@ -163,6 +169,9 @@ const publishVisibility = async()=>{
     })
 
     if (response.status === 200) {
+      posthog.capture('folder_visibility_changed', {
+        visible_to_students: proposedFolderView === true,
+      })
       setProposedFolderView(null)
       setModalState(prev => ({...prev, folderinfo: false}))
       getFolders()

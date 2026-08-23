@@ -30,6 +30,7 @@ import { Separator } from '@/components/ui/separator'
 import foldericon from '../../../assets/folder.png'
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Link } from 'react-router-dom'
+import posthog from '@/lib/posthog'
 
 type Folder = {
     _id:        string;
@@ -85,6 +86,7 @@ const downloadTask = async(folderID:string)=>{
     })
 
     if (response.status === 200) {
+      posthog.capture('store_task_downloaded')
       setTimeout(() => {
         setOpenFolderPicker(false)
         setOpenLoader(false)
@@ -114,6 +116,11 @@ const executeQuery = async()=>{
     const response = await axios.post(`${import.meta.env.VITE_BACKEND}/store`, query)
 
     if (response.status === 200) {
+      posthog.capture('store_search_completed', {
+        grade: query.grade,
+        language: query.language,
+        result_count: response.data.length,
+      })
       if (response.data.length === 0) {
         setTimeout(() => {
           toast.warning("Nisu pronađeni zadaci za unete kriterijume.")

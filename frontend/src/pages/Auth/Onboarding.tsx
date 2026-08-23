@@ -34,6 +34,7 @@ import Reveal from './Reveal'
 import axios from 'axios'
 import { toast } from 'sonner'
 import Loader from '@/components/custom/Loader'
+import posthog from '@/lib/posthog'
 import './onboarding.css'
 
 const Onboarding = () => {
@@ -76,9 +77,18 @@ handleOnboarding()
 
       if (response.status === 200) {
         const redirectresponse = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/redirect`);
-        if (redirectresponse.data.redirect) {
+        const profileResponse = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me`)
+        if (redirectresponse.data.redirect && profileResponse.data?._id) {
+          posthog.identify(profileResponse.data._id, {
+            name: profileResponse.data.name,
+            username: profileResponse.data.username,
+            type: profileResponse.data.type,
+          })
+          posthog.capture('credential_login_succeeded', {
+            account_type: profileResponse.data.type,
+          })
           if (redirectresponse.data.redirect === '/app/teacher') {
-            sessionStorage.setItem('teacher_id', redirectresponse.data.userID)
+            sessionStorage.setItem('teacher_id', profileResponse.data._id)
           }
           location.href = redirectresponse.data.redirect;
           setBtnLoading(false)
@@ -107,6 +117,17 @@ handleOnboarding()
       })
 
       if (response.status === 200) {
+        const profileResponse = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me`)
+        if (profileResponse.data?._id) {
+          posthog.identify(profileResponse.data._id, {
+            name: profileResponse.data.name,
+            username: profileResponse.data.username,
+            type: profileResponse.data.type,
+          })
+          posthog.capture('access_code_login_succeeded', {
+            account_type: profileResponse.data.type,
+          })
+        }
         setBtnLoading(false)
         location.href = '/app/student/home'
       }

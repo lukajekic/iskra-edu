@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Editor } from '@monaco-editor/react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import posthog from '@/lib/posthog';
 
 const SolutionForm = () => {
 
@@ -82,6 +83,9 @@ const SolutionForm = () => {
             })
 
             if (response.status === 200) {
+                posthog.capture('student_answer_submitted', {
+                    task_type: 'theory',
+                })
                 setDraft(false)
                 setTasksData((prev) => {
                     if (!prev) return prev
@@ -137,6 +141,10 @@ const SolutionForm = () => {
             })
 
             if (response.status === 200) {
+                posthog.capture('student_answer_submitted', {
+                    task_type: 'practical',
+                    evaluation_result: response.data.correct ? 'correct' : 'incorrect',
+                })
                 setDraft(false)
                 setTasksData((prev) => {
                     if (!prev) return prev

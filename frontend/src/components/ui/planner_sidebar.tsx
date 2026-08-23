@@ -45,6 +45,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PlannerDataContext, UserContext } from "@/pages/Planner/PlannerWrapper";
+import posthog from "@/lib/posthog";
 
 export function PlannerSidebar() {
   const user = useContext(UserContext);
@@ -117,6 +118,7 @@ export function PlannerSidebar() {
     try {
       const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/logout`)
       if (response.status === 200) {
+        posthog.reset()
         location.href = "/auth/onboarding"
       }
     } catch (error) {

@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea'
 import axios from 'axios'
 import React, { useState } from 'react'
 import { toast } from 'sonner'
+import posthog from '@/lib/posthog'
 
 const SANewUser = () => {
     const onSubmit =async (event)=>{
@@ -19,6 +20,7 @@ const SANewUser = () => {
         const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/create`, data)
 
         if (response.status === 201) {
+            posthog.capture('teacher_account_created')
             toast.success("OK:", response.data.username || "")
         }
         } catch (error) {

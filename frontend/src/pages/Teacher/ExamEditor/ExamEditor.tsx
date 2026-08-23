@@ -24,6 +24,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import LoaderModal from '@/components/custom/LoaderModal'
+import posthog from '@/lib/posthog'
 export interface IQuestion {
     taskType: 'Task' | 'TheoryTask'; // Striktni enum tipovi za frontend validaciju
     questionID: string;              // Na frontendu ObjectId dolazi kao string
@@ -135,6 +136,10 @@ const ExamEditor = () => {
             const response = await axios.put(`${import.meta.env.VITE_BACKEND}/my/tests?id=${id}`, test)
             setLoading(false)
             if (response.status === 200) {
+                posthog.capture('exam_updated', {
+                    question_count: test?.questions.length ?? 0,
+                    grade: test?.grade,
+                })
                 toast.success("Uspesno!")
                 navigate('/app/teacher/exams/all')
             }
