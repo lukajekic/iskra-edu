@@ -32,6 +32,7 @@ import { setDate } from 'date-fns'
 import { useUserId } from '@/context/UserContext'
 import { toast } from 'sonner'
 import LoaderModal from '@/components/custom/LoaderModal'
+import MassActionQrRequest from './MassActionQrRequest'
 
 type ModalStatus = {
   create: boolean,
@@ -230,6 +231,7 @@ if (response.status === 201) {
    
     <Button onClick={()=>{setModalState(prev =>({...prev, create: true}))}}><PlusSquare></PlusSquare>Novi učenik</Button>
     <Button className='ml-2' variant={'outline'} onClick={handleExport}><Download></Download>Izvoz podataka</Button>
+    <MassActionQrRequest />
         <div className="h-5"></div>
 <DataTable  filter={{key: "name", input_label: "Pretraga..."}} data={data} columns={getColumns({onEdit: (student)=> [setModalState(prev => ({...prev, edit: true})), setEditStudentForm({name: student.name, newpassword: "", _id: student._id})], onDelete: (student)=> [setModalState(prev => ({...prev, delete: true})), setEditStudentForm({name: student.name, newpassword: "", _id: student._id})]})}></DataTable>
 

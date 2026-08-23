@@ -18,6 +18,7 @@ import SANewTargetedMessage from './SANewTargetedMessage'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
 import SAGdprDeleteUser from './SAGdprDeleteUser'
+import SAAuthorizeQr from './SAAuthorizeQr'
 export  const TeacherListContext = createContext()
 
 const SAHome = () => {
@@ -81,6 +82,10 @@ const SAHome = () => {
         {
           title: "GDPR brisanje naloga",
           element: <SAGdprDeleteUser></SAGdprDeleteUser>
+        },
+        {
+          title: "QR odobrenje masovne radnje",
+          element: <SAAuthorizeQr></SAAuthorizeQr>
         }
     ]
 

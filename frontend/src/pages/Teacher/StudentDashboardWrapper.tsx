@@ -81,6 +81,14 @@ const [work_forbidden, set_work_forbidden] = useState(false)
       }
     })
 
+    socket.on("account_deleted", async () => {
+      try {
+        await axios.post(`${import.meta.env.VITE_BACKEND}/user/logout`, {}, { withCredentials: true })
+      } finally {
+        location.href = '/auth/onboarding'
+      }
+    })
+
     handleOnboarding(socket)
 
     return () => {
@@ -88,6 +96,7 @@ const [work_forbidden, set_work_forbidden] = useState(false)
     socket.off("metrica_pyjudge");
     socket.off("work_forbidden_action");
     socket.off("workhour_ended");
+    socket.off("account_deleted");
     socket.disconnect();
   };
   }, [])
