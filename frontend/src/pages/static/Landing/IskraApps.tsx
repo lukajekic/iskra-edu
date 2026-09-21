@@ -2,7 +2,7 @@ import React from 'react'
 import Sectiontitle from './Sectiontitle'
 import Reveal from './Reveal'
 import { Button } from '@/components/ui/button'
-import { ArrowDown, Code2, LayoutDashboard, NotebookPen, Terminal } from 'lucide-react' // IZMENA: Novi ikone za aplikacije
+import { ArrowDown, Code2, LayoutDashboard, NotebookPen, Terminal } from 'lucide-react'
 import './landingcss.css'
 
 const apps = [
@@ -28,40 +28,44 @@ const apps = [
 
 const IskraApps = () => {
   return (
-    <div className='min-h-screen w-full py-12 px-6 md:p-20 flex flex-col justify-between gap-8 box-border'>
+    /* PROMENJENO: Uklonjen min-h-screen, dodatan max-w-6xl i svedeni padinzi */
+    <section id="apps" className='w-full py-12 md:py-16 px-4 md:px-8 box-border max-w-6xl mx-auto flex flex-col gap-6 md:gap-8'>
       <Reveal>
         <Sectiontitle text={'Iskra Aplikacije'}></Sectiontitle> 
       </Reveal>
 
-      <div id="flexparent" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 flex-1 min-h-0 mt-6 md:mt-10 mb-5 auto-rows-fr">
-        {apps.map(({ icon: Icon, title, tag, text }, i) => ( // IZMENA: Destrukturisan 'tag'
+      {/* PROMENJENO: Izbačeni flex-1, min-h-0 i ublažene gornje i donje margine */}
+      <div id="flexparent" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-2 md:mt-4 auto-rows-fr">
+        {apps.map(({ icon: Icon, title, tag, text }, i) => (
           <Reveal key={title} delay={i * 100} className="h-full">
-            <div className="whycard p-8 rounded-xl border h-full flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:text-white">
+            {/* PROMENJENO: Umereniji p-6/p-7, sklanjanje hover:text-white i uvođenje suptilnog transform/shadow hover efekta */}
+            <div className="whycard p-6 rounded-xl border bg-card/40 h-full flex flex-col justify-between transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div className="whycard-icon flex h-12 w-12 items-center justify-center rounded-xl bg-primary/5">
-                    <Icon className="size-6 text-primary" />
+                <div className="flex items-center justify-between mb-4">
+                  {/* PROMENJENO: Smanjen okvir ikone na h-10 w-10 */}
+                  <div className="whycard-icon flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <Icon className="size-5 text-primary" />
                   </div>
-                  <span className="text-xs font-medium px-2.5 py-1 rounded-full border bg-muted/50 text-muted-foreground">
+                  <span className="text-xs font-medium px-2.5 py-1 rounded-full border bg-muted/60 text-muted-foreground">
                     {tag}
                   </span>
                 </div>
-                <h1 className="text-2xl font-bold mb-3 tracking-tight">{title}</h1>
-                <p className="text-sm md:text-base leading-relaxed text-muted-foreground">{text}</p>
+                {/* PROMENJENO: h1 zamenjen sa h3 (text-xl font-semibold) */}
+                <h3 className="text-xl font-semibold mb-2 tracking-tight">{title}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">{text}</p>
               </div>
-              
-              
             </div>
           </Reveal>
         ))}
       </div>
 
-      <a href="#contact" className='self-center mt-4'>
-        <Button className='h-12 w-12 md:h-15 md:w-15 flex items-center justify-center rounded-full' variant={'outline'}>
-          <ArrowDown className='size-6 md:size-10'></ArrowDown>
+      {/* PROMENJENO: Normalizovano dugme za skrol */}
+      <a href="#contact" className='self-center mt-2'>
+        <Button className='h-10 w-10 md:h-11 md:w-11 flex items-center justify-center rounded-full' variant={'outline'}>
+          <ArrowDown className='size-5 md:size-6'></ArrowDown>
         </Button>
       </a>
-    </div>
+    </section>
   )
 }
 

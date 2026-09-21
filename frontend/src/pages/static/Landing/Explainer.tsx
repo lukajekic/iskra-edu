@@ -13,13 +13,13 @@ const features = [
 
 const Explainer = () => {
   return (
-    <div className='min-h-screen w-full py-12 px-6 md:p-20 flex flex-col justify-between gap-8 box-border'>
+    <section className='w-full py-12 md:py-20 px-4 md:px-8 box-border max-w-6xl mx-auto flex flex-col gap-8'>
       <Reveal>
-        <Sectiontitle text={'Sta je to Iskra?'}></Sectiontitle>
+        <Sectiontitle text={'Šta je to Iskra?'} />
       </Reveal>
 
       <Reveal delay={80}>
-        <p className="text-lg md:text-xl w-full md:w-1/2 mt-4 md:mt-10 leading-relaxed">
+        <p className="text-base md:text-lg max-w-2xl text-muted-foreground leading-relaxed">
           Iskra je savremena platforma koja unapređuje način na koji učenici rešavaju zadatke i usvajaju programiranje.
           Omogućava brzo rešavanje zadataka, automatsku proveru i trenutnu povratnu informaciju — čineći proces učenja
           jednostavnijim, efikasnijim i znatno zanimljivijim. ⚡
@@ -27,11 +27,11 @@ const Explainer = () => {
       </Reveal>
 
       <Reveal delay={140}>
-        <div className="flex flex-wrap gap-3 md:gap-4">
+        <div className="flex flex-wrap gap-2.5">
           {features.map(({ icon: Icon, label }) => (
             <div
               key={label}
-              className="feature-chip flex items-center gap-2 rounded-full border px-4 py-2 text-sm md:text-base"
+              className="feature-chip flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs md:text-sm font-medium bg-background shadow-sm"
             >
               <Icon className="size-4 text-primary" />
               {label}
@@ -40,18 +40,22 @@ const Explainer = () => {
         </div>
       </Reveal>
 
-      <Reveal delay={200} className='flex-1 w-full flex items-center justify-center min-h-[250px] md:min-h-0'>
-        <div className="mockup-frame w-full h-full flex items-center justify-center">
-          <img src={mockup1} className='max-h-[50vh] md:max-h-full object-contain w-full rounded-xl' alt="" />
+      <Reveal delay={200} className='w-full flex justify-center py-4'>
+        <div className="mockup-frame w-full flex justify-center">
+          <img 
+            src={mockup1} 
+            className='max-h-[350px] md:max-h-[420px] object-contain w-auto rounded-xl shadow-md border' 
+            alt="Iskra mockup" 
+          />
         </div>
       </Reveal>
 
-      <a className='self-center mt-4' href="#why">
-        <Button className='h-12 w-12 md:h-15 md:w-15 flex items-center justify-center rounded-full' variant={'outline'}>
-          <ArrowDown className='size-6 md:size-10'></ArrowDown>
+      <a className='self-center' href="#why">
+        <Button className='h-10 w-10 md:h-11 md:w-11 flex items-center justify-center rounded-full' variant={'outline'}>
+          <ArrowDown className='size-5 md:size-6'></ArrowDown>
         </Button>
       </a>
-    </div>
+    </section>
   )
 }
 

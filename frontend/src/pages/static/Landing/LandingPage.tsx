@@ -11,6 +11,7 @@ import Signup from './Signup'
 import Loader from '@/components/custom/Loader';
 import IskraApps from './IskraApps'
 import ParentReportSection from './ParentReportSection'
+import InvestorSection from './Investors'
 
 const LandingPage = () => {
 
@@ -117,6 +118,9 @@ const LandingPage = () => {
 
     <section id="contact">
         <Signup></Signup>
+    </section>
+    <section>
+      <InvestorSection></InvestorSection>
     </section>
     </>
   )
