@@ -173,13 +173,14 @@ export function PortalAppShell() {
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p="sm">
+      <AppShell.Navbar>
         {session.menu.map((item) => {
           const Icon = menuIcons[item.id as keyof typeof menuIcons] ?? Home;
           return (
             <NavLink
               key={item.id}
               active={activeItem === item.id}
+              className={`${activeItem === item.id ? "!border-[#228be6] !border-l-2" : ""}`}
               label={item.label}
               leftSection={<Icon size={20} />}
               variant="light"
