@@ -36,6 +36,8 @@ import { toast } from 'sonner'
 import Loader from '@/components/custom/Loader'
 import posthog from '@/lib/posthog'
 import './onboarding.css'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { AlertTriangleIcon, Info } from 'lucide-react'
 
 const Onboarding = () => {
 const [btnLoading, setBtnLoading] = useState(false)
@@ -270,6 +272,19 @@ handleOnboarding()
                               <DialogDescription>
                                 Unesi svoje podatke za prijavu na <strong>portal za učenike i profesore</strong>.
                               </DialogDescription>
+
+                              <Alert className="max-w-md border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-50">
+      <Info />
+      <AlertTitle>Ostale opcije prijave</AlertTitle>
+      <AlertDescription>
+        Za prijavu na portal za Škole i lokalne samouprave, kliknite na dugme ispod.
+        <br />
+        <br />
+        <Button onClick={()=>{location.href = "/portal/login"}} variant={'outline'}>Prijava na portal</Button>
+      </AlertDescription>
+
+      
+    </Alert>
                             </DialogHeader>
                             <FieldGroup>
                               <Field>

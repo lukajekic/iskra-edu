@@ -41,6 +41,9 @@ import CanvasWrapper from './pages/Canvas/CanvasWrapper';
 import CanvasPage from './pages/Canvas/CanvasPage';
 import { useEffect } from 'react';
 import ParentReportPage from './pages/ParentReportPage';
+import BackOfficeLayout from './pages/backoffice/BackOfficeLayout';
+import PortalLogin from './pages/backoffice/Login/PortalLogin';
+import { PortalAppShell } from './pages/backoffice/Portal/AppShell';
 export function App() {
 useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -247,6 +250,25 @@ element: <NotFound></NotFound>
         {
           index: true,
           element: <SAHome></SAHome>
+        }
+      ]
+    },
+
+    {
+      path: "/portal",
+      element: <BackOfficeLayout></BackOfficeLayout>,
+      children: [
+        {
+      index: true,
+      element: <Navigate to="/portal/login" replace />
+    },
+        {
+          path: "login",
+          element: <PortalLogin/>
+        },
+        {
+          path: "dashboard",
+          element: <PortalAppShell></PortalAppShell>
         }
       ]
     }

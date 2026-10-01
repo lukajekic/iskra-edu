@@ -1,8 +1,21 @@
 import express from 'express'
-import { CheckSuperAdminRole, createAccount, createWorkhourGroup, DeleteUserForGdpr, Documentation, endWorkhour, ForbidWork, getAllTeachers, GetUsersForGdprDeletion, getMessages, getSingleStudentProgress, getSingleTeacher, Login, Logout, MyProfile, MyWorkhourGroup, NewMessage, NewMessageToUser, readMessage, RedirectMe, ReGrade, UpdateUserBanStatus, WorkhourPorgress, WorkhourTimer } from '../controllers/UserController.js'
+import rateLimit from 'express-rate-limit'
+import { CheckSuperAdminRole, createAccount, createWorkhourGroup, DeleteUserForGdpr, Documentation, endWorkhour, ForbidWork, getAllTeachers, GetUsersForGdprDeletion, getMessages, getSingleStudentProgress, getSingleTeacher, Login, Logout, MyProfile, MyWorkhourGroup, NewMessage, NewMessageToUser, readMessage, RedirectMe, ReGrade, UpdateUserBanStatus, WorkhourPorgress, WorkhourTimer, PortalLogin, PortalSession, SetupPortalOtp, PortalLogout } from '../controllers/UserController.js'
 import { protect } from '../middleware/protect.js'
+import { protectPortal } from '../middleware/protectPortal.js'
 import { inject_req_data } from '../middleware/inject_req_data.js'
 let router = express.Router()
+const portalAuthLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	limit: 10,
+	standardHeaders: true,
+	legacyHeaders: false,
+	message: {
+		message: "Portal login rate limit.",
+		toast: "error",
+		toast_message: "Previše pokušaja prijave. Pokušajte ponovo za 15 minuta."
+	}
+})
 
 
 router.post("/create", inject_req_data, createAccount)
@@ -32,5 +45,10 @@ router.get("/me/teachers/:id", protect, getSingleTeacher)
 router.put('/me/teachers/ban/:id', protect, UpdateUserBanStatus)
 router.get('/me/gdpr/users', protect, GetUsersForGdprDeletion)
 router.delete('/me/gdpr/users/:id', protect, DeleteUserForGdpr)
+
+router.post('/portal-login', PortalLogin)
+router.post('/portal-otp/setup', SetupPortalOtp)
+router.post('/portal-logout', PortalLogout)
+router.get('/portal-session', protectPortal, PortalSession)
 
 export default router

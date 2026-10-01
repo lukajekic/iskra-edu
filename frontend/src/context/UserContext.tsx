@@ -18,7 +18,8 @@ const [userID, setUserID] = useState<string|null>(null)
 
 useEffect(() => {
   const PUBLIC_PATHS = ['/', '/about', '/legal/terms', '/legal/privacy', '/maintenance', '/not-available-on-mobile']
-  if (PUBLIC_PATHS.includes(window.location.pathname)) return // ne proveravaj sesiju na javnim stranicama
+  const currentPath = window.location.pathname
+  if (PUBLIC_PATHS.includes(currentPath) || currentPath === '/portal' || currentPath.startsWith('/portal/')) return // portal koristi zasebnu sesiju
 
   const restoreIdentity = async () => {
     try {

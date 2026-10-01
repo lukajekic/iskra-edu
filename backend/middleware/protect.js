@@ -14,6 +14,10 @@ export const protect = async(req, res, next) =>{
     const verify = jwt.verify(token, process.env.JWT_SECRET)
 
     if (verify) {
+        if (verify.scope === 'portal') {
+            return res.status(401).json(BuildValidationReturn("Portal session cannot access the standard application.", null, null))
+        }
+
         const user = await UserModel.findById(verify.id)
 
         if (!user) {

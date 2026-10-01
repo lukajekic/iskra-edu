@@ -15,8 +15,22 @@ import { ParentConsentModel } from "../models/ParentConsentModel.js";
 import { PlannerFolderModel } from "../models/PlannerFolderModel.js";
 import { PlannerPlanModel } from "../models/PlannerPlanModel.js";
 import { CanvasMapModel } from "../models/CanvasMapModel.js";
+import { buildPortalOtpUri, decryptPortalOtpSecret, encryptPortalOtpSecret, generatePortalOtpSecret, matchPortalOtpCounter } from "../utilities/portalOtp.js";
 
 const isSuperAdmin = (user) => user?.super_admin === true || user?.super_admin === "true";
+const isSecureRequest = (req) => req.secure
+    || req.get("x-forwarded-proto")?.split(",")[0]?.trim() === "https"
+    || process.env.NODE_ENV === "production";
+const clearLegacyPortalCookie = (req, res) => {
+    try {
+        const legacyToken = req.cookies?.token;
+        if (legacyToken && jwt.verify(legacyToken, process.env.JWT_SECRET)?.scope === "portal") {
+            res.clearCookie("token", { secure: true, httpOnly: true, sameSite: "none" });
+        }
+    } catch {
+        // Expired or invalid legacy token; do not affect a valid standard-app session.
+    }
+};
 
 export const createAccount = async (req, res) => {
     let body = req.body || {}
@@ -153,6 +167,10 @@ export const Login = async (req, res) => {
         return res.status(400).json(BuildValidationReturn("Invalid credentials.", "error", "Your login credentials aren't valid."))
     }
 
+    if (user.type === "portal") {
+        return res.status(403).json(BuildValidationReturn("PORTAL LOGIN REQUIRED", "error", "Za ovaj nalog koristite prijavu na portal."))
+    }
+
     if (user.login_banned) {
         return res.status(400).json(BuildValidationReturn("Login banned.", "error", "Aktivna zabrana prijave na portal."))
     }
@@ -170,6 +188,272 @@ export const Login = async (req, res) => {
 
     return res.status(200).json(BuildValidationReturn("LOGIN OK", "success", "Successful Login."))
 }  //ISPRAVNO - 9. 3. 2026.
+
+
+
+export const getMenuByRole = (role) => {
+  const roleMenus = {
+    super_admin: [
+      {
+        id: "users",
+        label: "Korisnici i Uloge",
+        icon: "IconUsers"
+      },
+      {
+        id: "courses",
+        label: "Predmeti i Kursevi",
+        icon: "IconBooks"
+      },
+      {
+        id: "reports",
+        label: "Izveštaji i Ispiti",
+        icon: "IconClipboardCheck"
+      },
+      {
+        id: "settings",
+        label: "Podešavanja",
+        icon: "IconSettings"
+      }
+    ],
+
+    district: [
+      {
+        id: "courses",
+        label: "Moje Grupe i Predmeti",
+        icon: "IconBooks"
+      },
+      {
+        id: "reports",
+        label: "Ocenjivanje i Dnevnici",
+        icon: "IconClipboardCheck"
+      }
+    ],
+
+    school_main: [
+      {
+        id: "courses",
+        label: "Moji Kursevi",
+        icon: "IconBooks"
+      }
+    ],
+
+    school_tenant: [
+      {
+        id: "courses",
+        label: "Moji Kursevi",
+        icon: "IconBooks"
+      }
+    ]
+  };
+
+    return roleMenus[role] || [];
+};
+export const PortalLogin = async (req, res) => {
+    const username = typeof req.body?.username === "string" ? req.body.username.trim() : "";
+    const password = typeof req.body?.password === "string" ? req.body.password : "";
+    const otp = typeof req.body?.otp === "string" ? req.body.otp.trim() : "";
+
+  if (!username || !password) {
+    return res.status(400).json(
+      BuildValidationReturn("Missing credentials.", "error", "Please enter both username and password.")
+    );
+  }
+
+    try {
+        const user = await UserModel.findOne({ username }).select("+portal_access_data.otp_secret");
+        if (!user || !user.password || !(await bcrypt.compare(password, user.password))) {
+            return res.status(400).json(
+                BuildValidationReturn("Invalid credentials.", "error", "Korisničko ime ili lozinka nisu ispravni.")
+            );
+        }
+
+        const role = user.portal_access_data?.role;
+        const allowedRoles = ["super_admin", "district", "school_main", "school_tenant"];
+        if (user.type !== "portal" || !allowedRoles.includes(role)) {
+            return res.status(403).json(
+                BuildValidationReturn("Access Denied.", "error", "Ovaj nalog nema pristup portal konzoli.")
+            );
+        }
+
+        if (user.login_banned) {
+            return res.status(403).json(
+                BuildValidationReturn("Login banned.", "error", "Aktivna je zabrana prijave na portal.")
+            );
+        }
+
+        if (!user.portal_access_data?.otp_secret) {
+            return res.status(428).json(
+                BuildValidationReturn("PORTAL_OTP_SETUP_REQUIRED", "info", "Podesite autentifikator za portal nalog.")
+            );
+        }
+
+        const otpCounter = matchPortalOtpCounter(decryptPortalOtpSecret(user.portal_access_data.otp_secret), otp);
+        if (otpCounter === null) {
+            if (!user.portal_access_data.otp_confirmed_at) {
+                return res.status(428).json(
+                    BuildValidationReturn("PORTAL_OTP_SETUP_REQUIRED", "info", "Skenirajte QR kod i unesite kod iz autentifikatora.")
+                );
+            }
+            return res.status(400).json(
+                BuildValidationReturn("Invalid portal verification code.", "error", "Unesite važeći šestocifreni OTP kod.")
+            );
+        }
+
+        const otpStepConsumed = await UserModel.findOneAndUpdate(
+            {
+                username,
+                type: "portal",
+                login_banned: { $ne: true },
+                "portal_access_data.role": role,
+                "portal_access_data.otp_secret": user.portal_access_data.otp_secret,
+                $or: [
+                    { "portal_access_data.otp_last_used_counter": { $lt: otpCounter } },
+                    { "portal_access_data.otp_last_used_counter": { $exists: false } }
+                ]
+            },
+            {
+                $set: {
+                    "portal_access_data.otp_last_used_counter": otpCounter,
+                    "portal_access_data.otp_confirmed_at": user.portal_access_data.otp_confirmed_at || new Date()
+                }
+            },
+            { new: true }
+        );
+        if (!otpStepConsumed) {
+            return res.status(400).json(
+                BuildValidationReturn("Portal verification code already used.", "error", "Ovaj OTP kod je već iskorišćen. Sačekajte novi kod iz autentifikatora.")
+            );
+        }
+
+        const token = jwt.sign({ id: user._id.toString(), username: user.username, scope: "portal", mfa: "totp" }, process.env.JWT_SECRET, { expiresIn: 5400 });
+        const secureCookie = isSecureRequest(req);
+        res.cookie("portal_token", token, {
+            maxAge: 5400000,
+            secure: secureCookie,
+            httpOnly: true,
+            sameSite: secureCookie ? "none" : "lax"
+        });
+        clearLegacyPortalCookie(req, res);
+
+        return res.status(200).json({
+            ...BuildValidationReturn("PORTAL LOGIN OK", "success", "Uspešna prijava na portal."),
+            user: {
+                id: user._id,
+                name: user.name || user.username,
+                username: user.username,
+                role
+            },
+            menu: getMenuByRole(role)
+        });
+    } catch (error) {
+        console.error("Portal login failed:", error);
+        return res.status(500).json(
+            BuildValidationReturn("Portal login failed.", "error", "Prijava trenutno nije moguća. Pokušajte ponovo.")
+        );
+    }
+};
+
+export const PortalLogout = async (req, res) => {
+    const secureCookie = isSecureRequest(req);
+    res.clearCookie("portal_token", {
+        secure: secureCookie,
+        httpOnly: true,
+        sameSite: secureCookie ? "none" : "lax"
+    });
+    clearLegacyPortalCookie(req, res);
+    return res.status(200).json(BuildValidationReturn("PORTAL LOGOUT OK", "success", "Uspešna odjava sa portala."));
+};
+
+export const SetupPortalOtp = async (req, res) => {
+    const username = typeof req.body?.username === "string" ? req.body.username.trim() : "";
+    const password = typeof req.body?.password === "string" ? req.body.password : "";
+
+    if (!username || !password) {
+        return res.status(400).json(BuildValidationReturn("Missing credentials.", "error", "Unesite korisničko ime i lozinku."));
+    }
+
+    try {
+        const user = await UserModel.findOne({ username }).select("+portal_access_data.otp_secret");
+        const role = user?.portal_access_data?.role;
+        const allowedRoles = ["super_admin", "district", "school_main", "school_tenant"];
+
+        if (!user || !user.password || !(await bcrypt.compare(password, user.password))) {
+            return res.status(400).json(BuildValidationReturn("Invalid credentials.", "error", "Korisničko ime ili lozinka nisu ispravni."));
+        }
+        if (user.type !== "portal" || !allowedRoles.includes(role) || user.login_banned) {
+            return res.status(403).json(BuildValidationReturn("Portal access denied.", "error", "Ovaj nalog nema pristup portal konzoli."));
+        }
+        if (user.portal_access_data?.otp_secret && user.portal_access_data?.otp_confirmed_at) {
+            return res.status(409).json(BuildValidationReturn("Portal OTP already configured.", "error", "OTP je već podešen. Unesite kod iz autentifikatora."));
+        }
+
+        let otpSecret;
+        if (user.portal_access_data?.otp_secret) {
+            otpSecret = decryptPortalOtpSecret(user.portal_access_data.otp_secret);
+        } else {
+            otpSecret = generatePortalOtpSecret();
+            const updatedUser = await UserModel.findOneAndUpdate(
+                {
+                    username,
+                    "portal_access_data.otp_confirmed_at": { $in: [null] },
+                    "portal_access_data.otp_secret": { $in: [null, ""] }
+                },
+                {
+                    $set: {
+                        "portal_access_data.otp_secret": encryptPortalOtpSecret(otpSecret),
+                        "portal_access_data.otp_setup_started_at": new Date()
+                    }
+                },
+                { new: true }
+            );
+
+            if (!updatedUser) {
+                const currentUser = await UserModel.findOne({ username }).select("+portal_access_data.otp_secret");
+                if (!currentUser) {
+                    return res.status(404).json(BuildValidationReturn("Portal account not found.", "error", "Portal nalog nije pronađen."));
+                }
+                if (currentUser.portal_access_data?.otp_confirmed_at) {
+                    return res.status(409).json(BuildValidationReturn("Portal OTP already configured.", "error", "OTP je već podešen. Unesite kod iz autentifikatora."));
+                }
+                if (!currentUser.portal_access_data?.otp_secret) {
+                    console.error("Portal OTP secret was not persisted for account", user._id.toString());
+                    return res.status(500).json(BuildValidationReturn("Portal OTP setup persistence failed.", "error", "Server nije sačuvao OTP podešavanje. Pokušajte ponovo."));
+                }
+                otpSecret = decryptPortalOtpSecret(currentUser.portal_access_data.otp_secret);
+            }
+        }
+
+        res.set("Cache-Control", "no-store");
+        return res.status(200).json({
+            ...BuildValidationReturn("Portal OTP setup ready.", "success", "Skenirajte QR kod aplikacijom za autentifikaciju."),
+            otp: {
+                secret: otpSecret,
+                otpauthUrl: buildPortalOtpUri(otpSecret, user.username)
+            }
+        });
+    } catch (error) {
+        console.error("Portal OTP setup failed:", error);
+        return res.status(500).json(BuildValidationReturn("Portal OTP setup failed.", "error", "Podešavanje OTP koda trenutno nije moguće."));
+    }
+};
+
+export const PortalSession = async (req, res) => {
+    const user = req.user;
+    const role = req.portalRole;
+
+    return res.status(200).json({
+        user: {
+            id: user._id,
+            name: user.name || user.username,
+            username: user.username,
+            role
+        },
+        menu: getMenuByRole(role)
+    });
+};
+
+
+
 
 export const Logout = async (req, res) => {
     try {
@@ -262,6 +546,8 @@ return res.status(200).json(returnObj)
                 
             } else if (user.type === "teacher") {
                 return res.status(200).json({ "redirect": "/app/teacher", "userID": verify.id })
+            } else if (user.type === "portal") {
+                return res.status(200).json({ "redirect": "/portal/dashboard", "userID": verify.id })
             }
         } else {
             return res.status(200).json({ "redirect": "/auth/onboarding" })

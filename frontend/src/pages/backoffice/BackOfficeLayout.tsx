@@ -1,0 +1,23 @@
+import { Outlet } from 'react-router-dom';
+import { MantineProvider, createTheme } from '@mantine/core';
+
+// Uvoz Mantine CSS stilova isključivo unutar ovog wrappera
+import '@mantine/core/styles.css';
+
+const adminTheme = createTheme({
+  primaryColor: 'blue',
+  defaultRadius: 'xs'
+});
+
+export default function BackOfficeLayout() {
+  return (
+    <MantineProvider theme={adminTheme} defaultColorScheme="auto">
+      <div
+        className="mantine-admin-root min-h-screen bg-[#ffffff] text-[#212529]"
+        style={{ fontFamily: 'inherit' }}
+      >
+        <Outlet />
+      </div>
+    </MantineProvider>
+  );
+}

@@ -6,7 +6,7 @@ import axios from 'axios'
 import { toast } from 'sonner'
 import './lib/posthog.ts'
 axios.defaults.withCredentials = true
-const PUBLIC_PATHS = ['/', '/about', '/legal/terms', '/legal/privacy', '/maintenance', '/not-available-on-mobile']
+const PUBLIC_PATHS = ['/', '/about', '/legal/terms', '/legal/privacy', '/maintenance', '/not-available-on-mobile', '/app/parent/report', '/portal', '/portal/login', '/portal/dashboard']
 
 axios.interceptors.response.use(response => response, error => {
     if (error.response?.status === 401) {
