@@ -10,7 +10,7 @@ import {
   Image,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -18,6 +18,7 @@ type PortalOtpSetup = { secret: string; otpauthUrl: string };
 
 export default function PortalLogin() {
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [otpSetup, setOtpSetup] = useState<PortalOtpSetup | null>(null);
 
@@ -33,6 +34,24 @@ export default function PortalLogin() {
       password: (val) => (val.length < 6 ? 'Lozinka mora imati bar 6 karaktera' : null),
     },
   });
+
+  useEffect(() => {
+    let mounted = true;
+    axios.get(`${import.meta.env.VITE_BACKEND}/user/portal-session`, { withCredentials: true })
+      .then(() => {
+        if (mounted) window.location.replace('/portal/dashboard');
+      })
+      .catch(() => {
+        //Ovi neprijavljeni ostaju na stranici
+      })
+      .finally(() => {
+        if (mounted) setCheckingSession(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleSubmit = async (values: typeof form.values) => {
     setLoading(true);
@@ -83,11 +102,19 @@ export default function PortalLogin() {
     }
   };
 
+  if (checkingSession) {
+    return (
+      <Container size={420} my={80}>
+        <Text ta="center">Provera portal sesije…</Text>
+      </Container>
+    );
+  }
+
   return (
     <Container size={420} my={80}>
       <Image src="/favicon.png" w={50} m="auto" />
       <Text size="lg" fw={700} ta="center" mt={15}>
-        Portal Iskra
+        Iskra - administrativni portal
       </Text>
 
       <Paper withBorder shadow="md" p={30} mt={30} radius="xs">
