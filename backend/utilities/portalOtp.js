@@ -95,10 +95,10 @@ export const verifyPortalOtp = (secret, submittedCode, now = Date.now()) =>
   matchPortalOtpCounter(secret, submittedCode, now) !== null;
 
 export const buildPortalOtpUri = (secret, username) => {
-  const label = encodeURIComponent(`Iskra Portal:${username}`);
+  const label = encodeURIComponent(`Iskra-portal:${username}`);
   const parameters = new URLSearchParams({
     secret,
-    issuer: "Iskra Portal",
+    issuer: "Iskra administrativni portal",
     algorithm: "SHA1",
     digits: "6",
     period: "30",
