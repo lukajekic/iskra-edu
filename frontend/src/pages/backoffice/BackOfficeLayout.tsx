@@ -11,7 +11,7 @@ const adminTheme = createTheme({
 
 export default function BackOfficeLayout() {
   return (
-    <MantineProvider theme={adminTheme} defaultColorScheme="auto">
+    <MantineProvider theme={adminTheme} defaultColorScheme="light" forceColorScheme="light">
       <div
         className="mantine-admin-root min-h-screen bg-[#ffffff] text-[#212529]"
         style={{ fontFamily: 'inherit' }}
