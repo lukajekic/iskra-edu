@@ -32,7 +32,9 @@ const portalAccessDataSchema = new mongoose.Schema({
   otp_secret: { type: String, required: false, select: false },
   otp_setup_started_at: { type: Date, required: false },
   otp_confirmed_at: { type: Date, required: false },
-  otp_last_used_counter: { type: Number, required: false }
+  otp_last_used_counter: { type: Number, required: false },
+  managed_by: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: false },
+  auth_version: { type: Number, default: 0 }
 }, { _id: false });
 
 const schema = new mongoose.Schema({
@@ -63,6 +65,17 @@ const schema = new mongoose.Schema({
   login_banned: {
     type: Boolean,
     default: false
+  },
+
+  auth_version: {
+    type: Number,
+    default: 0
+  },
+
+  schoolRef: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: false
   },
 
   activegroup: {
@@ -141,5 +154,8 @@ const schema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+schema.index({ type: 1, schoolRef: 1 });
+schema.index({ "portal_access_data.managed_by": 1, "portal_access_data.role": 1 });
 
 export const UserModel = mongoose.model("User", schema);

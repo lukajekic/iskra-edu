@@ -32,6 +32,9 @@ export const protectPortal = async (req, res, next) => {
     if (user.login_banned) {
       return res.status(403).json(BuildValidationReturn("Portal account is banned.", "error", "Portal nalog ima zabranu prijave."));
     }
+    if ((verified.authVersion || 0) !== (user.portal_access_data?.auth_version || 0)) {
+      return res.status(401).json(BuildValidationReturn("Portal session revoked.", "error", "Portal sesija je opozvana. Prijavite se ponovo."));
+    }
 
     req.user = user;
     req.portalRole = role;

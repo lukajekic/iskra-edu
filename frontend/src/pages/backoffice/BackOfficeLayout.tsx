@@ -6,7 +6,7 @@ import '@mantine/core/styles.css';
 
 const adminTheme = createTheme({
   primaryColor: 'blue',
-  defaultRadius: 'xs'
+  defaultRadius: 0
 });
 
 export default function BackOfficeLayout() {

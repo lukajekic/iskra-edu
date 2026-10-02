@@ -9,7 +9,7 @@ interface ActionGroupProps {
 const ActionButtonsBlock = ({title, children }: ActionGroupProps) => {
   return (
     <div>
-      <Paper withBorder shadow='sm' w={'fit-content'} p={'7px'} px={'10px'} pb={'10px'}>
+      <Paper withBorder shadow='sm' w={'fit-content'} p={'7px'} px={'10px'} pb={'10px'} radius={0}>
         <Text>{title ?? "Dostupne akcije"}</Text>
         <Group gap="sm" align="center" mt={'xs'}>
         {children}

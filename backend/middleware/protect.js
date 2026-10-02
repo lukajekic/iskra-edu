@@ -24,6 +24,13 @@ export const protect = async(req, res, next) =>{
         return res.status(401).json(BuildValidationReturn("User ID located through cookie token but no user found with that ID. If account is temporary, maybe teacher ended workhour.", null, null))
         }
 
+        if (user.login_banned) {
+            return res.status(403).json(BuildValidationReturn("Account access revoked.", "error", "Pristup ovom nalogu je opozvan."))
+        }
+        if ((verify.authVersion || 0) !== (user.auth_version || 0)) {
+            return res.status(401).json(BuildValidationReturn("Session revoked.", "error", "Sesija je opozvana. Prijavite se ponovo."))
+        }
+
         req.user = user
         req.user.id = user._id.toString()
         req.user._id = user._id.toString()

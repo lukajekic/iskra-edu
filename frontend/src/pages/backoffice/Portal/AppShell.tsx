@@ -15,9 +15,8 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { BookOpen, ChevronDownIcon, ClipboardCheck, Home, LogOutIcon, SettingsIcon, Users } from 'lucide-react';
-import PageTitle from './core_components/PageTitle';
-import ActionButtonsBlock from './core_components/ActionButtonsBlock';
+import { ChevronDownIcon, LogOutIcon, Users } from 'lucide-react';
+import PortalUsersPage from './PortalUsersPage';
 
 type PortalRole = 'super_admin' | 'district' | 'school_main' | 'school_tenant';
 type PortalMenuItem = { id: string; label: string; icon: string };
@@ -31,13 +30,6 @@ const roleLabels: Record<PortalRole, string> = {
   district: 'Okružna uprava',
   school_main: 'Koordinator samostalno registrovane škole',
   school_tenant: 'Školski koordinator',
-};
-
-const menuIcons = {
-  users: Users,
-  courses: BookOpen,
-  reports: ClipboardCheck,
-  settings: SettingsIcon,
 };
 
 export function PortalAppShell() {
@@ -124,7 +116,7 @@ export function PortalAppShell() {
               </Text>
             </Group>
 
-            <Badge variant="light" color="blue" size="sm" radius="xs" visibleFrom="xs">
+            <Badge variant="light" color="blue" size="sm" radius={0} visibleFrom="xs">
               Administrativni portal
             </Badge>
           </Group>
@@ -141,7 +133,7 @@ export function PortalAppShell() {
                   className="hover:bg-gray-100 dark:hover:bg-dark-6"
                 >
                   <Group gap="xs">
-                    <Avatar radius="xl" size="sm" color="blue">
+                    <Avatar radius={0} size="sm" color="blue">
                       {session.user.name.slice(0, 1).toUpperCase()}
                     </Avatar>
                     <Box visibleFrom="xs">
@@ -175,14 +167,13 @@ export function PortalAppShell() {
 
       <AppShell.Navbar>
         {session.menu.map((item) => {
-          const Icon = menuIcons[item.id as keyof typeof menuIcons] ?? Home;
           return (
             <NavLink
               key={item.id}
               active={activeItem === item.id}
               className={`${activeItem === item.id ? "!border-[#228be6] !border-l-2" : ""}`}
               label={item.label}
-              leftSection={<Icon size={20} />}
+              leftSection={<Users size={20} />}
               variant="light"
               onClick={() => setActiveItem(item.id)}
             />
@@ -191,11 +182,7 @@ export function PortalAppShell() {
       </AppShell.Navbar>
 
       <AppShell.Main>
-        <PageTitle text={session.menu.find((item) => item.id === activeItem)?.label ?? 'Portal'}></PageTitle>
-        <ActionButtonsBlock title={`Dobro došli, ${session.user.name}`}>
-                <Button onClick={()=>{console.log("1")}}>Prvo dugme</Button>
-                <Button onClick={()=>{console.log("2")}} variant='light'>Drugo dugme</Button>
-        </ActionButtonsBlock>
+        <PortalUsersPage role={session.user.role} userId={session.user.id} />
       </AppShell.Main>
     </AppShell>
   );

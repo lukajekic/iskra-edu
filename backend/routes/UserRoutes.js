@@ -4,6 +4,7 @@ import { CheckSuperAdminRole, createAccount, createWorkhourGroup, DeleteUserForG
 import { protect } from '../middleware/protect.js'
 import { protectPortal } from '../middleware/protectPortal.js'
 import { inject_req_data } from '../middleware/inject_req_data.js'
+import { CheckPortalUsernameAvailability, CreatePortalUser, ListPortalUsers, ResetPortalPassword, RevokePortalTwoFactor, SetPortalUserAccess, UpdatePortalUsername } from '../controllers/PortalUserController.js'
 let router = express.Router()
 const portalAuthLimiter = rateLimit({
 	windowMs: 15 * 60 * 1000,
@@ -14,6 +15,17 @@ const portalAuthLimiter = rateLimit({
 		message: "Portal login rate limit.",
 		toast: "error",
 		toast_message: "Previše pokušaja prijave. Pokušajte ponovo za 15 minuta."
+	}
+})
+const portalManagementLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	limit: 30,
+	standardHeaders: true,
+	legacyHeaders: false,
+	message: {
+		message: "Portal account management rate limit.",
+		toast: "error",
+		toast_message: "Previše promena naloga. Pokušajte ponovo kasnije."
 	}
 })
 
@@ -45,10 +57,17 @@ router.get("/me/teachers/:id", protect, getSingleTeacher)
 router.put('/me/teachers/ban/:id', protect, UpdateUserBanStatus)
 router.get('/me/gdpr/users', protect, GetUsersForGdprDeletion)
 router.delete('/me/gdpr/users/:id', protect, DeleteUserForGdpr)
-
+//dodato na /portal-login middleware: portalAuthLimiter
 router.post('/portal-login', PortalLogin)
-router.post('/portal-otp/setup', SetupPortalOtp)
+router.post('/portal-otp/setup', portalAuthLimiter, SetupPortalOtp)
 router.post('/portal-logout', PortalLogout)
 router.get('/portal-session', protectPortal, PortalSession)
+router.get('/portal/users/username-availability', protectPortal, CheckPortalUsernameAvailability)
+router.get('/portal/users', protectPortal, ListPortalUsers)
+router.post('/portal/users', protectPortal, portalManagementLimiter, CreatePortalUser)
+router.patch('/portal/users/:id/username', protectPortal, portalManagementLimiter, UpdatePortalUsername)
+router.patch('/portal/users/:id/password', protectPortal, portalManagementLimiter, ResetPortalPassword)
+router.post('/portal/users/:id/revoke-2fa', protectPortal, portalManagementLimiter, RevokePortalTwoFactor)
+router.patch('/portal/users/:id/access', protectPortal, portalManagementLimiter, SetPortalUserAccess)
 
 export default router

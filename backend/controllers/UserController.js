@@ -38,6 +38,9 @@ export const createAccount = async (req, res) => {
     if (!name || !type || !username || !password) {
         return res.status(400).json(BuildValidationReturn("Missing required Account data.", "error", "Make sure all required data is entered."))
     }
+    if (type === "portal") {
+        return res.status(403).json(BuildValidationReturn("Dedicated portal provisioning required.", "error", "Portal naloge može kreirati samo ovlašćeni administrator kroz portal."))
+    }
 
     let users_with_username = await UserModel.countDocuments({ username })
     if (users_with_username > 0) {
@@ -178,7 +181,7 @@ export const Login = async (req, res) => {
     if (user.type === "student_temp") {
         return res.status(400).json(BuildValidationReturn("TEMP ACC ERR", "error", "You cannot use login endpoint for logging into temporary accounts."))
     } else {
-        res.cookie("token", generatejwt(user._id, 5400), {
+        res.cookie("token", generatejwt(user._id, 5400, user.auth_version || 0), {
             maxAge: 5400000, //1.5 sati
             secure: true,
             httpOnly: true,
@@ -192,61 +195,12 @@ export const Login = async (req, res) => {
 
 
 export const getMenuByRole = (role) => {
-  const roleMenus = {
-    super_admin: [
-      {
+    if (!["super_admin", "district", "school_main", "school_tenant"].includes(role)) return [];
+    return [{
         id: "users",
-        label: "Korisnici i Uloge",
+        label: role === "school_tenant" ? "Moji korisnički podaci" : "Korisnici",
         icon: "IconUsers"
-      },
-      {
-        id: "courses",
-        label: "Predmeti i Kursevi",
-        icon: "IconBooks"
-      },
-      {
-        id: "reports",
-        label: "Izveštaji i Ispiti",
-        icon: "IconClipboardCheck"
-      },
-      {
-        id: "settings",
-        label: "Podešavanja",
-        icon: "IconSettings"
-      }
-    ],
-
-    district: [
-      {
-        id: "courses",
-        label: "Moje Grupe i Predmeti",
-        icon: "IconBooks"
-      },
-      {
-        id: "reports",
-        label: "Ocenjivanje i Dnevnici",
-        icon: "IconClipboardCheck"
-      }
-    ],
-
-    school_main: [
-      {
-        id: "courses",
-        label: "Moji Kursevi",
-        icon: "IconBooks"
-      }
-    ],
-
-    school_tenant: [
-      {
-        id: "courses",
-        label: "Moji Kursevi",
-        icon: "IconBooks"
-      }
-    ]
-  };
-
-    return roleMenus[role] || [];
+    }];
 };
 export const PortalLogin = async (req, res) => {
     const username = typeof req.body?.username === "string" ? req.body.username.trim() : "";
@@ -325,7 +279,7 @@ export const PortalLogin = async (req, res) => {
             );
         }
 
-        const token = jwt.sign({ id: user._id.toString(), username: user.username, scope: "portal", mfa: "totp" }, process.env.JWT_SECRET, { expiresIn: 5400 });
+        const token = jwt.sign({ id: user._id.toString(), username: user.username, scope: "portal", mfa: "totp", authVersion: user.portal_access_data?.auth_version || 0 }, process.env.JWT_SECRET, { expiresIn: 5400 });
         const secureCookie = isSecureRequest(req);
         res.cookie("portal_token", token, {
             maxAge: 5400000,
@@ -471,8 +425,8 @@ export const Logout = async (req, res) => {
 }  //ISPRAVNO - 9. 3. 2026.
 
 
-function generatejwt(userid, expiresin) {
-    return jwt.sign({ id: userid }, process.env.JWT_SECRET, { expiresIn: expiresin })
+function generatejwt(userid, expiresin, authVersion = 0) {
+    return jwt.sign({ id: userid, authVersion }, process.env.JWT_SECRET, { expiresIn: expiresin })
 }  //ISPRAVNO - 9. 3. 2026.
 
 

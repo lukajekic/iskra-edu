@@ -8,6 +8,8 @@ import {
   Container,
   Stack,
   Image,
+  Box,    // <-- PROMENJENO: Dodat Box
+  Center, // <-- PROMENJENO: Dodat Center
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useEffect, useState } from 'react';
@@ -31,7 +33,7 @@ export default function PortalLogin() {
 
     validate: {
       username: (val) => (val.trim().length < 3 ? 'Korisničko ime je prekratko' : null),
-      password: (val) => (val.length < 6 ? 'Lozinka mora imati bar 6 karaktera' : null),
+      password: (val) => (val.length === 0 ? 'Unesite lozinku' : null),
     },
   });
 
@@ -104,78 +106,105 @@ export default function PortalLogin() {
 
   if (checkingSession) {
     return (
-      <Container size={420} my={80}>
+      // <-- PROMENJENO: Centriranje loading ekrana
+      <Center style={{ minHeight: '100vh' }}>
         <Text ta="center">Provera portal sesije…</Text>
-      </Container>
+      </Center>
     );
   }
 
+  const bgImageUrl = '/tvrdjava-2.jpg';
+
   return (
-    <Container size={420} my={80}>
-      <Image src="/favicon.png" w={50} m="auto" />
-      <Text size="lg" fw={700} ta="center" mt={15}>
-        Iskra - administrativni portal
-      </Text>
+    <Box
+      style={{
+        minHeight: '100vh',
+        width: '100%',
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url(${bgImageUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px 0',
+      }}
+    >
+      <Container size={420} style={{ width: '100%' }}>
+        <Paper
+          withBorder
+          shadow="xl"
+          p={30}
+          style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.96)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <Image src="/favicon.png" w={50} m="auto" />
+          <Text size="lg" fw={700} ta="center" mt={15}>
+            Iskra - administrativni portal
+          </Text>
 
-      <Paper withBorder shadow="md" p={30} mt={30} radius="xs">
-        <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack gap="md">
-            <TextInput
-              label="Korisničko ime"
-              autoComplete="username"
-              autoFocus
-              required
-              {...form.getInputProps('username')}
-            />
+          <form onSubmit={form.onSubmit(handleSubmit)} style={{ marginTop: '20px' }}>
+            <Stack gap="md">
+              <TextInput
+                label="Korisničko ime"
+                autoComplete="username"
+                autoFocus
+                required
+                {...form.getInputProps('username')}
+              />
 
-            <PasswordInput
-              label="Lozinka"
-              autoComplete="current-password"
-              required
-              {...form.getInputProps('password')}
-            />
+              <PasswordInput
+                label="Lozinka"
+                autoComplete="current-password"
+                required
+                {...form.getInputProps('password')}
+              />
 
-            <Text size="sm" fw={500}>Portal verifikacioni kod</Text>
-            <PinInput
-              length={6}
-              type="number"
-              oneTimeCode
-              size="md"
-              aria-label="Šestocifreni portal OTP kod"
-              {...form.getInputProps('otp')}
-            />
+              <Text size="sm" fw={500}>Portal verifikacioni kod</Text>
+              <PinInput
+                length={6}
+                type="number"
+                oneTimeCode
+                size="md"
+                aria-label="Šestocifreni portal OTP kod"
+                {...form.getInputProps('otp')}
+              />
 
-            {otpSetup && (
-              <Paper withBorder p="md" radius="sm">
-                <Stack align="center" gap="sm">
-                  <Text size="sm" ta="center">
-                    Skenirajte kod aplikacijom kao što su Google Authenticator, Microsoft Authenticator ili 1Password.
-                  </Text>
-                  <QRCodeSVG value={otpSetup.otpauthUrl} size={180} aria-label="QR kod za podešavanje autentifikatora" />
-                  <Text size="xs" ta="center" c="dimmed">Rezervni ključ — sačuvajte ga na sigurnom mestu:</Text>
-                  <Text size="sm" ff="monospace" ta="center" style={{ overflowWrap: 'anywhere' }}>
-                    {otpSetup.secret}
-                  </Text>
-                </Stack>
-              </Paper>
-            )}
+              {otpSetup && (
+                <Paper withBorder p="md" radius={0}>
+                  <Stack align="center" gap="sm">
+                    <Text size="sm" ta="center">
+                      Skenirajte kod aplikacijom kao što su Google Authenticator, Microsoft Authenticator ili 1Password.
+                    </Text>
+                    <QRCodeSVG value={otpSetup.otpauthUrl} size={180} aria-label="QR kod za podešavanje autentifikatora" />
+                    <Text size="xs" ta="center" c="dimmed">Rezervni ključ — sačuvajte ga na sigurnom mestu:</Text>
+                    <Text size="sm" ff="monospace" ta="center" style={{ overflowWrap: 'anywhere' }}>
+                      {otpSetup.secret}
+                    </Text>
+                  </Stack>
+                </Paper>
+              )}
 
-            {errorMessage && (
-              <Text c={otpSetup ? 'blue' : 'red'} size="sm" ta="center">
-                {errorMessage}
-              </Text>
-            )}
+              {errorMessage && (
+                <Text c={otpSetup ? 'blue' : 'red'} size="sm" ta="center">
+                  {errorMessage}
+                </Text>
+              )}
 
-            <Button type="submit" fullWidth mt="md" loading={loading}>
-              Prijavi se
-            </Button>
-          </Stack>
-        </form>
-      </Paper>
+              <Button type="submit" fullWidth mt="md" loading={loading}>
+                Prijavi se
+              </Button>
+            </Stack>
+          </form>
+        </Paper>
 
-      <Text c="dimmed" size="sm" fs="italic" ta="center" my={10}>
-        Svaki neovlašćeni pristup portalu kažnjiv je po odredbama Krivičnog Zakonika Republike Srbije
-      </Text>
-    </Container>
+        {/* PROMENJENO: Boja teksta promenjena u belu radi uočljivosti na tamnijoj pozadini */}
+        <Text c="white" size="xs" fs="italic" ta="center" mt={15} style={{ opacity: 0.85 }}>
+          Svaki neovlašćeni pristup portalu kažnjiv je po odredbama Krivičnog Zakonika Republike Srbije
+        </Text>
+      </Container>
+    </Box>
   );
 }
