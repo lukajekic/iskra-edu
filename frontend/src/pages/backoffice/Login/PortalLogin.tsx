@@ -19,10 +19,17 @@ import { QRCodeSVG } from 'qrcode.react';
 type PortalOtpSetup = { secret: string; otpauthUrl: string };
 
 export default function PortalLogin() {
+  const portal_bg_images = ["1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg"]
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [otpSetup, setOtpSetup] = useState<PortalOtpSetup | null>(null);
+  const [selectedBg, setSelectedBg] = useState<string>(portal_bg_images[0]);
+
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * portal_bg_images.length);
+    setSelectedBg(portal_bg_images[randomIndex]);
+  }, []);
 
   const form = useForm({
     initialValues: {
@@ -113,7 +120,7 @@ export default function PortalLogin() {
     );
   }
 
-  const bgImageUrl = '/tvrdjava-2.jpg';
+  const bgImageUrl = `/portal_bg/${selectedBg}`;
 
   return (
     <Box
