@@ -7,6 +7,8 @@ import axios from 'axios'
 import React, { useState } from 'react'
 import { toast } from 'sonner'
 import posthog from '@/lib/posthog'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { AlertTriangleIcon } from 'lucide-react'
 
 const SANewUser = () => {
     const onSubmit =async (event)=>{
@@ -24,12 +26,31 @@ const SANewUser = () => {
             toast.success("OK:", response.data.username || "")
         }
         } catch (error) {
-         toast.error("ERROR.")   
+         const errorbody = error?.response?.data
+
+         if (errorbody.message) {
+            if (errorbody.toast === "warning") {
+                toast.warning(errorbody.toast_message)
+            } else {
+                toast.error(errorbody.toast_message)
+            }
+         } else {
+            toast.error("GRESKA!")
+         }
         }
         
     }
   return (
     <>
+    <Alert className="max-w-md border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50">
+      <AlertTriangleIcon />
+      <AlertTitle>Upotrebite portal</AlertTitle>
+      <AlertDescription>
+        Za kreiranje novih korisnika, upotrebite administrativni portal.
+        <br />
+        Funkcije za kreiranje naloga na kontrolnoj tabli su zastarele.
+      </AlertDescription>
+    </Alert>
     <form onSubmit={onSubmit} className='flex flex-col gap-2' action="">
         <div>
             <Label className='pb-2' htmlFor='name'>Ime i prezime:</Label>

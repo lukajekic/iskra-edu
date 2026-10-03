@@ -100,8 +100,8 @@ const SAHome = () => {
 
 
 
-        <h1 className="text-4xl">Iskra - Administrativni panel</h1>
-        <p>Verzija panela: 1.2</p>
+        <h1 className="text-4xl">Iskra - Kontrolna tabla</h1>
+        <p>Verzija panela: 1.3</p>
         <div className="flex flex-wrap items-top justify-start mt-5 gap-5">
             {cards.map((item, index)=>(
                 <div key={index} className="h-100 w-100 border rounded-lg flex flex-col">

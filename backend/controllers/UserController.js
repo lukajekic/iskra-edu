@@ -58,6 +58,10 @@ export const createAccount = async (req, res) => {
     toInsert.password = hashed
 
     if (type === "teacher") {
+        //DEPRECEATED - upotrebite administrativni panel na /portal/dashboard
+
+        return res.status(400).json(BuildValidationReturn("Depreceated.", "warning", "Ova funkcija vise nije dostupna. Upotrebite administrativni panel."))
+
         if (!req.user) {
             return res.status(401).json(BuildValidationReturn("Unauthorized.", "error", "You must be logged in to create a teacher account."))
         }

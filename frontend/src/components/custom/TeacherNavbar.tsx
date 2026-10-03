@@ -295,7 +295,7 @@ if (userID) {
 
                 {myProfile?.super_admin && (
                     <DropdownMenuItem onClick={()=>{location.href = "/admin"}}>
-                    <LayoutDashboard></LayoutDashboard> Administrativni portal
+                    <LayoutDashboard></LayoutDashboard> Kontrolna tabla
                 </DropdownMenuItem>
                 )}
 
@@ -435,7 +435,7 @@ if (userID) {
                   className="w-full justify-start gap-3 text-base h-12"
                   onClick={() => { setIsMobileMenuOpen(false); location.href = "/admin" }}
                 >
-                  <LayoutDashboard className="size-5" /> Administrativni portal
+                  <LayoutDashboard className="size-5" /> Kontrolna tabla
                 </Button>
               )}
 
