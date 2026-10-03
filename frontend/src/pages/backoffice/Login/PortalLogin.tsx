@@ -162,7 +162,7 @@ export default function PortalLogin() {
                 {...form.getInputProps('password')}
               />
 
-              <Text size="sm" fw={500}>Portal verifikacioni kod</Text>
+              <Text size="sm" fw={500}>Jednokratni kod</Text>
               <PinInput
                 length={6}
                 type="number"

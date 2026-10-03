@@ -37,7 +37,7 @@ const InvestorSection = () => {
           </div>
 
           <a 
-            href="/finansijski-izvestaj.pdf" 
+            href="https://docs.google.com/spreadsheets/d/1nkwDCo6m24mo1AlPNeic0Cfcg2ZBWSHPX2msepsRd94/edit?usp=sharing" 
             download="Iskra_Finansijski_Izvestaj.pdf" 
             target="_blank" 
             rel="noopener noreferrer"

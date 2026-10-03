@@ -14,7 +14,7 @@ export default function BackOfficeLayout() {
     <MantineProvider theme={adminTheme} defaultColorScheme="light" forceColorScheme="light">
       <div
         className="mantine-admin-root min-h-screen bg-[#ffffff] text-[#212529]"
-        style={{ fontFamily: 'inherit' }}
+        style={{ fontFamily: '"Segoe UI", "Helvetica Neue", Arial, sans-serif' }}
       >
         <Outlet />
       </div>

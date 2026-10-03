@@ -44,20 +44,20 @@ const MassActionQrRequest = () => {
         <DialogContent className="max-w-[95vw] sm:max-w-md">
           {!request ? <>
             <DialogHeader>
-              <DialogTitle>Masovna radnja uz QR odobrenje</DialogTitle>
-              <DialogDescription>Radnja se neće izvršiti dok super-admin ne skenira jednokratni QR kod u administrativnom panelu.</DialogDescription>
+              <DialogTitle>Odobrednje radnje</DialogTitle>
+              <DialogDescription>Za odobrenje radnje neophodno je odobrenje koordinatora, unosom generisanog jednorkatnog koda.</DialogDescription>
             </DialogHeader>
             <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-muted-foreground"><span className="flex gap-2 font-semibold text-destructive"><AlertTriangle className="size-4" />Oprez</span><p className="mt-1">Izabrana radnja je nepovratna nakon odobrenja.</p></div>
             <div className="space-y-2"><Label>Radnja</Label><Select value={action} onValueChange={(value: keyof typeof actions) => setAction(value)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Object.entries(actions).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></div>
-            <DialogFooter><Button variant="outline" onClick={() => close(false)}>Odustani</Button><Button variant="destructive" disabled={creating} onClick={createRequest}>{creating ? 'Kreiranje…' : 'Generiši QR zahtev'}</Button></DialogFooter>
+            <DialogFooter><Button variant="outline" onClick={() => close(false)}>Odustani</Button><Button variant="destructive" disabled={creating} onClick={createRequest}>{creating ? 'Kreiranje…' : 'Generiši zahtev'}</Button></DialogFooter>
           </> : <>
-            <DialogHeader><DialogTitle>Čeka se super-admin odobrenje</DialogTitle><DialogDescription>{request.label}</DialogDescription></DialogHeader>
+            <DialogHeader><DialogTitle>Podaci za odobrenje</DialogTitle><DialogDescription>{request.label}</DialogDescription></DialogHeader>
             <div className="mx-auto rounded-lg bg-white p-3"><QRCodeCanvas value={request.token} size={230} level="M" includeMargin /></div>
             <div className="rounded-md border bg-muted/40 p-3 text-center">
               <p className="text-xs font-medium text-muted-foreground">Ručni kod za odobrenje</p>
               <code className="mt-1 block text-base font-semibold tracking-wider select-all">{request.token}</code>
             </div>
-            <p className="text-center text-sm text-muted-foreground">QR kod važi do {new Date(request.expiresAt).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })}. Super-admin ga skenira u SAADMIN panelu.</p>
+            <p className="text-center text-sm text-muted-foreground">QR kod važi do {new Date(request.expiresAt).toLocaleTimeString('sr-RS', { hour: '2-digit', minute: '2-digit' })}. Potrebno je da koordinator skenira QR kod ili unese kod za odobrenje izabrane radnje.</p>
             <DialogFooter><Button onClick={() => close(false)}>Zatvori</Button></DialogFooter>
           </>}
         </DialogContent>
