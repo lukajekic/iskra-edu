@@ -3,8 +3,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Spinner } from '@/components/ui/spinner'
 import axios from 'axios'
+import { File, Paperclip } from 'lucide-react'
 import moment, { tz } from 'moment-timezone'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -60,6 +62,19 @@ setLoadingExam(false)
     <PageTitle title='Kontrolni zadaci' subtitle='Ovde možeš pogledati sve kontrolne zadatke.'></PageTitle>
 
   <div className="flex flex-wrap gap-4 mt-5">
+    {data?.assigned_tests?.length === 0 && (
+       <Empty className="border border-dashed">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <File></File>
+        </EmptyMedia>
+        <EmptyTitle>Nema kontrolnih zadataka</EmptyTitle>
+        <EmptyDescription>
+          Tvoj/a profesor/ka mora kreirati i prikazati kontrolni zadatak kako bi ga započeo/la.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+    )}
   {data?.assigned_tests?.map((item, index) => (
     <div key={index} className="p-5 shadow-[0_2px_6px_rgba(0,0,0,0.2)] w-full sm:w-[350px] break-words rounded-[5px]">
       <span><span className="font-bold">Naziv: </span>{item.title}</span>
