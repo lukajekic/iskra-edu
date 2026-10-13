@@ -1,128 +1,95 @@
-# ⚡ Iskra
+# Iskra
 
-**Iskra** is a modern, production-ready learning platform built for programming education. It helps educators manage courses, assignments, and students while providing instant automated code evaluation, real-time progress tracking, and AI-powered assistance.
+Iskra is a Serbian language platform for teaching programming in schools. It brings together classroom and student management, programming exercises, automated code evaluation, exams, AI-supported teaching tools, and progress reporting.
 
----
+This repository contains the web frontend, the Node.js API, and the Python judge service. The application is under active development; deployment details and capabilities may change.
 
-## ✨ Features
+## Features
 
-- 🚀 **Automated Code Grading**
-  - Instant code execution and evaluation
-  - Hidden and public test cases
-  - Detailed feedback for students
+- **Classroom management:** teachers can organize students, lessons, folders, and programming or theory tasks.
+- **Code practice:** students submit solutions for automated evaluation and receive results in the application.
+- **Exams:** teachers can create exams, review submissions, and manage grading.
+- **AI tools:** Iskra Planner helps teachers prepare plans, while Canvas generates mind maps. Student-facing AI mentoring is also available for supported tasks.
+- **Progress and parent reports:** teachers can review student activity; parent reports are available through a separate report flow.
+- **Live updates:** Socket.IO is used for selected classroom and grading updates.
+- **Administration:** protected administrative tools include account management and approval workflows.
 
-- 📚 **Course & Assignment Management**
-  - Organize courses into modules and lessons
-  - Create programming challenges and quizzes
-  - Manage student enrollments
+## Repository layout
 
-- 📊 **Student Analytics**
-  - Real-time progress tracking
-  - Performance statistics
-  - Assignment completion monitoring
-
-- 🤖 **Iskra AI**
-  - AI-powered programming assistant
-  - Intelligent hints and explanations
-  - Integrated with Cloudflare AI Workers
-
-- ⚡ **Real-Time Experience**
-  - Live updates using Socket.IO
-  - Instant grading notifications
-  - Synchronized classroom activity
-
-- 🎨 **Modern UI**
-  - Clean and responsive interface
-  - Built with Tailwind CSS
-  - Optimized for desktop and mobile
-
----
-
-# 🏗️ Tech Stack
-
-## Frontend
-
-- React
-- Vite
-- Tailwind CSS
-- Socket.IO Client
-
-## Backend
-
-- Node.js
-- Express.js
-- MongoDB
-- Mongoose
-- Socket.IO
-- JWT Authentication
-
-## AI
-
-- Cloudflare AI Workers
-
----
-
-# 📦 Getting Started
-
-## Prerequisites
-
-Before running the project, make sure you have installed:
-
-- Node.js 18+
-- MongoDB (local or MongoDB Atlas)
-- npm (or yarn/pnpm)
-
----
-
-## Clone the Repository
-
-```bash
-git clone https://github.com/lukajekic/iskra.git
-cd iskra
+```text
+.
+├── backend/       Express API, MongoDB models, authentication, and Socket.IO
+├── frontend/      React and Vite web application
+└── python-judge/  Isolated Python code execution service
+└── ruby-judge/  Isolated Ruby code execution service
 ```
 
----
+## Tech stack
 
-## Environment Variables
+- **Frontend:** React, TypeScript, Vite, Tailwind CSS, Socket.IO Client
+- **Backend:** Node.js, Express, MongoDB with Mongoose, JWT, Socket.IO
+- **Code execution:** separate Python judge service, containerized with Docker
+- **AI integrations:** configured backend AI endpoint, Groq-powered Planner and Canvas
 
-### Frontend (`frontend/.env`)
+## Requirements
+
+- Node.js compatible with the versions required by the frontend and backend dependencies
+- npm
+- MongoDB, either local or hosted
+- Docker, if running the Python judge service locally
+- Credentials for the external AI services used by the features you want to run
+
+## Configuration
+
+Create environment files locally; do not commit secrets.
+
+### Frontend: `frontend/.env`
 
 ```env
+VITE_BACKEND=http://localhost:3000
 VITE_FIREBASE=
-VITE_BACKEND=
-VITE_METRICA=   # Optional
+VITE_METRICA=
+VITE_POSTHOG_KEY=
+VITE_POSTHOG_HOST=
 ```
 
-### Backend (`backend/.env`)
+| Variable | Purpose |
+| --- | --- |
+| `VITE_BACKEND` | Base URL of the backend API. |
+| `VITE_FIREBASE` | Firebase API key used by the maintenance/status integration. |
+| `VITE_METRICA` | Optional Metrica project identifier used for application events. |
+| `VITE_POSTHOG_KEY` | PostHog project key used by the frontend error/analytics integration. |
+| `VITE_POSTHOG_HOST` | PostHog host corresponding to the project key. |
+
+The frontend reads these values at build time. Only put public client configuration in `VITE_*` variables; never put private API secrets there.
+
+**Important notice:** Use of PostHog will be depreceated in future due to our mission on keeping students' data private.
+
+### Backend: `backend/.env`
 
 ```env
-VITE_FRONTEND=
-JWT_SECRET=
-PORT=
-AI_ENDPOINT=
-AI_API_KEY=
+PORT=3000
+MONGO_SECRET=mongodb://127.0.0.1:27017/iskra
+JWT_SECRET=replace-with-a-long-random-secret
+AI_ENDPOINT=Your_cloudflare_ai_api_endpoint
+AI_API_KEY=Your_cloudflare_ai_api_key
+GROQ_API_KEY=Your_grok_api_key
 ```
 
-### AI Configuration
+| Variable | Purpose |
+| --- | --- |
+| `PORT` | Port used by the API; defaults to `3000`. |
+| `MONGO_SECRET` | MongoDB connection URI. |
+| `JWT_SECRET` | Secret used to sign and verify authentication tokens and protect portal OTP secrets. |
+| `AI_ENDPOINT` | Endpoint used by the student AI mentor integration. |
+| `AI_API_KEY` | Credential for the configured student AI endpoint. |
+| `GROQ_API_KEY` | Credential used by Iskra Planner and Canvas. |
 
-| Variable | Description |
-|----------|-------------|
-| `AI_ENDPOINT` | Cloudflare AI Workers endpoint for the language model used by Iskra AI. |
-| `AI_API_KEY` | API key used to access the configured Cloudflare AI Worker. |
+Use strong, unique secrets in deployed environments. The backend currently configures allowed frontend origins in `backend/server.js`; add your local or deployment frontend origin there when needed.
 
----
+## Run locally
 
-# 🚀 Running the Project
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-### Backend
+Start MongoDB and configure the backend and frontend environment files above. Then run each application in a separate terminal:
 
 ```bash
 cd backend
@@ -130,66 +97,45 @@ npm install
 npm run dev
 ```
 
----
-
-# 📁 Project Structure
-
-```
-iskra/
-│
-├── frontend/
-│   ├── src/
-│   ├── public/
-│   └── ...
-│
-├── backend/
-│   ├── routes/
-│   ├── models/
-│   ├── controllers/
-│   ├── middleware/
-│   └── ...
-│
-└── README.md
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
----
+Vite prints the local frontend URL when it starts. The frontend's `VITE_BACKEND` value must point to the running API.
 
-# 🌟 Highlights
+### Python judge
 
-- Automated programming assignment grading
-- AI-powered learning assistant
-- Real-time student progress
-- Course and classroom management
-- Modern responsive interface
-- Production-ready architecture
-- REST API + WebSockets
-- Secure JWT authentication
+The backend currently sends code to the deployed judge service URLs configured in `backend/controllers/StudentAppController.js` and `backend/server.js`. To run or deploy a judge service yourself, see [`python-judge/README.md`](python-judge/README.md) and its Dockerfile. Update the backend URLs when using a different judge deployment.
 
----
+## Useful commands
 
-# 🤝 Contributing
+```bash
+# Frontend
+cd frontend
+npm run dev
+npm run build
+npm run lint
 
-Contributions are welcome!
+# Backend
+cd backend
+npm run dev
+npm start
+```
 
-If you'd like to improve Iskra, feel free to open an issue.
 
+## Current architecture notes
 
----
+- Practice grading returns an initial response and sends the result through Socket.IO; exam grading uses polling in the current implementation.
+- The backend currently selects between configured judge servers with simple round-robin logic. A durable grading queue and load-aware scheduling are not yet implemented.
+- Socket.IO rooms and some coordination state are held by the backend process, so the current setup assumes a single backend instance unless shared coordination is added.
+- Parent reports are handled through the application portal; this README does not describe an email delivery flow.
 
-# 🚩 Report a problem
+## Support
 
-If you have experienced any issue while using Iskra, feel free to contact us and submit a ticket at: **podrska@iskraedu.zohodesk.eu**
+For product support, contact **podrska@iskraedu.zohodesk.eu**.
 
----
+## License
 
-# 📄 License
-
-This project is licensed under the MIT License.
-
----
-
-<div align="center">
-
-**Built with ❤️ to make programming education smarter.**
-
-</div>
+This project is licensed under the MIT License. See [`LICENSE`](LICENSE).

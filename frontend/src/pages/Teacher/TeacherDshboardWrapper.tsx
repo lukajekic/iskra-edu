@@ -40,7 +40,7 @@ handleOnboarding()
         </SidebarTrigger>
         <AppSidebar  />
         <SidebarInset>
-          <main className='p-5 pt-16 w-full md:pt-5'>
+          <main className='px-5 pt-16 w-full md:pt-5 '>
             <Outlet></Outlet>
           </main>
         </SidebarInset>
