@@ -22,10 +22,14 @@ import PlannerRouter, { aiRouter } from './routes/PlannerRoutes.js'
 import CanvasRouter from './routes/CanvasRoutes.js'
 import ParentReportRoutes from './routes/ParentReportRoutes.js'
 import AdminApprovalRoutes from './routes/AdminApprovalRoutes.js'
+import { eventErrorHandler, eventRequestContext } from './middleware/eventLogMiddleware.js'
+import { createRateLimitHandler, logEvent } from './utilities/eventLogger.js'
+import { inject_req_data } from './middleware/inject_req_data.js'
+import rateLimit from 'express-rate-limit'
 const app = express()
 connectMongoDB()
 
-
+app.use(eventRequestContext)
 
 app.use(cors({
     origin: ["http://localhost:5173", "https://k547nh3t-5173.euw.devtunnels.ms", "https://iskra-edu.vercel.app"],
@@ -94,6 +98,57 @@ app.use('/api/ai', aiRouter)
 app.use('/api/canvas', CanvasRouter)
 app.use('/parent-report', ParentReportRoutes)
 app.use('/admin/approvals', AdminApprovalRoutes)
+const clientTelemetryLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: createRateLimitHandler({ type: 'rate_limit.client_telemetry_rejected', limit: 10, windowMs: 60_000 }),
+})
+app.post('/telemetry/client-error', clientTelemetryLimiter, inject_req_data, (req, res) => {
+  const { kind, errorName } = req.body || {}
+  const allowedKinds = new Set(['client.error', 'client.unhandled_rejection'])
+  const allowedErrorNames = new Set(['Error', 'TypeError', 'ReferenceError', 'SyntaxError', 'RangeError', 'URIError', 'EvalError', 'DOMException', 'NetworkError', 'AbortError'])
+
+  if (!allowedKinds.has(kind) || !allowedErrorNames.has(errorName)) {
+    return res.status(400).json({ message: 'Invalid telemetry event.' })
+  }
+
+  logEvent({
+    category: 'error',
+    type: kind,
+    severity: 'error',
+    outcome: 'failure',
+    service: 'frontend',
+    error: { name: errorName },
+    dedupe: true,
+  }, req)
+  return res.sendStatus(204)
+})
+app.use(eventErrorHandler)
+
+process.on('unhandledRejection', (reason) => {
+  logEvent({
+    category: 'error',
+    type: 'process.unhandled_rejection',
+    severity: 'error',
+    outcome: 'failure',
+    error: reason instanceof Error ? reason : { name: 'UnhandledRejection' },
+  })
+  // Preserve Node's fatal unhandled-rejection behavior after recording the event.
+  setImmediate(() => { throw reason instanceof Error ? reason : new Error('Unhandled promise rejection') })
+})
+
+process.on('uncaughtExceptionMonitor', (error) => {
+  logEvent({
+    category: 'error',
+    type: 'process.uncaught_exception',
+    severity: 'fatal',
+    outcome: 'failure',
+    error,
+  })
+})
+
 async function runPythonCode(index) {
   const url = "https://lukajekic-python-judge.hf.space/run";
   

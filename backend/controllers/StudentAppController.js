@@ -5,6 +5,7 @@ import { TaskModel } from "../models/TaskModel.js"
 import { UserModel } from "../models/UserModel.js"
 import crypto from "crypto";
 import { AILogModel } from "../models/AILogModel.js"
+import { requestJudge } from "../utilities/judgeRequest.js"
 
 const allowed_users = ['student_temp', 'student_permanent']
 
@@ -247,14 +248,7 @@ for (const test of tests) {
 
     try {
         metrica_http_count += 1
-        const response = await fetch(`${testing_instance}/run`, {
-            method: 'POST',
-            body: JSON.stringify({ code, input_data: stdin, timeout: 5 }),
-            headers: { 'Content-Type': 'application/json' }
-        })
-        
-
-        const data = await response.json()
+        const { data } = await requestJudge(testing_instance, { code, input_data: stdin, timeout: 5 }, { language: task.language, req })
 
         if (data.stderr) {
             stderr = data.stderr
@@ -349,14 +343,7 @@ for (const test of tests) {
 
     try {
         metrica_http_count += 1
-        const response = await fetch(`${testing_instance}/run`, {
-            method: 'POST',
-            body: JSON.stringify({ code, input_data: stdin, timeout: 5 }),
-            headers: { 'Content-Type': 'application/json' }
-        })
-
-     
-        const data = await response.json()
+        const { data } = await requestJudge(testing_instance, { code, input_data: stdin, timeout: 5 }, { language: task.language, req })
 
         if (data.stderr) {
             stderr = data.stderr
@@ -477,13 +464,7 @@ export const RunCode = async (req, res) => {
 
         let testing_instance = determineInstance();
         
-        const response = await fetch(`${testing_instance}/run`, {
-            method: 'POST',
-            body: JSON.stringify(body), 
-            headers: { 'Content-Type': 'application/json' }
-        });
-
-        const data = await response.json();
+        const { response, data } = await requestJudge(testing_instance, body, { language: 'python', req });
 
         return res.status(response.status).json(data);
 
@@ -504,13 +485,7 @@ export const RunRubyCode = async (req, res) => {
 
         let testing_instance = determineRubyInstance();
         
-        const response = await fetch(`${testing_instance}/run`, {
-            method: 'POST',
-            body: JSON.stringify(body), 
-            headers: { 'Content-Type': 'application/json' }
-        });
-
-        const data = await response.json();
+        const { response, data } = await requestJudge(testing_instance, body, { language: 'ruby', req });
 
         return res.status(response.status).json(data);
 

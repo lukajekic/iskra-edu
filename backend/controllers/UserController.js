@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { BuildValidationReturn } from "../utilities/ReturnValidationError.js";
 import { UserModel } from "../models/UserModel.js";
+import { logEvent } from "../utilities/eventLogger.js";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { DocumentModel } from "../models/DocumentModel.js";
@@ -160,17 +161,21 @@ export const Login = async (req, res) => {
     let { username, password } = req.body || {}
 
     if (!username || !password) {
+        logEvent({ category: "auth", type: "auth.login_failed", severity: "warning", outcome: "failure", details: { reason: "missing_credentials" }, dedupe: true }, req)
         return res.status(400).json(BuildValidationReturn("Missing credentials.", "error", "Please enter both username and password."))
     }
 
     let user = await UserModel.findOne({ username })
     if (!user) {
+        logEvent({ category: "auth", type: "auth.login_failed", severity: "warning", outcome: "failure", details: { reason: "invalid_credentials" }, dedupe: true }, req)
         return res.status(400).json(BuildValidationReturn("Invalid credentials.", "error", "Your login credentials aren't valid."))
     }
 
     let verified = await bcrypt.compare(password, user.password)
 
     if (!verified) {
+        req.user = user
+        logEvent({ category: "auth", type: "auth.login_failed", severity: "warning", outcome: "failure", details: { reason: "invalid_credentials" }, dedupe: true }, req)
         return res.status(400).json(BuildValidationReturn("Invalid credentials.", "error", "Your login credentials aren't valid."))
     }
 
@@ -220,6 +225,8 @@ export const PortalLogin = async (req, res) => {
     try {
         const user = await UserModel.findOne({ username }).select("+portal_access_data.otp_secret");
         if (!user || !user.password || !(await bcrypt.compare(password, user.password))) {
+            if (user) req.user = user;
+            logEvent({ category: "auth", type: "auth.portal_login_failed", severity: "warning", outcome: "failure", details: { reason: "invalid_credentials" }, dedupe: true }, req)
             return res.status(400).json(
                 BuildValidationReturn("Invalid credentials.", "error", "Korisničko ime ili lozinka nisu ispravni.")
             );
@@ -252,6 +259,8 @@ export const PortalLogin = async (req, res) => {
                     BuildValidationReturn("PORTAL_OTP_SETUP_REQUIRED", "info", "Skenirajte QR kod i unesite kod iz autentifikatora.")
                 );
             }
+            req.user = user
+            logEvent({ category: "auth", type: "auth.portal_login_failed", severity: "warning", outcome: "failure", details: { reason: "invalid_otp" }, dedupe: true }, req)
             return res.status(400).json(
                 BuildValidationReturn("Invalid portal verification code.", "error", "Unesite važeći šestocifreni OTP kod.")
             );
@@ -278,6 +287,8 @@ export const PortalLogin = async (req, res) => {
             { new: true }
         );
         if (!otpStepConsumed) {
+            req.user = user
+            logEvent({ category: "auth", type: "auth.portal_login_failed", severity: "warning", outcome: "failure", details: { reason: "otp_replay" }, dedupe: true }, req)
             return res.status(400).json(
                 BuildValidationReturn("Portal verification code already used.", "error", "Ovaj OTP kod je već iskorišćen. Sačekajte novi kod iz autentifikatora.")
             );
@@ -304,7 +315,7 @@ export const PortalLogin = async (req, res) => {
             menu: getMenuByRole(role)
         });
     } catch (error) {
-        console.error("Portal login failed:", error);
+        logEvent({ category: "error", type: "auth.portal_login_error", severity: "error", outcome: "failure", error }, req)
         return res.status(500).json(
             BuildValidationReturn("Portal login failed.", "error", "Prijava trenutno nije moguća. Pokušajte ponovo.")
         );

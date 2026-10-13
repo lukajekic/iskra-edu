@@ -5,6 +5,7 @@ import App from './App.tsx'
 import axios from 'axios'
 import { toast } from 'sonner'
 import './lib/posthog.ts'
+import './lib/eventTelemetry.ts'
 axios.defaults.withCredentials = true
 const PUBLIC_PATHS = ['/', '/about', '/legal/terms', '/legal/privacy', '/maintenance', '/not-available-on-mobile', '/app/parent/report', '/portal', '/portal/login', '/portal/dashboard']
 

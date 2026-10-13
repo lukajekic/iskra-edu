@@ -5,6 +5,7 @@ import { protect } from '../middleware/protect.js'
 import { protectPortal } from '../middleware/protectPortal.js'
 import { inject_req_data } from '../middleware/inject_req_data.js'
 import { CheckPortalUsernameAvailability, CreatePortalUser, ListPortalUsers, ResetPortalPassword, RevokePortalTwoFactor, SetPortalUserAccess, UpdatePortalUsername } from '../controllers/PortalUserController.js'
+import { createRateLimitHandler } from '../utilities/eventLogger.js'
 let router = express.Router()
 const portalAuthLimiter = rateLimit({
 	windowMs: 15 * 60 * 1000,
@@ -15,7 +16,8 @@ const portalAuthLimiter = rateLimit({
 		message: "Portal login rate limit.",
 		toast: "error",
 		toast_message: "Previše pokušaja prijave. Pokušajte ponovo za 15 minuta."
-	}
+	},
+	handler: createRateLimitHandler({ type: 'rate_limit.portal_auth_rejected', limit: 10, windowMs: 15 * 60 * 1000 })
 })
 const portalManagementLimiter = rateLimit({
 	windowMs: 15 * 60 * 1000,
@@ -26,7 +28,8 @@ const portalManagementLimiter = rateLimit({
 		message: "Portal account management rate limit.",
 		toast: "error",
 		toast_message: "Previše promena naloga. Pokušajte ponovo kasnije."
-	}
+	},
+	handler: createRateLimitHandler({ type: 'rate_limit.portal_management_rejected', limit: 30, windowMs: 15 * 60 * 1000 })
 })
 
 

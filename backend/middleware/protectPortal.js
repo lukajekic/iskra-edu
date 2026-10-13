@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { UserModel } from "../models/UserModel.js";
 import { BuildValidationReturn } from "../utilities/ReturnValidationError.js";
+import { logEvent } from "../utilities/eventLogger.js";
 
 const portalRoles = new Set(["super_admin", "district", "school_main", "school_tenant"]);
 
@@ -30,9 +31,13 @@ export const protectPortal = async (req, res, next) => {
       return res.status(403).json(BuildValidationReturn("Invalid portal role.", "error", "Portal nalog nema važeću portal ulogu."));
     }
     if (user.login_banned) {
+      req.user = user;
+      logEvent({ category: "auth", type: "auth.portal_session_blocked", severity: "warning", outcome: "blocked", details: { reason: "account_banned" }, dedupe: true }, req);
       return res.status(403).json(BuildValidationReturn("Portal account is banned.", "error", "Portal nalog ima zabranu prijave."));
     }
     if ((verified.authVersion || 0) !== (user.portal_access_data?.auth_version || 0)) {
+      req.user = user;
+      logEvent({ category: "auth", type: "auth.portal_session_blocked", severity: "warning", outcome: "blocked", details: { reason: "session_revoked" }, dedupe: true }, req);
       return res.status(401).json(BuildValidationReturn("Portal session revoked.", "error", "Portal sesija je opozvana. Prijavite se ponovo."));
     }
 
@@ -40,6 +45,7 @@ export const protectPortal = async (req, res, next) => {
     req.portalRole = role;
     return next();
   } catch {
+    logEvent({ category: "auth", type: "auth.portal_token_invalid", severity: "warning", outcome: "blocked", details: { reason: "token_verification_failed" }, dedupe: true }, req);
     return res.status(401).json(BuildValidationReturn("Invalid portal session.", "error", "Prijavite se na portal."));
   }
 };

@@ -61,9 +61,9 @@ VITE_POSTHOG_HOST=
 | `VITE_POSTHOG_KEY` | PostHog project key used by the frontend error/analytics integration. |
 | `VITE_POSTHOG_HOST` | PostHog host corresponding to the project key. |
 
-The frontend reads these values at build time. Only put public client configuration in `VITE_*` variables; never put private API secrets there.
+The frontend reads these values at build time. Only put public client configuration in `VITE_*` variables; never put private API secrets there. See [`frontend/.env.example`](frontend/.env.example) for a starter file.
 
-**Important notice:** Use of PostHog will be depreceated in future due to our mission on keeping students' data private.
+**Privacy note:** PostHog is currently configurable in the frontend. Review its data collection settings before enabling it with student accounts.
 
 ### Backend: `backend/.env`
 
@@ -71,9 +71,11 @@ The frontend reads these values at build time. Only put public client configurat
 PORT=3000
 MONGO_SECRET=mongodb://127.0.0.1:27017/iskra
 JWT_SECRET=replace-with-a-long-random-secret
-AI_ENDPOINT=Your_cloudflare_ai_api_endpoint
-AI_API_KEY=Your_cloudflare_ai_api_key
-GROQ_API_KEY=Your_grok_api_key
+AI_ENDPOINT=
+AI_API_KEY=
+GROQ_API_KEY=
+EVENT_LOG_HMAC_SECRET=
+EVENT_LOG_RETENTION_DAYS=30
 ```
 
 | Variable | Purpose |
@@ -84,8 +86,10 @@ GROQ_API_KEY=Your_grok_api_key
 | `AI_ENDPOINT` | Endpoint used by the student AI mentor integration. |
 | `AI_API_KEY` | Credential for the configured student AI endpoint. |
 | `GROQ_API_KEY` | Credential used by Iskra Planner and Canvas. |
+| `EVENT_LOG_HMAC_SECRET` | Optional dedicated secret for pseudonymizing actor and request source identifiers in operational logs. If omitted, `JWT_SECRET` is used. |
+| `EVENT_LOG_RETENTION_DAYS` | Event log retention in days; defaults to 30 and is capped at 365. |
 
-Use strong, unique secrets in deployed environments. The backend currently configures allowed frontend origins in `backend/server.js`; add your local or deployment frontend origin there when needed.
+Use strong, unique secrets in deployed environments. The backend currently configures allowed frontend origins in `backend/server.js`; add your local or deployment frontend origin there when needed. See [`backend/.env.example`](backend/.env.example) for a starter file.
 
 ## Run locally
 
@@ -130,7 +134,16 @@ npm start
 - Practice grading returns an initial response and sends the result through Socket.IO; exam grading uses polling in the current implementation.
 - The backend currently selects between configured judge servers with simple round-robin logic. A durable grading queue and load-aware scheduling are not yet implemented.
 - Socket.IO rooms and some coordination state are held by the backend process, so the current setup assumes a single backend instance unless shared coordination is added.
+- Operational and security events are written to MongoDB's `event_logs` collection. Records expire automatically after the configured retention period. Backend and frontend telemetry excludes request bodies, source code, prompts, credentials, error messages, and raw actor/source identifiers.
 - Parent reports are handled through the application portal; this README does not describe an email delivery flow.
+
+### Event log
+
+Each record uses the same envelope: `schemaVersion`, `eventId`, `occurredAt`, `expiresAt`, `category`, `type`, `severity`, `outcome`, `service`, `environment`, `actor`, `request`, `target`, `details`, and `error`. The event model validates the common fields and limits `details` to a fixed set of diagnostic fields.
+
+The current instrumentation records backend failures and slow requests, browser errors and unhandled rejections, authentication failures, rate-limit rejections, and judge-service response timings/failures. Actor IDs and request source addresses are HMAC-pseudonymized with `EVENT_LOG_HMAC_SECRET` (or `JWT_SECRET` as a fallback). Repeated rate-limit events from the same pseudonymous source and route are coalesced for one minute.
+
+Writes use a bounded in-memory queue and MongoDB batches so logging does not hold up application responses. This is best-effort telemetry: entries may be dropped during MongoDB outages or process shutdown. Use the hosting platform's process logs for durable crash records. The TTL index removes records after `EVENT_LOG_RETENTION_DAYS`.
 
 ## Support
 

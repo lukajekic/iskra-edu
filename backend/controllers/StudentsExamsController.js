@@ -7,6 +7,7 @@ import crypto from "crypto";
 import { TestModel } from "../models/TestModel.js"
 import { SolutionModel } from "../models/TestSolutionModel.js"
 import { TheroyTAskModel } from "../models/TheoryTaskModel.js"
+import { requestJudge } from "../utilities/judgeRequest.js"
 import bcrypt from 'bcrypt'
 const allowed_users = ['student_permanent']
 
@@ -645,14 +646,7 @@ export const checkPracticalSolution = async (req, res) => {
                         }
 
                         try {
-                            const response = await fetch(`${testing_instance}/run`, {
-                                method: 'POST',
-                                body: JSON.stringify({ code: answer, input_data: stdin, timeout: 5 }),
-                                headers: { 'Content-Type': 'application/json' }
-                            })
-
-
-                            const data = await response.json()
+                            const { data } = await requestJudge(testing_instance, { code: answer, input_data: stdin, timeout: 5 }, { language: ref_task.language, req })
 
                             if (data.stderr) {
                                 stderr = data.stderr

@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken'
 import { UserModel } from '../models/UserModel.js'
 import mongoose from 'mongoose'
 import { BuildValidationReturn } from '../utilities/ReturnValidationError.js'
+import { logEvent } from '../utilities/eventLogger.js'
 
 export const protect = async(req, res, next) =>{
  try {
@@ -25,9 +26,13 @@ export const protect = async(req, res, next) =>{
         }
 
         if (user.login_banned) {
+            req.user = user
+            logEvent({ category: 'auth', type: 'auth.session_blocked', severity: 'warning', outcome: 'blocked', details: { reason: 'account_banned' }, dedupe: true }, req)
             return res.status(403).json(BuildValidationReturn("Account access revoked.", "error", "Pristup ovom nalogu je opozvan."))
         }
         if ((verify.authVersion || 0) !== (user.auth_version || 0)) {
+            req.user = user
+            logEvent({ category: 'auth', type: 'auth.session_blocked', severity: 'warning', outcome: 'blocked', details: { reason: 'session_revoked' }, dedupe: true }, req)
             return res.status(401).json(BuildValidationReturn("Session revoked.", "error", "Sesija je opozvana. Prijavite se ponovo."))
         }
 
@@ -39,6 +44,7 @@ export const protect = async(req, res, next) =>{
                 return res.status(401).json(BuildValidationReturn("You are not authenticated to access this API, your token failed on jwt.verify.", null, null))
     }
  } catch (error) {
+    logEvent({ category: 'auth', type: 'auth.token_invalid', severity: 'warning', outcome: 'blocked', details: { reason: 'token_verification_failed' }, dedupe: true }, req)
     return res.status(500).json(BuildValidationReturn("Server error on protect middleware", null, null))
  }   
 }
