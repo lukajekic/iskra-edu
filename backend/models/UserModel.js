@@ -20,7 +20,11 @@ const solutionSchema = new mongoose.Schema({
   dev_ocekivani_output: { type: String, required: false },
   dev_output: { type: String, required: false },
   grading_date: { type: Date, required: false },
-  flags: { type: Array, required: false }
+  flags: { type: Array, required: false },
+  failed_tests: {
+    type: Array,
+    required: false
+  }
 }, { _id: false });
 
 const portalAccessDataSchema = new mongoose.Schema({
