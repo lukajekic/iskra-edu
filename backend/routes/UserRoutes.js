@@ -61,7 +61,7 @@ router.put('/me/teachers/ban/:id', protect, UpdateUserBanStatus)
 router.get('/me/gdpr/users', protect, GetUsersForGdprDeletion)
 router.delete('/me/gdpr/users/:id', protect, DeleteUserForGdpr)
 //dodato na /portal-login middleware: portalAuthLimiter
-router.post('/portal-login', PortalLogin)
+router.post('/portal-login', portalAuthLimiter, PortalLogin)
 router.post('/portal-otp/setup', portalAuthLimiter, SetupPortalOtp)
 router.post('/portal-logout', PortalLogout)
 router.get('/portal-session', protectPortal, PortalSession)
