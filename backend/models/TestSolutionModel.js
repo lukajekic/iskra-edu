@@ -45,9 +45,10 @@ const solutionSchema = new mongoose.Schema({
             },
             status: {
                 type: String,
-                enum: ['none', 'incorrect', 'correct', 'grading'],
+                enum: ['none', 'incorrect', 'correct', 'grading', 'grading_error'],
                 default: 'none'
-            }
+            },
+            grading_job_id: { type: mongoose.Schema.Types.ObjectId, ref: 'SubmissionJob', default: null }
         }
     ],
     total_points_awarded: {

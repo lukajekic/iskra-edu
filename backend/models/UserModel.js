@@ -9,6 +9,7 @@ const activeGroupSchema = new mongoose.Schema({
 const solutionSchema = new mongoose.Schema({
   solutionID: { type: String, required: false },
   status: { type: String, required: false },
+  grading_job_id: { type: mongoose.Schema.Types.ObjectId, ref: "SubmissionJob", required: false },
   code: { type: String, required: false },
   stderr: { type: String, required: false },
   stdok: { type: String, required: false },

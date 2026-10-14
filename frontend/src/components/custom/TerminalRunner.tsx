@@ -5,16 +5,18 @@ import { Alert } from '../ui/alert'
 import { toast } from 'sonner'
 import axios from 'axios'
 import LoaderModal from './LoaderModal'
+import { getRetryAfterSeconds } from './RateLimitDialog'
 
 interface Props {
     codeOrigin: string,
     count: number,
     language: string, // DODATO: Prihvatamo jezik iz roditelja
     endpoint: string, // DODATO: Prihvatamo dinamički endpoint iz roditelja
-    onClose: (data: any) => void
+    onClose: (data: any) => void,
+    onRateLimited: (retryAfterSeconds: number) => void
 }
 
-const TerminalRunner = ({ codeOrigin, count, language, endpoint, onClose }: Props) => {
+const TerminalRunner = ({ codeOrigin, count, language, endpoint, onClose, onRateLimited }: Props) => {
     const [policyBreaking, setPolicyBreaking] = useState("")
     const [loading, setloading]= useState(false)
 
@@ -63,8 +65,13 @@ const TerminalRunner = ({ codeOrigin, count, language, endpoint, onClose }: Prop
                 onClose({...response.data, policyBreaking: currentPolicy })
             }
         } catch (error) {
-            toast.error("Greska.")
             setloading(false)
+            if ((error as any)?.response?.status === 429) {
+                onRateLimited(getRetryAfterSeconds(error, 60))
+                onClose(null)
+                return
+            }
+            toast.error("Greska.")
             onClose("ERROR: Desila se greska.")
         }
     }

@@ -24,6 +24,7 @@ import ParentReportRoutes from './routes/ParentReportRoutes.js'
 import AdminApprovalRoutes from './routes/AdminApprovalRoutes.js'
 import { eventErrorHandler, eventRequestContext } from './middleware/eventLogMiddleware.js'
 import { createRateLimitHandler, logEvent } from './utilities/eventLogger.js'
+import { runJudgeCallback, startSubmissionQueue } from './utilities/submissionQueue.js'
 import { inject_req_data } from './middleware/inject_req_data.js'
 import rateLimit from 'express-rate-limit'
 const app = express()
@@ -33,11 +34,13 @@ app.use(eventRequestContext)
 
 app.use(cors({
     origin: ["http://localhost:5173", "https://k547nh3t-5173.euw.devtunnels.ms", "https://iskra-edu.vercel.app"],
-    credentials: true
+    credentials: true,
+    exposedHeaders: ["Retry-After", "RateLimit", "RateLimit-Policy", "RateLimit-Reset"],
 }));
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(cookieParser())
+app.put('/internal/judge0/callback/:jobId', runJudgeCallback)
 
 //demo api
 app.get("/", (_, res)=>{
@@ -66,19 +69,6 @@ const html = `
 res.type('html')
 res.send(html)
 })
-
-
-app.get("/run", async (req, res)=>{
-    let stdouts = []
-    for (let index = 0; index < 5; index++) {
-        const result = await runPythonCode(index)
-        stdouts.push(result)
-        
-    }
-    res.json(stdouts)
-})
-
-//kraj demo api-ja
 
 
 //rute
@@ -149,36 +139,6 @@ process.on('uncaughtExceptionMonitor', (error) => {
   })
 })
 
-async function runPythonCode(index) {
-  const url = "https://lukajekic-python-judge.hf.space/run";
-  
-  const myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
-
-  const raw = JSON.stringify({
-    "code": "print(input(), input(), input())",
-    "input_data": `Luka\nJekic\n${index}`,
-    "timeout": 5
-  });
-
-  const requestOptions = {
-    method: "POST",
-    headers: myHeaders,
-    body: raw,
-    redirect: "follow"
-  };
-
-  try {
-    const response = await fetch(url, requestOptions);
-    const result = await response.json();
-    console.log("Rezultat:", result);
-    return result
-  } catch (error) {
-    console.error("Greška:", error);
-    return error
-  }
-}
-
 const server = http.createServer(app)
 const io = new Server(server, {
   cors: {
@@ -217,14 +177,13 @@ socket.on('join_exam_room', (roomName)=>{
   console.log(`Soket ${socket.id} je usao u sobu za realtime updejte ispita za solution id: ${roomName}`)
 
   socket.emit('message', `Usao si u sobu za realtime updejte ispita za soluiton id ${roomName}`)
-
-  socket.emit('update_exam_solution_status', {abc: "cde"})
-  
 })
 
 })
 
 app.set('socketio', io)
+globalThis.__iskraSocketIO = io
+startSubmissionQueue()
 app.post('/devstatus', (req, res) => {
   io.to('69af08bb9e31852b60dad191').emit('solution_status_update', {
     task: "69b5b9b48c66c60fbb8121e0",

@@ -10,6 +10,7 @@ import { Editor } from '@monaco-editor/react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import posthog from '@/lib/posthog';
+import RateLimitDialog, { getRetryAfterSeconds } from '@/components/custom/RateLimitDialog';
 
 const SolutionForm = () => {
 
@@ -18,8 +19,16 @@ const SolutionForm = () => {
     const [activeTask, setActiveTask] = useState(null);
     const [draft, setDraft] = useState(false)
     const [value, setValue] = useState(null)
+    const [rateLimitRetryAt, setRateLimitRetryAt] = useState<number | null>(null);
     const {id} = useParams()
     const currentTaskId = searchParams.get('task');
+
+    const showRateLimitNotice = (error: any, fallbackSeconds = 15) => {
+        if (error?.response?.status !== 429) return false;
+        setRateLimitRetryAt(Date.now() + getRetryAfterSeconds(error, fallbackSeconds) * 1000);
+        return true;
+    };
+
     useEffect(()=>{
         console.log(value)
     }, [value])
@@ -54,6 +63,7 @@ const SolutionForm = () => {
     }, [activeTask]);
 
     const sendAnswerTheory = async()=>{
+        const previousTask = activeTask;
         try {
             if (!value) {
                 toast.warning("Odaberi odgovor.")
@@ -105,12 +115,24 @@ const SolutionForm = () => {
                 })
             }
         } catch (error) {
-            toast.error("Greska")
+            setTasksData((prev) => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    theoryTasks: prev.theoryTasks.map((task) => task.taskDetails?._id === currentTaskId ? {
+                        ...task,
+                        status: previousTask?.status || 'none',
+                        student_answer: value ?? previousTask?.student_answer ?? null,
+                    } : task),
+                };
+            });
+            if (!showRateLimitNotice(error)) toast.error("Greska");
         }
     }
 
 
-   const sendAnswerPractical = async()=>{
+    const sendAnswerPractical = async()=>{
+        const previousTask = activeTask;
         try {
             if (!value) {
                 toast.warning("Unesi kod.")
@@ -140,10 +162,10 @@ const SolutionForm = () => {
                 answer: value
             })
 
-            if (response.status === 200) {
+            if (response.status === 202 && response.data?.jobId) {
                 posthog.capture('student_answer_submitted', {
                     task_type: 'practical',
-                    evaluation_result: response.data.correct ? 'correct' : 'incorrect',
+                    evaluation_result: 'queued',
                 })
                 setDraft(false)
                 setTasksData((prev) => {
@@ -152,11 +174,13 @@ const SolutionForm = () => {
                         ...prev,
                         practicalTasks: prev.practicalTasks.map((task) => {
                             if (task.taskDetails?._id === currentTaskId) {
+                                if (task.status === 'correct' || task.status === 'incorrect' || task.status === 'grading_error') return task;
                                 return {
                                     ...task,
                                     student_answer: value,
-                                    status: response.data.correct ? "correct" : "incorrect",
-                                    points_awarded: response.data.points_awarded
+                                    status: 'grading',
+                                    grading_job_id: response.data.jobId,
+                                    points_awarded: 0
                                 }
                             }
                             return task
@@ -165,12 +189,29 @@ const SolutionForm = () => {
                 })
             }
         } catch (error) {
-            toast.error("Greska")
+            setTasksData((prev) => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    practicalTasks: prev.practicalTasks.map((task) => {
+                        if (task.taskDetails?._id !== currentTaskId) return task;
+                        if (task.grading_job_id || task.status === 'correct' || task.status === 'incorrect' || task.status === 'grading_error') return task;
+                        return {
+                        ...task,
+                        status: previousTask?.status || 'none',
+                        student_answer: value ?? previousTask?.student_answer ?? null,
+                            grading_job_id: previousTask?.grading_job_id ?? null,
+                        };
+                    }),
+                };
+            });
+            if (!showRateLimitNotice(error)) toast.error("Greska")
         }
     }
 
   return (
     <div className="w-full p-5">
+        <RateLimitDialog retryAt={rateLimitRetryAt} onOpenChange={(open) => { if (!open) setRateLimitRetryAt(null) }} />
         <p className="text-2xl font-bold border-b-1 pb-2 mb-2">
                         Rešenje zadatka
                     </p>
@@ -228,6 +269,14 @@ const SolutionForm = () => {
 
             <div id="right" className='text-white text-xl font-semibold'>{activeTask?.points_awarded || 0}/{activeTask?.points_max}</div>
         </div>
+        )}
+
+        {activeTask?.status === "grading_error" && (
+            <Alert className="mb-3 border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50">
+                <AlertTriangleIcon />
+                <AlertTitle>Provera nije završena</AlertTitle>
+                <AlertDescription>{activeTask?.feedback || 'Ocenjivanje trenutno nije dostupno. Možeš ponovo poslati rešenje.'}</AlertDescription>
+            </Alert>
         )}
 
 

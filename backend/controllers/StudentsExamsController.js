@@ -6,8 +6,9 @@ import { UserModel } from "../models/UserModel.js"
 import crypto from "crypto";
 import { TestModel } from "../models/TestModel.js"
 import { SolutionModel } from "../models/TestSolutionModel.js"
+import { SubmissionJobModel } from "../models/SubmissionJobModel.js"
 import { TheroyTAskModel } from "../models/TheoryTaskModel.js"
-import { requestJudge } from "../utilities/judgeRequest.js"
+import { createSubmissionJob, getSubmissionJobStatus, kickSubmissionQueue } from "../utilities/submissionQueue.js"
 import bcrypt from 'bcrypt'
 const allowed_users = ['student_permanent']
 
@@ -252,6 +253,8 @@ export const getTasksData = async (req, res) => {
                 taskType: q.taskType,
                 status: displayStatus,
                 student_answer: matchingAnswer?.student_answer ?? null,
+                grading_job_id: matchingAnswer?.grading_job_id ?? null,
+                feedback: matchingAnswer?.feedback ?? "",
                 taskDetails: populatedData
             };
         });
@@ -528,186 +531,111 @@ export const CheckTheorySolution = async (req, res) => {
 }
 
 
-let activeInstance = -1
-let instances = {
-    0: "https://lukajekic-python-judge.hf.space",
-    1: "https://lukajekic-python-judge-2.hf.space"
-}
-let activeRubyInstance = -1
-
-let ruby_instances = {
-    0: "https://iskra-edu.onrender.com"
-}
-
-let determineInstance = () => {
-    let keys = Object.keys(instances)
-    let new_active = -1
-    if (activeInstance + 1 === keys.length) {
-        new_active = 0
-    } else {
-        new_active = activeInstance + 1
-    }
-    activeInstance = new_active
-
-    return instances[activeInstance]
-}
-
-let determineRubyInstance = () => {
-    let keys = Object.keys(ruby_instances)
-    let new_active = -1
-    if (activeRubyInstance + 1 === keys.length) {
-        new_active = 0
-    } else {
-        new_active = activeRubyInstance + 1
-    }
-    activeRubyInstance = new_active
-
-    return ruby_instances[activeRubyInstance]
-}
-
 export const checkPracticalSolution = async (req, res) => {
     try {
-        const { mutation_id = null, answer = null, test_id = null } = req.body || {}
-        const studentid = req.user._id
-        const usertype = req.user.type
-        if (!mutation_id || !answer || !test_id) {
-            return res.status(400).json(BuildValidationReturn("Enter all the required data.", 'error', "Missing required data."))
+        const { mutation_id: mutationId, answer, test_id: testId } = req.body || {}
+        const studentId = req.user._id
+        if (!studentId || !allowed_users.includes(req.user.type)) {
+            return res.status(403).json(BuildValidationReturn("lacking role.", "error", "You are not authorized to access this data."))
+        }
+        if (!mutationId || typeof answer !== "string" || !answer.trim() || !testId) {
+            return res.status(400).json(BuildValidationReturn("Enter all the required data.", "error", "Missing required data."))
+        }
+        if (answer.length > 100_000) {
+            return res.status(413).json(BuildValidationReturn("source code too large.", "error", "Kod je predugačak za proveru."))
         }
 
-        if (!studentid) {
-            return res.status(400).json(BuildValidationReturn('No user id middleware', 'error', 'Missing student ID.'))
-        }
-        if (!test_id) {
-            return res.status(400).json(BuildValidationReturn('No test id from query param', 'error', 'Missing Test ID.'))
-        }
-        if (!usertype) {
-            return res.status(400).json(BuildValidationReturn('No req.user.type from middleware', 'error', 'Missing Account Type'))
-        }
-        if (!allowed_users.includes(usertype)) {
-            return res.status(400).json(BuildValidationReturn('Not right account type.', 'error', 'Your Account cannot access these resources.'))
+        const solution = await SolutionModel.findOne({
+            test_ref: new mongoose.Types.ObjectId(testId),
+            student_ref: new mongoose.Types.ObjectId(studentId),
+            submission_status: "in_progress",
+        })
+        if (!solution) return res.status(404).json(BuildValidationReturn("solution not found.", "error", "Solution not found."))
+
+        const answerRecord = solution.answers.find((item) => item.task_type === "Task" && String(item.question_id) === String(mutationId))
+        if (!answerRecord) return res.status(404).json(BuildValidationReturn("task not found.", "error", "Task not found."))
+        if (answerRecord.status === "grading" && answerRecord.grading_job_id) {
+            return res.status(202).json({ success: true, jobId: String(answerRecord.grading_job_id), status: "queued", points_awarded: 0 })
         }
 
-        let Solution = await SolutionModel.findOne({
-            test_ref: new mongoose.Types.ObjectId(test_id),
-            student_ref: new mongoose.Types.ObjectId(studentid),
-            submission_status: { $in: ["in_progress"] }
+        const task = await TaskModel.findById(answerRecord.question_id).lean()
+        if (!task) return res.status(404).json(BuildValidationReturn("task not found.", "error", "Task not found."))
+        const language = String(task.language || "").toLowerCase()
+        if (!['python', 'ruby'].includes(language)) {
+            return res.status(400).json(BuildValidationReturn("unsupported language.", "error", "Ovaj jezik trenutno nije podržan za automatsku proveru."))
+        }
+        if (!Array.isArray(task.tests) || task.tests.length === 0 || task.tests.length > 50) {
+            return res.status(400).json(BuildValidationReturn("invalid test set.", "error", "Zadatak mora imati od 1 do 50 testova za proveru."))
+        }
+        if (!['standard', 'matplotlib'].includes(task.outputType)) {
+            return res.status(400).json(BuildValidationReturn("unsupported output type.", "error", "Ovaj format zadatka trenutno nije podržan za automatsku proveru."))
+        }
+
+        const cases = task.tests.map((test) => ({
+            input: Array.isArray(test.input) ? test.input.join("\n") : String(test.input ?? ""),
+            expectedOutput: Array.isArray(test.output) ? test.output.join("\n") : String(test.output ?? ""),
+        }))
+        if (JSON.stringify(cases).length > 750_000) {
+            return res.status(413).json(BuildValidationReturn("test set too large.", "error", "Testovi ovog zadatka su preveliki za automatsku proveru."))
+        }
+        const job = await createSubmissionJob({
+            kind: "exam",
+            ownerRef: studentId,
+            taskRef: task._id,
+            solutionRef: solution._id,
+            questionRef: answerRecord.question_id,
+            language,
+            sourceCode: answer,
+            cases,
+            caseCount: cases.length,
+            maxPoints: answerRecord.max_points,
         })
 
-        if (!Solution) {
-            return res.status(400).json(BuildValidationReturn('solution not found with arameters of test_ref, student_ref, and status in progress', 'error', 'Solution not found.'))
+        answerRecord.student_answer = answer
+        answerRecord.status = "grading"
+        answerRecord.feedback = "Provera rešenja je u toku."
+        answerRecord.points_awarded = 0
+        answerRecord.grading_job_id = job._id
+        solution.markModified("answers")
+        try {
+            await solution.save()
+        } catch (error) {
+            await SubmissionJobModel.updateOne(
+                { _id: job._id, status: "queued" },
+                { $set: { status: "failed", lastError: "Exam answer could not be saved.", expiresAt: new Date(Date.now() + 86_400_000) }, $unset: { sourceCode: 1, cases: 1 } },
+            )
+            throw error
         }
 
-        let task_to_mutate = Solution.answers.find(item =>
-            item.task_type === "Task" &&
-            item.question_id.toString() === mutation_id.toString()
-        )
-
-        if (!task_to_mutate) {
-            return res.status(400).json(BuildValidationReturn("Task not found. [In task_to_mutate]", 'error', 'Task not found.'))
-        }
-
-        let ref_task = await TaskModel.findById(task_to_mutate.question_id)
-        if (!ref_task) {
-            return res.status(400).json(BuildValidationReturn("Task not found. [In TaskModel]", 'error', 'Task not found.'))
-        }
-
-        console.log(ref_task)
-
-        task_to_mutate.student_answer = answer
-
-        if (!ref_task.tests || ref_task.tests.length === 0) {
-            task_to_mutate.status = 'incorrect'
-            task_to_mutate.feedback = "Zadatak nije prihvaćen jer Isrka ne može proveriti zadatak ako zadatak ne poseduje testove za proveru."
-            task_to_mutate.points_awarded = 0
-            Solution.markModified('answers')
-            await Solution.save()
-            return res.status(200).json({
-                success: true,
-                correct: false,
-                points_awarded: 0
-            })
-        } else {
-
-
-            if (ref_task.language === "python" || ref_task.language === "ruby") {
-                let stderr = ""
-                if (ref_task.outputType === "standard") {
-                    console.log(ref_task)
-                    let tests = ref_task.tests
-
-                    for (const test of tests) {
-                        let stdin = test.input.join("\n");
-                        
-                        let testing_instance = ""
-                        if (ref_task.language === "python") {
-                            testing_instance = determineInstance()
-                        } else if (ref_task.language === "ruby") {
-                            testing_instance = determineRubyInstance()
-                        }
-
-                        try {
-                            const { data } = await requestJudge(testing_instance, { code: answer, input_data: stdin, timeout: 5 }, { language: ref_task.language, req })
-
-                            if (data.stderr) {
-                                stderr = data.stderr
-                                task_to_mutate.status = 'incorrect'
-                                task_to_mutate.feedback = "Sintaksa zadatka nije ispravna."
-                                task_to_mutate.points_awarded = 0
-                                Solution.markModified('answers')
-                                await Solution.save()
-                                return res.status(200).json({
-                                    success: true,
-                                    correct: false,
-                                    points_awarded: 0
-                                })
-
-                                await Solution.save()
-                            } else {
-                                let expected_output = test.output.join("\n")
-                                let output_real = data.stdout.replace(/\n$/, "")
-                                if (expected_output !== output_real) {
-                                    task_to_mutate.status = 'incorrect'
-                                    task_to_mutate.feedback = "Sintaksa koda je u redu, ali ispis programa se ne poklapa sa ocekivanjima testova zadatka."
-                                    task_to_mutate.points_awarded = 0
-                                    Solution.markModified('answers')
-                                    await Solution.save()
-                                    return res.status(200).json({
-                                        success: true,
-                                        correct: false,
-                                        points_awarded: 0
-                                    })
-
-                                    await Solution.save()
-
-
-                                }
-                            }
-                        } catch (error) {
-                            console.error("Greška pri testiranju:", error);
-                            return res.status(500).json(BuildValidationReturn(error.message, "error", "Your solution cannot be checked due to an error."))
-                        }
-                    }
-
-                    task_to_mutate.status = 'correct'
-                    task_to_mutate.feedback = "Zadatak je ispravno uradjen."
-                    task_to_mutate.points_awarded = task_to_mutate.max_points
-                    Solution.markModified('answers')
-                    await Solution.save()
-                    return res.status(200).json({
-                        success: true,
-                        correct: true,
-                        points_awarded: task_to_mutate.max_points
-                    })
-
-                    await Solution.save()
-                }
-            }
-        }
+        req.app.get("socketio")?.to(String(solution._id)).emit("update_exam_solution_status", {
+            tasktype: "Task",
+            status: "grading",
+            id: String(answerRecord.question_id),
+            jobId: String(job._id),
+            points_awarded: 0,
+            feedback: "Provera rešenja je u toku.",
+        })
+        kickSubmissionQueue()
+        return res.status(202).json({
+            success: true,
+            jobId: String(job._id),
+            status: "queued",
+            points_awarded: 0,
+        })
     } catch (error) {
-        return res.status(500).json(BuildValidationReturn(error.message, 'error', 'Unexpected error occured.'))
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Ocenjivanje trenutno nije dostupno."))
     }
 }
 
+export const getExamGradingJob = async (req, res) => {
+    try {
+        const job = await getSubmissionJobStatus(req.params.jobId, req.user._id)
+        if (!job || job.kind !== "exam") return res.status(404).json({ success: false, message: "Predaja nije pronađena." })
+        return res.status(200).json(job)
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, "error", "Nije moguće preuzeti status ocenjivanja."))
+    }
+}
 
 export const getResultData = async (req, res) => {
     try {

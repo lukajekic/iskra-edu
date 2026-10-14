@@ -235,6 +235,13 @@ export function logEvent(input = {}, req = null) {
 export function createRateLimitHandler({ type, limit, windowMs }) {
   return (req, res, _next, options) => {
     const statusCode = options.statusCode || 429;
+    const resetTime = req.rateLimit?.resetTime;
+    const existingRetryAfter = Number(res.getHeader("Retry-After"));
+    const retryAfterSeconds = Math.max(1, Math.ceil(resetTime instanceof Date
+      ? (resetTime.getTime() - Date.now()) / 1000
+      : Number.isFinite(existingRetryAfter) && existingRetryAfter > 0
+        ? existingRetryAfter
+        : windowMs / 1000));
     req.eventRateLimitLogged = true;
     req.eventStatusCode = statusCode;
     logEvent({
@@ -245,6 +252,10 @@ export function createRateLimitHandler({ type, limit, windowMs }) {
       details: { reason: "request_limit_exceeded", limit, windowMs, httpStatus: statusCode },
       dedupe: true,
     }, req);
-    return res.status(statusCode).json(options.message);
+    res.setHeader("Retry-After", String(retryAfterSeconds));
+    return res.status(statusCode).json({
+      ...(options.message && typeof options.message === "object" ? options.message : { message: options.message }),
+      retryAfterSeconds,
+    });
   };
 }

@@ -18,3 +18,12 @@ export const Limiter15 = rateLimit({
         
     }
 })
+
+export const LimiterJudgeRuns = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 8,
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: createRateLimitHandler({ type: 'rate_limit.judge_run_rejected', limit: 8, windowMs: 60_000 }),
+    keyGenerator: (req) => req.user._id.toString()
+})

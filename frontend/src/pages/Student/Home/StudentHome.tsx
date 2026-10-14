@@ -22,6 +22,7 @@ import { WorkForbiddenContext } from '@/pages/Teacher/StudentDashboardWrapper';
 import AIDrawer from '@/components/custom/AIDrawer';
 import Loader from '@/components/custom/Loader';
 import LoaderModal from '@/components/custom/LoaderModal';
+import RateLimitDialog, { getRetryAfterSeconds } from '@/components/custom/RateLimitDialog';
 
 type props = {
   openPicker: {
@@ -45,6 +46,7 @@ const StudentHome = () => {
 const [openAIModal, setopenAIModal] = useState(false)
 const [openAIChat, setOpenAIChat] = useState(false);
 const [loader, setLoader] = useState(false);
+const [rateLimitRetryAt, setRateLimitRetryAt] = useState<number | null>(null);
 (window as any).setOpenAIChat = setOpenAIChat
 
 const [AIAnswer, setAIAnswer] = useState("")
@@ -212,14 +214,24 @@ const handleSolutionSend = async()=>{
     setDisableSend(true)
     CreateMetricaEvent(import.meta.env.VITE_METRICA, metrica_events.process)
     const response = await axios.post(`${import.meta.env.VITE_BACKEND}/app/student/solution/create`, {
-      solutionID: solution.solutionID,
+      solutionID: solution?.solutionID,
       code: code,
       taskID: searchParams.get('task'),
       iskra_anticheat_paste: sessionStorage.getItem("iskra_anticheat_paste"),
       iskra_anticheat_tab: sessionStorage.getItem("iskra_anticheat_tab")
     })
+    if (response.data?.solutionID) {
+      setSolution((prev) => ({ ...(prev || {}), solutionID: response.data.solutionID, grading_job_id: response.data.jobId, code, status: response.data.status || "grading" }))
+      setGradeStatus(response.data.status === "revise" ? "revise" : "grading")
+    }
   } catch (error) {
     console.error(error)
+    setDisableSend(false)
+    if ((error as any)?.response?.status === 429) {
+      setRateLimitRetryAt(Date.now() + getRetryAfterSeconds(error, 15) * 1000)
+    } else {
+      toast.error("Nije moguće poslati rešenje na proveru. Pokušaj ponovo.")
+    }
   }
 }
 
@@ -379,6 +391,27 @@ const getSolution = async (shouldWait = false) => {
       getSolution()
     }, [searchParams])
 
+    useEffect(() => {
+      if (gradeStatus !== "grading" || !solution?.grading_job_id) return
+      let cancelled = false
+      let timer
+      const poll = async () => {
+        try {
+          const response = await axios.get(`${import.meta.env.VITE_BACKEND}/app/student/grading/${solution.grading_job_id}`)
+          if (cancelled) return
+          if (response.data?.status === "completed" || response.data?.status === "failed") {
+            await getSolution()
+            return
+          }
+        } catch (error) {
+          console.error("Greška pri osvežavanju statusa ocenjivanja:", error)
+        }
+        if (!cancelled) timer = setTimeout(poll, document.visibilityState === "visible" ? 2500 : 8000)
+      }
+      void poll()
+      return () => { cancelled = true; clearTimeout(timer) }
+    }, [gradeStatus, solution?.grading_job_id])
+
 
   return (
    <>
@@ -495,7 +528,7 @@ const getSolution = async (shouldWait = false) => {
   </DialogContent>
 </Dialog>
 {openTerminal && (
-  <TerminalRunner language={task?.language ? task.language.toLowerCase() : 'python'} codeOrigin={code} endpoint={terminalEndpoint} onClose={(response)=>{setopenTerminal(false), console.log(response), setTErminalResponse(response)}} count={terminalInputCount}></TerminalRunner>
+  <TerminalRunner language={task?.language ? task.language.toLowerCase() : 'python'} codeOrigin={code} endpoint={terminalEndpoint} onClose={(response)=>{setopenTerminal(false), console.log(response), setTErminalResponse(response)}} onRateLimited={(seconds)=>setRateLimitRetryAt(Date.now() + seconds * 1000)} count={terminalInputCount}></TerminalRunner>
 )}
 
 {terminalResponse && (
@@ -528,6 +561,7 @@ const getSolution = async (shouldWait = false) => {
 {loader && (
   <LoaderModal open></LoaderModal>
 )}
+<RateLimitDialog retryAt={rateLimitRetryAt} onOpenChange={(open) => { if (!open) setRateLimitRetryAt(null) }} />
    </>
   )
 }

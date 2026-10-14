@@ -2,7 +2,7 @@
 
 Iskra is a Serbian language platform for teaching programming in schools. It brings together classroom and student management, programming exercises, automated code evaluation, exams, AI-supported teaching tools, and progress reporting.
 
-This repository contains the web frontend, the Node.js API, and the Python judge service. The application is under active development; deployment details and capabilities may change.
+This repository contains the web frontend and Node.js API. Code execution is provided by Judge0 CE. The application is under active development; deployment details and capabilities may change.
 
 ## Features
 
@@ -20,15 +20,15 @@ This repository contains the web frontend, the Node.js API, and the Python judge
 .
 ├── backend/       Express API, MongoDB models, authentication, and Socket.IO
 ├── frontend/      React and Vite web application
-└── python-judge/  Isolated Python code execution service
-└── ruby-judge/  Isolated Ruby code execution service
+└── python-judge/  Legacy isolated Python code execution service
+└── ruby-judge/    Legacy isolated Ruby code execution service
 ```
 
 ## Tech stack
 
 - **Frontend:** React, TypeScript, Vite, Tailwind CSS, Socket.IO Client
 - **Backend:** Node.js, Express, MongoDB with Mongoose, JWT, Socket.IO
-- **Code execution:** separate Python judge service, containerized with Docker
+- **Code execution:** Judge0 CE for Python and Ruby submissions
 - **AI integrations:** configured backend AI endpoint, Groq-powered Planner and Canvas
 
 ## Requirements
@@ -36,7 +36,7 @@ This repository contains the web frontend, the Node.js API, and the Python judge
 - Node.js compatible with the versions required by the frontend and backend dependencies
 - npm
 - MongoDB, either local or hosted
-- Docker, if running the Python judge service locally
+- A reachable Judge0 CE instance
 - Credentials for the external AI services used by the features you want to run
 
 ## Configuration
@@ -109,9 +109,11 @@ npm run dev
 
 Vite prints the local frontend URL when it starts. The frontend's `VITE_BACKEND` value must point to the running API.
 
-### Python judge
+### Judge0 CE
 
-The backend currently sends code to the deployed judge service URLs configured in `backend/controllers/StudentAppController.js` and `backend/server.js`. To run or deploy a judge service yourself, see [`python-judge/README.md`](python-judge/README.md) and its Dockerfile. Update the backend URLs when using a different judge deployment.
+The backend uses Judge0 CE for Python and Ruby. For RapidAPI, set `JUDGE0_BASE_URL=https://judge0-ce.p.rapidapi.com`, put the RapidAPI key in the backend-only `JUDGE0_AUTH_TOKEN` environment variable, set `JUDGE0_AUTH_TOKEN_HEADER=x-rapidapi-key`, and set `JUDGE0_RAPIDAPI_HOST=judge0-ce.p.rapidapi.com`. Never put this key in frontend variables or source control. For another Judge0 instance, configure its base URL and authentication headers accordingly. Set `JUDGE0_PYTHON_LANGUAGE_ID` and `JUDGE0_RUBY_LANGUAGE_ID` to IDs returned by that instance's `/languages` endpoint. The common CE IDs are 71 and 72. Run-code requests use Judge0's asynchronous submission endpoint and poll its token; grading jobs are sent as batches.
+
+For Render, set `JUDGE0_CALLBACK_BASE_URL` to the public backend origin and `JUDGE0_CALLBACK_SECRET` to a long random secret. Callbacks are signed and can wake a sleeping backend. The UI also polls authenticated job status, which provides recovery if a callback is missed. MongoDB must be reachable and persistent for queued job records.
 
 ## Useful commands
 
@@ -131,8 +133,9 @@ npm start
 
 ## Current architecture notes
 
-- Practice grading returns an initial response and sends the result through Socket.IO; exam grading uses polling in the current implementation.
-- The backend currently selects between configured judge servers with simple round-robin logic. A durable grading queue and load-aware scheduling are not yet implemented.
+- Practice and exam grading use a MongoDB-backed durable queue. Exam jobs have higher dispatch priority than practice jobs; already accepted Judge0 submissions cannot be reordered. Jobs are claimed atomically, retried with bounded backoff, and submitted in batches. Exam results are persisted before Socket.IO notification; the exam page also polls every pending practical job and applies terminal status from the authenticated REST endpoint, so a missed/disconnected socket event does not lose the result. Signed Judge0 callbacks can wake a sleeping backend; polling provides recovery if a callback is missed.
+- On free Render web services, the first request after 15 minutes of inactivity can take about a minute to wake the backend. Pending jobs survive in MongoDB, but work cannot be dispatched by an asleep backend until a request wakes it. A separate always-on worker removes that delay and requires a paid Render worker plan. Avoid using Render Free Key Value as the only queue store because its contents are in-memory and can be lost on restart.
+- Configure `JUDGE0_CALLBACK_BASE_URL` to the public backend origin to let Judge0 completion callbacks wake the web service. Signed callbacks are an optimization; job state remains recoverable by polling Judge0 tokens.
 - Socket.IO rooms and some coordination state are held by the backend process, so the current setup assumes a single backend instance unless shared coordination is added.
 - Operational and security events are written to MongoDB's `event_logs` collection. Records expire automatically after the configured retention period. Backend and frontend telemetry excludes request bodies, source code, prompts, credentials, error messages, and raw actor/source identifiers.
 - Parent reports are handled through the application portal; this README does not describe an email delivery flow.
