@@ -262,8 +262,17 @@ const handleSolutionSend = async()=>{
       // Na primer, ako socket šalje: { status: "accepted", solutionID: "..." }
       if (socket_data?.task === searchParams.get('task')) {
         if (socket_data?.status) {
-        setGradeStatus(socket_data?.status);
-      }
+          setGradeStatus(socket_data.status);
+          setSolution((previous) => ({
+            ...(previous || {}),
+            status: socket_data.status,
+            ...(socket_data.grading_date ? { grading_date: socket_data.grading_date } : {}),
+            ...(socket_data.stderr !== undefined ? { stderr: socket_data.stderr } : {}),
+            ...(socket_data.stdok !== undefined ? { stdok: socket_data.stdok } : {}),
+            ...(socket_data.dev_ocekivani_output !== undefined ? { dev_ocekivani_output: socket_data.dev_ocekivani_output } : {}),
+            ...(socket_data.dev_output !== undefined ? { dev_output: socket_data.dev_output } : {}),
+          }));
+        }
 
       // Ovde možeš dodati i druge akcije, npr. ako je "accepted" baci konfete
       if (socket_data?.status === "accepted" || socket_data?.status === 'grading') {
@@ -277,11 +286,6 @@ const handleSolutionSend = async()=>{
 
       if (socket_data?.status === 'accepted') {
         handleConfetti();
-        setSolution(prev => ({...prev, stderr: ""}))
-
-        if (socket_data.grading_date) {
-          setSolution(prev => ({...prev, grading_date: socket_data.grading_date}))
-        }
         CreateMetricaEvent(import.meta.env.VITE_METRICA, metrica_events.accepted)
       }
 
@@ -454,7 +458,7 @@ const getSolution = async (shouldWait = false) => {
     <div className='flex gap flex-col flex-1' id="send-info">
       <span className='text-2xl font-bold' hidden>ID 148721908</span>
       <span className='text-md '>{
-        (solution?.grading_date && solution?.status === "accepted") ? moment(solution?.grading_date).tz("Europe/Belgrade").format("DD. MM. YYYY. HH:mm") : ""
+        (solution?.grading_date && (solution?.status === "accepted" || solution?.status === "revise")) ? moment(solution?.grading_date).tz("Europe/Belgrade").format("DD. MM. YYYY. HH:mm") : ""
         }</span>
       {(solution?.stderr && solution?.status === 'revise') && (
         <span className="text-md">{solution?.stderr}</span>

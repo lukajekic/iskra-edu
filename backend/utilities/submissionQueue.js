@@ -206,6 +206,13 @@ async function continueFinalization(job) {
         task: String(job.taskRef),
         status: solution.status,
         grading_date: solution.grading_date,
+        stderr: solution.stderr,
+        stdok: solution.stdok,
+        dev_ocekivani_output: solution.dev_ocekivani_output,
+        dev_output: solution.dev_output,
+        // Offer the AI mentor after an unsuccessful check. The client then
+        // calls the eligibility endpoint before showing the help dialog.
+        ai_modal: solution.status === "revise",
       });
       if (result.correct && user.teacherRef) {
         io?.to(String(user.teacherRef)).emit("increment_progress", { studentid: String(user._id) });
