@@ -67,7 +67,7 @@ async function reserveTokens(userId, amount) {
       },
     }],
     // Mongoose 9 zahteva eksplicitnu dozvolu za MongoDB update pipeline (niz u trećem argumentu).
-    { new: true, updatePipeline: true },
+    { returnDocument: "after", updatePipeline: true },
   );
 }
 
@@ -76,7 +76,7 @@ async function reconcileTokens(userId, reserved, actual) {
   if (adjustment === 0) return UserModel.findById(userId);
 
   // Pozitivan adjustment je refund; negativan je dodatna naplata stvarne potrošnje.
-  return UserModel.findByIdAndUpdate(userId, { $inc: { plannerTokenBalance: adjustment } }, { new: true });
+  return UserModel.findByIdAndUpdate(userId, { $inc: { plannerTokenBalance: adjustment } }, { returnDocument: 'after' });
 }
 
 async function requestGroq(messages, maxTokens) {
@@ -145,7 +145,7 @@ export const renamePlannerFolder = async (req, res) => {
   if (!name) return res.status(400).json({ error: "Naziv foldera je obavezan." });
   if (!mongoose.isObjectIdOrHexString(req.params.id)) return res.status(400).json({ error: "Neispravan identifikator foldera." });
   try {
-    const folder = await PlannerFolderModel.findOneAndUpdate({ _id: req.params.id, userRef: req.user._id }, { name }, { new: true, runValidators: true });
+    const folder = await PlannerFolderModel.findOneAndUpdate({ _id: req.params.id, userRef: req.user._id }, { name }, { returnDocument: "after", runValidators: true });
     if (!folder) return res.status(404).json({ error: "Folder nije pronađen." });
     return res.json({ folder });
   } catch (error) {
@@ -197,7 +197,7 @@ export const updatePlannerPlan = async (req, res) => {
   }
 
   if (!Object.keys(updates).length) return res.status(400).json({ error: "Nema izmena za čuvanje." });
-  const plan = await PlannerPlanModel.findOneAndUpdate({ _id: req.params.id, userRef: req.user._id }, updates, { new: true, runValidators: true });
+  const plan = await PlannerPlanModel.findOneAndUpdate({ _id: req.params.id, userRef: req.user._id }, updates, { returnDocument: "after", runValidators: true });
   if (!plan) return res.status(404).json({ error: "Plan nije pronađen." });
   return res.json({ plan });
 };

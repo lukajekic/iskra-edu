@@ -23,7 +23,7 @@ export const checkCanvasTokens = async (req, res, next) => {
       canvasTokenBalance: { $subtract: [{ $cond: [cycleExpired, CANVAS_CREDIT_LIMIT, balance] }, CANVAS_GENERATION_COST] },
       canvasTokenCycleStartedAt: { $cond: [startCycle, "$$NOW", "$canvasTokenCycleStartedAt"] },
       canvasTokenResetAt: { $cond: [startCycle, { $add: ["$$NOW", 60 * 60 * 1000] }, "$canvasTokenResetAt"] },
-    } }], { new: true, updatePipeline: true });
+    } }], { returnDocument: "after", updatePipeline: true });
 
     if (!user) {
       const currentUser = await UserModel.findById(req.user._id).select("canvasTokenBalance").lean();

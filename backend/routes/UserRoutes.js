@@ -1,5 +1,6 @@
 import express from 'express'
 import rateLimit from 'express-rate-limit'
+import { deleteAISafetyReport, getAISafetySuite, getAISafetyReport, listAISafetyReports, runAISafetySuite, updateAISafetyReportEvaluation } from '../controllers/AISafetyController.js'
 import { CheckSuperAdminRole, createAccount, createWorkhourGroup, DeleteUserForGdpr, Documentation, endWorkhour, ForbidWork, getAllTeachers, GetUsersForGdprDeletion, getMessages, getSingleStudentProgress, getSingleTeacher, Login, Logout, MyProfile, MyWorkhourGroup, NewMessage, NewMessageToUser, readMessage, RedirectMe, ReGrade, UpdateUserBanStatus, WorkhourPorgress, WorkhourTimer, PortalLogin, PortalSession, SetupPortalOtp, PortalLogout } from '../controllers/UserController.js'
 import { protect } from '../middleware/protect.js'
 import { protectPortal } from '../middleware/protectPortal.js'
@@ -72,5 +73,16 @@ router.patch('/portal/users/:id/username', protectPortal, portalManagementLimite
 router.patch('/portal/users/:id/password', protectPortal, portalManagementLimiter, ResetPortalPassword)
 router.post('/portal/users/:id/revoke-2fa', protectPortal, portalManagementLimiter, RevokePortalTwoFactor)
 router.patch('/portal/users/:id/access', protectPortal, portalManagementLimiter, SetPortalUserAccess)
+const superAdminPortalOnly = (req, res, next) => req.user?.type === 'portal' && req.portalRole === 'super_admin'
+  ? next()
+  : res.status(403).json({ message: 'Pristup je dozvoljen samo super administratoru portala.' })
+const aiSafetyRunLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 5, standardHeaders: true, legacyHeaders: false, message: { message: 'Dostignut je limit pokretanja testova. Pokušajte ponovo kasnije.' } })
+const aiSafetyDeleteLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 5, standardHeaders: true, legacyHeaders: false, message: { message: 'Previše pokušaja brisanja. Pokušajte ponovo kasnije.' } })
+router.get('/portal/ai-safety/suite', protectPortal, superAdminPortalOnly, getAISafetySuite)
+router.get('/portal/ai-safety/reports', protectPortal, superAdminPortalOnly, listAISafetyReports)
+router.get('/portal/ai-safety/reports/:id', protectPortal, superAdminPortalOnly, getAISafetyReport)
+router.delete('/portal/ai-safety/reports/:id', protectPortal, superAdminPortalOnly, aiSafetyDeleteLimiter, deleteAISafetyReport)
+router.patch('/portal/ai-safety/reports/:id/evaluation', protectPortal, superAdminPortalOnly, updateAISafetyReportEvaluation)
+router.post('/portal/ai-safety/runs', protectPortal, superAdminPortalOnly, aiSafetyRunLimiter, runAISafetySuite)
 
 export default router

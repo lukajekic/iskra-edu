@@ -68,7 +68,7 @@ async function pumpQueue() {
       const job = await SubmissionJobModel.findOneAndUpdate(
         { status: "queued", availableAt: { $lte: new Date() }, attempts: { $lt: MAX_ATTEMPTS } },
         { $set: { status: "dispatching", leaseUntil: new Date(Date.now() + 60_000) }, $inc: { attempts: 1 } },
-        { new: true, sort: { priority: 1, availableAt: 1, createdAt: 1 } },
+        { returnDocument: "after", sort: { priority: 1, availableAt: 1, createdAt: 1 } },
       ).select("+sourceCode +cases");
 
       if (!job) break;
@@ -271,7 +271,7 @@ async function applyResult(job, result, terminalStatus = "completed") {
       },
       $unset: { sourceCode: 1, cases: 1, leaseUntil: 1 },
     },
-    { new: true },
+    { returnDocument: 'after' },
   );
   if (stored) await continueFinalization(stored);
 }
@@ -332,7 +332,7 @@ export async function getSubmissionJobStatus(jobId, ownerId) {
     const claimed = await SubmissionJobModel.findOneAndUpdate(
       { _id: job._id, status: "running", nextPollAt: { $lte: new Date() } },
       { $set: { nextPollAt: new Date(Date.now() + reconciliationIntervalMs()) } },
-      { new: true },
+      { returnDocument: 'after' },
     );
     if (claimed) {
       try {

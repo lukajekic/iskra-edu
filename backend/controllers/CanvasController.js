@@ -100,7 +100,7 @@ export const generateCanvasMap = async (req, res) => {
     const user = await UserModel.findByIdAndUpdate(
       req.user._id,
       { $inc: { canvasTokenBalance: req.canvasTokenReservation || CANVAS_GENERATION_COST } },
-      { new: true },
+      { returnDocument: 'after' },
     );
     console.error("Groq Canvas Error:", error);
     const message = error.message?.includes("Mermaid sintaksu")
@@ -135,7 +135,7 @@ export const deleteCanvasMap = async (req, res) => {
 export const renameCanvasMap = async (req, res) => {
   const title = cleanText(req.body?.title, 200);
   if (!title) return res.status(400).json({ message: "Naziv mape je obavezan." });
-  const map = await CanvasMapModel.findOneAndUpdate({ _id: req.params.id, userRef: req.user._id }, { title }, { new: true, runValidators: true });
+  const map = await CanvasMapModel.findOneAndUpdate({ _id: req.params.id, userRef: req.user._id }, { title }, { returnDocument: "after", runValidators: true });
   if (!map) return res.status(404).json({ message: "Mapa nije pronađena." });
   return res.json({ map });
 };

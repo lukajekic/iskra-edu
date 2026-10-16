@@ -205,11 +205,13 @@ export const Login = async (req, res) => {
 
 export const getMenuByRole = (role) => {
     if (!["super_admin", "district", "school_main", "school_tenant"].includes(role)) return [];
-    return [{
+    const items = [{
         id: "users",
         label: role === "school_tenant" ? "Moji korisnički podaci" : "Korisnici",
         icon: "IconUsers"
     }];
+    if (role === "super_admin") items.push({ id: "ai-safety", label: "AI bezbednost", icon: "IconShieldCheck" });
+    return items;
 };
 export const PortalLogin = async (req, res) => {
     const username = typeof req.body?.username === "string" ? req.body.username.trim() : "";
@@ -284,7 +286,7 @@ export const PortalLogin = async (req, res) => {
                     "portal_access_data.otp_confirmed_at": user.portal_access_data.otp_confirmed_at || new Date()
                 }
             },
-            { new: true }
+            { returnDocument: 'after' }
         );
         if (!otpStepConsumed) {
             req.user = user
@@ -373,7 +375,7 @@ export const SetupPortalOtp = async (req, res) => {
                         "portal_access_data.otp_setup_started_at": new Date()
                     }
                 },
-                { new: true }
+                { returnDocument: 'after' }
             );
 
             if (!updatedUser) {
@@ -571,7 +573,7 @@ export const readMessage = async (req, res) => {
         userid = new mongoose.Types.ObjectId(userid)
 
         if (userType === "teacher") {
-            await MessageModel.findByIdAndUpdate(message, { $addToSet: { read: userid } }, { new: true })
+            await MessageModel.findByIdAndUpdate(message, { $addToSet: { read: userid } }, { returnDocument: 'after' })
             return res.status(200).json({ "message": "OK" })
         }
 
@@ -1078,7 +1080,7 @@ export const UpdateUserBanStatus = async(req, res)=>{
             let updatedUser = await UserModel.findOneAndUpdate(
                 { _id: new mongoose.Types.ObjectId(id) },
                 { login_banned: login_banned },
-                { new: true }
+                { returnDocument: 'after' }
             ).select("-password")
 
             if (!updatedUser) {

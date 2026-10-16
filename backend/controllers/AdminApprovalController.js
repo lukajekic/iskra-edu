@@ -76,7 +76,7 @@ export const authorizeMassActionRequest = async (req, res) => {
     const request = await AdminApprovalRequestModel.findOneAndUpdate(
       { token, status: "pending", expiresAt: { $gt: new Date() } },
       { $set: { status: "executing", approvedBy: req.user._id } },
-      { new: true },
+      { returnDocument: 'after' },
     );
     if (!request) return res.status(404).json(BuildValidationReturn("Invalid or expired request.", "error", "QR kod je nevažeći, istekao je ili je već iskorišćen."));
 
