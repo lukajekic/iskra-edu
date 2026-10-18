@@ -138,6 +138,7 @@ npm start
 - Configure `JUDGE0_CALLBACK_BASE_URL` to the public backend origin to let Judge0 completion callbacks wake the web service. Signed callbacks are an optimization; job state remains recoverable by polling Judge0 tokens.
 - Socket.IO rooms and some coordination state are held by the backend process, so the current setup assumes a single backend instance unless shared coordination is added.
 - Operational and security events are written to MongoDB's `event_logs` collection. Records expire automatically after the configured retention period. Backend and frontend telemetry excludes request bodies, source code, prompts, credentials, error messages, and raw actor/source identifiers.
+- Authenticated sessions are recorded in `user_sessions` with their device user-agent and expiration. Users can view and revoke their own sessions; permanent students can also have all sessions revoked by their assigned teacher, and portal super-admins can search by username and revoke one or all sessions. Temporary student accounts are excluded. Valid legacy JWTs are upgraded to tracked sessions on their next authenticated request; a device that stays offline cannot appear in the inventory until it reconnects. Account auth-version revocation also blocks legacy tokens.
 - Parent reports are handled through the application portal; this README does not describe an email delivery flow.
 
 ### Event log

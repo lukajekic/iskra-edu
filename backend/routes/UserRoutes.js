@@ -7,6 +7,7 @@ import { protectPortal } from '../middleware/protectPortal.js'
 import { inject_req_data } from '../middleware/inject_req_data.js'
 import { CheckPortalUsernameAvailability, CreatePortalUser, ListPortalUsers, ResetPortalPassword, RevokePortalTwoFactor, SetPortalUserAccess, UpdatePortalUsername } from '../controllers/PortalUserController.js'
 import { createRateLimitHandler } from '../utilities/eventLogger.js'
+import { adminRevokeAllUserSessions, adminRevokeSession, getMySessions, getTeacherStudentSessions, revokeAllMySessions, revokeMySession, searchUserSessions, teacherRevokeStudentSessions } from '../controllers/SessionController.js'
 let router = express.Router()
 const portalAuthLimiter = rateLimit({
 	windowMs: 15 * 60 * 1000,
@@ -39,6 +40,11 @@ router.post('/login', Login)
 router.post('/logout', Logout)
 router.get("/me/redirect", RedirectMe)
 router.get('/me', protect, MyProfile)
+router.get('/me/sessions', protect, getMySessions)
+router.post('/me/sessions/revoke-all', protect, revokeAllMySessions)
+router.delete('/me/sessions/:sessionId', protect, revokeMySession)
+router.get('/students/:studentId/sessions', protect, getTeacherStudentSessions)
+router.post('/students/:studentId/sessions/revoke-all', protect, teacherRevokeStudentSessions)
 router.get("/me/documents", protect, Documentation)
 router.get("/me/messages", protect, getMessages)
 router.post('/me/messages/read', protect, readMessage)
@@ -76,6 +82,12 @@ router.patch('/portal/users/:id/access', protectPortal, portalManagementLimiter,
 const superAdminPortalOnly = (req, res, next) => req.user?.type === 'portal' && req.portalRole === 'super_admin'
   ? next()
   : res.status(403).json({ message: 'Pristup je dozvoljen samo super administratoru portala.' })
+router.get('/portal/me/sessions', protectPortal, getMySessions)
+router.post('/portal/me/sessions/revoke-all', protectPortal, revokeAllMySessions)
+router.delete('/portal/me/sessions/:sessionId', protectPortal, revokeMySession)
+router.get('/portal/sessions', protectPortal, superAdminPortalOnly, searchUserSessions)
+router.delete('/portal/sessions/:sessionId', protectPortal, superAdminPortalOnly, portalManagementLimiter, adminRevokeSession)
+router.post('/portal/sessions/:userId/revoke-all', protectPortal, superAdminPortalOnly, portalManagementLimiter, adminRevokeAllUserSessions)
 const aiSafetyRunLimiter = rateLimit({ windowMs: 60 * 60 * 1000, limit: 5, standardHeaders: true, legacyHeaders: false, message: { message: 'Dostignut je limit pokretanja testova. Pokušajte ponovo kasnije.' } })
 const aiSafetyDeleteLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 5, standardHeaders: true, legacyHeaders: false, message: { message: 'Previše pokušaja brisanja. Pokušajte ponovo kasnije.' } })
 router.get('/portal/ai-safety/suite', protectPortal, superAdminPortalOnly, getAISafetySuite)

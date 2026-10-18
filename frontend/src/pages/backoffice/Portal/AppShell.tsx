@@ -15,9 +15,11 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { ChevronDownIcon, LogOutIcon, ShieldCheck, Users } from 'lucide-react';
+import { ChevronDownIcon, LogOutIcon, ShieldCheck, Users, MonitorSmartphone } from 'lucide-react';
 import PortalUsersPage from './PortalUsersPage';
 import AISafetyPage from './AISafetyPage';
+import SessionsManagementPage from './SessionsManagementPage';
+import AccountSessionsDialog from '@/components/custom/AccountSessionsDialog';
 
 type PortalRole = 'super_admin' | 'district' | 'school_main' | 'school_tenant';
 type PortalMenuItem = { id: string; label: string; icon: string };
@@ -38,6 +40,7 @@ export function PortalAppShell() {
   const [session, setSession] = useState<PortalSessionData | null>(null);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState('');
+  const [sessionsOpen, setSessionsOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -151,7 +154,10 @@ export function PortalAppShell() {
               </Menu.Target>
 
               <Menu.Dropdown>
-
+                <Menu.Item leftSection={<MonitorSmartphone size={14} />} onClick={() => setSessionsOpen(true)}>
+                  Prijavljeni uređaji
+                </Menu.Item>
+                <Menu.Divider />
 
                 <Menu.Item
                   color="red"
@@ -174,7 +180,7 @@ export function PortalAppShell() {
               active={activeItem === item.id}
               className={`${activeItem === item.id ? "!border-[#228be6] !border-l-2" : ""}`}
               label={item.label}
-              leftSection={item.id === 'ai-safety' ? <ShieldCheck size={20} /> : <Users size={20} />}
+              leftSection={item.id === 'ai-safety' ? <ShieldCheck size={20} /> : item.id === 'sessions' ? <MonitorSmartphone size={20} /> : <Users size={20} />}
               variant="light"
               onClick={() => setActiveItem(item.id)}
             />
@@ -185,8 +191,11 @@ export function PortalAppShell() {
       <AppShell.Main>
         {activeItem === 'ai-safety' && session.user.role === 'super_admin'
           ? <AISafetyPage />
-          : <PortalUsersPage role={session.user.role} userId={session.user.id} />}
+          : activeItem === 'sessions' && session.user.role === 'super_admin'
+            ? <SessionsManagementPage currentUserId={session.user.id} />
+            : <PortalUsersPage role={session.user.role} userId={session.user.id} />}
       </AppShell.Main>
+      <AccountSessionsDialog open={sessionsOpen} onOpenChange={setSessionsOpen} portal />
     </AppShell>
   );
 }

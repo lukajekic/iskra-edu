@@ -32,7 +32,7 @@ Platforma Iskra prikuplja minimalnu količinu podataka potrebnu za funkcionisanj
 - naziv institucije u kojoj predaje;
 - podatke o aktivnoj nastavnoj grupi (kod grupe, ID grupe, rok važenja), ukoliko postoji.
 
-**Tehnički podaci** koji se prikupljaju automatski prilikom korišćenja Platforme (kolačići, adresa i vreme pristupa, tip uređaja) opisani su posebno u odeljku 9 (Kolačići) i odeljku 10 (Analitika).
+**Tehnički podaci** koji se prikupljaju automatski prilikom korišćenja Platforme (kolačići, adresa i vreme pristupa, tip pregledača/uređaja) opisani su posebno u odeljku 9 (Kolačići) i odeljku 10 (Analitika). Radi upravljanja prijavama, čuvamo i tehnički opis pregledača/uređaja (User-Agent) i vreme prijave za svaku aktivnu sesiju. Ne čuvamo IP adresu u evidenciji sesija.
 
 ## 3. Obrada podataka — IskraAI Mentor
 
@@ -70,6 +70,7 @@ Za maloletne korisnike, pravni osnov za samo uključivanje u korišćenje Platfo
 
 - Podaci privremenih naloga brišu se automatski po isteku nastavne grupe, prevremenom prekidu njenog važenja ili kreiranjem nove grupe od strane istog nastavnika.
 - Podaci trajnih naloga čuvaju se dok nalog nije obrisan na zahtev korisnika, nastavnika/Institucije ili Autora, ili dok se opravdano ne proceni da su podaci prestali da služe svrsi (npr. dugotrajno neaktivan nalog).
+- Evidencija prijavljenih uređaja čuva se dok sesija ne istekne ili bude opozvana; istekle evidencije se automatski uklanjaju. Podatak se koristi da korisnik pregleda aktivne prijave i da ih korisnik, njegov nastavnik (za trajne učeničke naloge) ili portal superadministrator (u okviru administrativne podrške) može opozvati.
 - Anonimizovani zapisi IskraAI Mentora (odeljak 3) čuvaju se neograničeno, jer ne predstavljaju lične podatke.
 - Evidencioni trag o saglasnosti za Izveštaj za roditelje čuva se u skladu sa posebnim obaveštenjem o saglasnosti (odeljak 8).
 
@@ -82,6 +83,7 @@ Roditelji/staratelji mogu, unosom korisničkog imena i lozinke učeničkog nalog
 Platforma koristi sledeće kolačiće i slične tehnologije:
 
 - **\`token\`** — strogo neophodan (funkcionalan) HTTP-only kolačić koji održava vašu prijavljenu sesiju. Bez njega Platforma ne može da funkcioniše. Ne zahteva saglasnost jer je neophodan za pružanje usluge.
+- **\`portal_token\`** — strogo neophodan HTTP-only kolačić za prijavu na administrativni portal. Korisnik može da pregleda svoje aktivne sesije i da ih opozove; opozvani tokeni više ne daju pristup Platformi.
 - **\`sidebar_state\`** — funkcionalan kolačić koji pamti da li je bočni meni proširen ili skupljen, radi boljeg korisničkog iskustva.
 - **Kolačići/localStorage alata za analitiku** (PostHog, Metrica) — koriste se za praćenje anonimizovanog ponašanja na Platformi, opisano detaljnije u odeljku 10. Gde je tehnički moguće, ovi podaci se ne povezuju sa identitetom korisnika bez izričite prijave (login) korisnika.
 
@@ -115,7 +117,7 @@ Pojedini navedeni pružaoci usluga (npr. MongoDB Atlas, Render, Groq, Cloudflare
 
 ## 13. Ovlašćenja u uvid podataka
 
-Podatke o učenicima mogu videti: nastavnik koji predaje tom učeniku (u okviru svoje nastavne grupe), roditelj/staratelj (uz saglasnost, odeljak 8) i lica koja aktivno rade na razvoju i održavanju Platforme, u meri neophodnoj za rad sistema i rešavanje tehničkih problema.
+Podatke o učenicima mogu videti: nastavnik koji predaje tom učeniku (u okviru svoje nastavne grupe, uključujući upravljanje sesijama trajnog naloga), roditelj/staratelj (uz saglasnost, odeljak 8), ovlašćeni portal superadministrator (u okviru administracije naloga i bezbednosne podrške) i lica koja aktivno rade na razvoju i održavanju Platforme, u meri neophodnoj za rad sistema i rešavanje tehničkih problema.
 
 ## 14. Prava korisnika
 

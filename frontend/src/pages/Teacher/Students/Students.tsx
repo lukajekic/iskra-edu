@@ -33,6 +33,7 @@ import { useUserId } from '@/context/UserContext'
 import { toast } from 'sonner'
 import LoaderModal from '@/components/custom/LoaderModal'
 import MassActionQrRequest from './MassActionQrRequest'
+import AccountSessionsDialog from '@/components/custom/AccountSessionsDialog'
 
 type ModalStatus = {
   create: boolean,
@@ -152,6 +153,7 @@ if (response.status === 201) {
     }
   }
   const [data, setData] = useState<Student[]>([])
+  const [sessionStudent, setSessionStudent] = useState<Student | null>(null)
 
 
   const deleteStudent = async()=>{
@@ -233,7 +235,8 @@ if (response.status === 201) {
     <Button className='ml-2' variant={'outline'} onClick={handleExport}><Download></Download>Izvoz podataka</Button>
     <MassActionQrRequest />
         <div className="h-5"></div>
-<DataTable  filter={{key: "name", input_label: "Pretraga..."}} data={data} columns={getColumns({onEdit: (student)=> [setModalState(prev => ({...prev, edit: true})), setEditStudentForm({name: student.name, newpassword: "", _id: student._id})], onDelete: (student)=> [setModalState(prev => ({...prev, delete: true})), setEditStudentForm({name: student.name, newpassword: "", _id: student._id})]})}></DataTable>
+<DataTable  filter={{key: "name", input_label: "Pretraga..."}} data={data} columns={getColumns({onEdit: (student)=> [setModalState(prev => ({...prev, edit: true})), setEditStudentForm({name: student.name, newpassword: "", _id: student._id})], onDelete: (student)=> [setModalState(prev => ({...prev, delete: true})), setEditStudentForm({name: student.name, newpassword: "", _id: student._id})], onSessions: (student) => setSessionStudent(student)})}></DataTable>
+<AccountSessionsDialog open={Boolean(sessionStudent)} onOpenChange={(open) => { if (!open) setSessionStudent(null) }} studentId={sessionStudent?._id} studentName={sessionStudent?.name} />
 
 
 

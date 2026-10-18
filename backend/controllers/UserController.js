@@ -17,6 +17,8 @@ import { PlannerFolderModel } from "../models/PlannerFolderModel.js";
 import { PlannerPlanModel } from "../models/PlannerPlanModel.js";
 import { CanvasMapModel } from "../models/CanvasMapModel.js";
 import { buildPortalOtpUri, decryptPortalOtpSecret, encryptPortalOtpSecret, generatePortalOtpSecret, matchPortalOtpCounter } from "../utilities/portalOtp.js";
+import { createUserSession } from "../utilities/userSessions.js";
+import { UserSessionModel } from "../models/UserSessionModel.js";
 
 const isSuperAdmin = (user) => user?.super_admin === true || user?.super_admin === "true";
 const isSecureRequest = (req) => req.secure
@@ -190,7 +192,8 @@ export const Login = async (req, res) => {
     if (user.type === "student_temp") {
         return res.status(400).json(BuildValidationReturn("TEMP ACC ERR", "error", "You cannot use login endpoint for logging into temporary accounts."))
     } else {
-        res.cookie("token", generatejwt(user._id, 5400, user.auth_version || 0), {
+        const session = await createUserSession({ user, scope: "standard", req, lifetimeSeconds: 5400 });
+        res.cookie("token", generatejwt(user._id, 5400, user.auth_version || 0, session._id), {
             maxAge: 5400000, //1.5 sati
             secure: true,
             httpOnly: true,
@@ -210,7 +213,10 @@ export const getMenuByRole = (role) => {
         label: role === "school_tenant" ? "Moji korisnički podaci" : "Korisnici",
         icon: "IconUsers"
     }];
-    if (role === "super_admin") items.push({ id: "ai-safety", label: "AI bezbednost", icon: "IconShieldCheck" });
+    if (role === "super_admin") items.push(
+        { id: "ai-safety", label: "AI bezbednost", icon: "IconShieldCheck" },
+        { id: "sessions", label: "Prijavljeni uređaji", icon: "IconDevices" }
+    );
     return items;
 };
 export const PortalLogin = async (req, res) => {
@@ -296,7 +302,8 @@ export const PortalLogin = async (req, res) => {
             );
         }
 
-        const token = jwt.sign({ id: user._id.toString(), username: user.username, scope: "portal", mfa: "totp", authVersion: user.portal_access_data?.auth_version || 0 }, process.env.JWT_SECRET, { expiresIn: 5400 });
+        const session = await createUserSession({ user, scope: "portal", req, lifetimeSeconds: 5400 });
+        const token = jwt.sign({ id: user._id.toString(), username: user.username, scope: "portal", mfa: "totp", authVersion: user.portal_access_data?.auth_version || 0, sessionId: String(session._id) }, process.env.JWT_SECRET, { expiresIn: 5400 });
         const secureCookie = isSecureRequest(req);
         res.cookie("portal_token", token, {
             maxAge: 5400000,
@@ -325,6 +332,13 @@ export const PortalLogin = async (req, res) => {
 };
 
 export const PortalLogout = async (req, res) => {
+    try {
+        const token = req.cookies?.portal_token || req.cookies?.token;
+        const decoded = token && jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded?.sessionId) await UserSessionModel.deleteOne({ _id: decoded.sessionId });
+    } catch {
+        // Clearing an expired or invalid cookie should still succeed.
+    }
     const secureCookie = isSecureRequest(req);
     res.clearCookie("portal_token", {
         secure: secureCookie,
@@ -428,6 +442,13 @@ export const PortalSession = async (req, res) => {
 
 export const Logout = async (req, res) => {
     try {
+        try {
+            const token = req.cookies?.token;
+            const decoded = token && jwt.verify(token, process.env.JWT_SECRET);
+            if (decoded?.sessionId) await UserSessionModel.deleteOne({ _id: decoded.sessionId });
+        } catch {
+            // Clearing an expired or invalid cookie should still succeed.
+        }
         res.cookie("token", "", {
             maxAge: 0, //odjava
             secure: true,
@@ -442,8 +463,8 @@ export const Logout = async (req, res) => {
 }  //ISPRAVNO - 9. 3. 2026.
 
 
-function generatejwt(userid, expiresin, authVersion = 0) {
-    return jwt.sign({ id: userid, authVersion }, process.env.JWT_SECRET, { expiresIn: expiresin })
+function generatejwt(userid, expiresin, authVersion = 0, sessionId) {
+    return jwt.sign({ id: userid, authVersion, ...(sessionId ? { sessionId: String(sessionId) } : {}) }, process.env.JWT_SECRET, { expiresIn: expiresin })
 }  //ISPRAVNO - 9. 3. 2026.
 
 
@@ -485,47 +506,59 @@ export const RedirectMe = async (req, res) => {
             return res.status(200).json({ "redirect": "/auth/onboarding" })
         }
 
+        let verify;
+        try {
+            verify = jwt.verify(token, process.env.JWT_SECRET);
+        } catch {
+            res.clearCookie("token", { secure: true, httpOnly: true, sameSite: "none" });
+            return res.status(200).json({ redirect: "/auth/onboarding" });
+        }
+        const redirectToLogin = (sessionRevoked = false) => {
+            res.clearCookie("token", { secure: true, httpOnly: true, sameSite: "none" });
+            return res.status(200).json({ redirect: "/auth/onboarding", sessionRevoked });
+        };
 
+        const user = await UserModel.findById(verify.id).populate("teacherRef");
+        if (!user || user.login_banned) return redirectToLogin();
 
-        const verify = jwt.verify(token, process.env.JWT_SECRET)
+        const isPortalSession = verify.scope === "portal";
+        if (isPortalSession !== (user.type === "portal")) return redirectToLogin();
+        const currentAuthVersion = isPortalSession
+            ? (user.portal_access_data?.auth_version || 0)
+            : (user.auth_version || 0);
+        if ((verify.authVersion || 0) !== currentAuthVersion) return redirectToLogin(true);
 
-        if (verify) {
-            const user = await UserModel.findById(verify.id).populate("teacherRef")
-console.log(user)
-            if (!user) {
-                return res.status(200).json({ "redirect": "/auth/onboarding" })
-            }
-
-            if (user.type === "student_permanent" || user.type === "student_temp") {
-                let returnObj = {
-    "redirect": "/app/student/home",
-    "userID": verify.id
-                }
-                if (req.query.teacherref && req.query.teacherref === "true") {
-                    returnObj["teacherRef"] = user.teacherRef._id.toString()
-                }
-
-                if (req.query.return_work_forbidden && req.query.return_work_forbidden === "true") {
-                    if (user.type === "student_permanent") {
-                        returnObj["work_forbidden"] = false
-                    } else {
-                        returnObj["work_forbidden"] = user.teacherRef.activegroup.work_forbidden
-                    }
-                    
-                }
-return res.status(200).json(returnObj)
-                
-            } else if (user.type === "teacher") {
-                return res.status(200).json({ "redirect": "/app/teacher", "userID": verify.id })
-            } else if (user.type === "portal") {
-                return res.status(200).json({ "redirect": "/portal/dashboard", "userID": verify.id })
-            }
-        } else {
-            return res.status(200).json({ "redirect": "/auth/onboarding" })
+        if (verify.sessionId) {
+            const sessionIsActive = await UserSessionModel.exists({
+                _id: verify.sessionId,
+                userRef: user._id,
+                scope: isPortalSession ? "portal" : "standard",
+                authVersion: currentAuthVersion,
+                revokedAt: null,
+                expiresAt: { $gt: new Date() },
+            });
+            if (!sessionIsActive) return redirectToLogin(true);
         }
 
+        if (user.type === "student_permanent" || user.type === "student_temp" || user.type === "student") {
+            const returnObj = { redirect: "/app/student/home", userID: verify.id };
+            if (req.query.teacherref === "true" && user.teacherRef?._id) {
+                returnObj.teacherRef = user.teacherRef._id.toString();
+            }
+            if (req.query.return_work_forbidden === "true") {
+                returnObj.work_forbidden = user.type === "student_temp"
+                    ? Boolean(user.teacherRef?.activegroup?.work_forbidden)
+                    : false;
+            }
+            return res.status(200).json(returnObj);
+        }
+        if (user.type === "teacher") return res.status(200).json({ redirect: "/app/teacher", userID: verify.id });
+        if (user.type === "portal") return res.status(200).json({ redirect: "/portal/dashboard", userID: verify.id });
+        return redirectToLogin();
+
     } catch (error) {
-        return res.status(500).json(BuildValidationReturn("server error on redirect endpoint", "error", "We cannot find where to redirect you."))
+        console.error("Session-aware redirect check failed:", error);
+        return res.status(503).json(BuildValidationReturn("session_check_unavailable", "error", "Provera prijave trenutno nije dostupna. Pokušajte ponovo."));
     }
 }
 

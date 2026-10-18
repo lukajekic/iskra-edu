@@ -49,6 +49,9 @@ const codeField = useRef<HTMLInputElement>(null)
     try {
       const response = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/redirect`)
       if (response.data) {
+        if (response.data.sessionRevoked) {
+          toast.info("Sesija je odjavljena sa svih uređaja. Prijavite se ponovo da biste nastavili.")
+        }
         if (response.data.redirect !== '/auth/onboarding') {
           location.href = response.data.redirect
         }

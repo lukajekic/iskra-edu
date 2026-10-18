@@ -8,15 +8,17 @@ import './lib/posthog.ts'
 import './lib/eventTelemetry.ts'
 axios.defaults.withCredentials = true
 const PUBLIC_PATHS = ['/', '/about', '/legal/terms', '/legal/privacy', '/maintenance', '/not-available-on-mobile', '/app/parent/report', '/portal', '/portal/login', '/portal/dashboard']
+let authRedirectInProgress = false
 
 axios.interceptors.response.use(response => response, error => {
     if (error.response?.status === 401) {
         const isPublicPath = PUBLIC_PATHS.includes(location.pathname)
         const alreadyOnOnboarding = location.pathname === '/auth/onboarding'
-        if (!isPublicPath && !alreadyOnOnboarding) {
-            location.href = '/auth/onboarding'
+        if (!isPublicPath && !alreadyOnOnboarding && !authRedirectInProgress) {
+            authRedirectInProgress = true
+            location.replace('/auth/onboarding')
         }
-    }else if (error.response.status === 400) {
+    } else if (error.response?.status === 400) {
         if (error.response.data.toast) {
             let toasttype = error.response.data.toast
             let toastcontent = error.response.data.toast_message

@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from '../ui/button'
-import { Building, Check, ChevronDown, File, FileText, MessageCircle, Pencil, PowerOff, SquareUserRound, User, UserCircle, Users } from 'lucide-react'
+import { Building, Check, ChevronDown, File, FileText, MessageCircle, Pencil, PowerOff, SquareUserRound, User, UserCircle, Users, MonitorSmartphone } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '../ui/dialog'
 import { Separator } from '../ui/separator'
@@ -28,6 +28,7 @@ import { HandleLogout } from '@/utils/logout'
 import axios from 'axios'
 import StudentTimer from './StudentTimer'
 import { IskraApps } from '@/assets/constants'
+import AccountSessionsDialog from './AccountSessionsDialog'
 
 type ModalStatus = {
   my_profile: boolean,
@@ -56,6 +57,7 @@ type StudentNavbarProps = {
 }
 
 const StudentNavbar = ({ myProfile }: StudentNavbarProps) => {
+const [sessionsOpen, setSessionsOpen] = useState(false)
 
 const [currentApp] = useState("lms_student")
 
@@ -144,15 +146,23 @@ const [currentApp] = useState("lms_student")
 
       <div className="flex gap-2 items-center">
         <UserCircle className='size-[30px] mr-2 text-gray-700 md:block hidden'></UserCircle>
-        <div className="flex flex-col items-end md:items-start text-xs md:text-sm">
-          <span className="text-gray-700 uppercase break-all">{
-            myProfile?.type === 'student_permanent' ? (<>Trajni nalog</>) : myProfile?.type === 'student_temp' ? (<>
-            <div className=''><StudentTimer date={myProfile?.userExpiry}></StudentTimer></div>
-            </>) : (<>/</>)
-            }</span>
-          <span className='break-all text-right md:text-left font-medium'>{myProfile?.name}</span>
-        </div>
-        <Button onClick={()=>{ HandleLogout()}} variant={'destructive'} size="sm" className="h-9 md:h-10 md:px-4 px-3"><PowerOff className="size-4 md:mr-2"></PowerOff><span className="hidden sm:inline">Odjava</span></Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-1 rounded-md px-2 py-1 text-xs hover:bg-slate-100 md:text-sm">
+              <span className="flex flex-col items-end md:items-start">
+              <span className="text-gray-700 uppercase break-all">{myProfile?.type === 'student_permanent' || myProfile?.type === 'student' ? 'Trajni nalog' : myProfile?.type === 'student_temp' ? <StudentTimer date={myProfile?.userExpiry}></StudentTimer> : '/'}</span>
+              <span className='break-all text-right font-medium md:text-left'>{myProfile?.name}</span>
+              </span>
+              <ChevronDown className="size-4 text-slate-400" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-60">
+            <DropdownMenuLabel>Moj nalog</DropdownMenuLabel>
+            {myProfile?.type !== 'student_temp' && (myProfile?.type === 'student' || myProfile?.type === 'student_permanent') && <DropdownMenuItem onSelect={() => setSessionsOpen(true)}><MonitorSmartphone className="mr-2 size-4" />Prijavljeni uređaji</DropdownMenuItem>}
+            {myProfile?.type !== 'student_temp' && <DropdownMenuSeparator />}
+            <DropdownMenuItem onSelect={() => HandleLogout()} variant="destructive"><PowerOff className="mr-2 size-4" />Odjava</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
       </div>
@@ -340,6 +350,7 @@ const [currentApp] = useState("lms_student")
 
 
       
+      {myProfile?.type !== 'student_temp' && <AccountSessionsDialog open={sessionsOpen} onOpenChange={setSessionsOpen} />}
     </>
   )
 }

@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from '../ui/button'
-import { Building, File, FileText, LayoutDashboard, Mail, MessageCircle, Pencil, Phone, PowerOff, SquareUserRound, Users, Menu, X, ChevronLeft, BookOpen, LayoutGrid, ChevronDown, Check } from 'lucide-react'
+import { Building, File, FileText, LayoutDashboard, Mail, MessageCircle, Pencil, Phone, PowerOff, SquareUserRound, Users, Menu, X, ChevronLeft, BookOpen, LayoutGrid, ChevronDown, Check, MonitorSmartphone } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '../ui/dialog'
 import { Separator } from '../ui/separator'
@@ -31,6 +31,7 @@ import { useUserId } from '@/context/UserContext'
 import moment from 'moment-timezone'
 import { CircularBorderSpinner } from './CircularBorderSpinner';
 import { IskraApps } from '@/assets/constants';
+import AccountSessionsDialog from './AccountSessionsDialog';
 
 type ModalStatus = {
   my_profile: boolean,
@@ -73,6 +74,7 @@ type Activegroup = {
 }
 const TeacherNavbar = () => {
   const {userID, setUserID} = useUserId()
+  const [sessionsOpen, setSessionsOpen] = useState(false)
   const [documents, setDocuments] = useState<Document[]>([])
   const [messages, setMessages] = useState<Message[]>()
   const [activeMessage, setActiveMessage] = useState<Message>()
@@ -291,6 +293,9 @@ if (userID) {
                 <DropdownMenuLabel>Moj nalog</DropdownMenuLabel>
                 <DropdownMenuItem onClick={()=>{setModalStatus(prev=>({...prev, my_profile: true}))}}>
                     <SquareUserRound></SquareUserRound> Moj profil
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={()=>setSessionsOpen(true)}>
+                    <MonitorSmartphone className="size-4" /> Prijavljeni uređaji
                 </DropdownMenuItem>
 
                 {myProfile?.super_admin && (
@@ -748,6 +753,8 @@ if (userID) {
 <CircularBorderSpinner size='lg'></CircularBorderSpinner>
   </DialogContent>
 </Dialog>
+
+<AccountSessionsDialog open={sessionsOpen} onOpenChange={setSessionsOpen} />
 
 
     </>

@@ -6,7 +6,7 @@ import { Field, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { type ColumnDef } from "@tanstack/react-table"
-import { ArrowUpDown, Pencil, Trash } from "lucide-react"
+import { ArrowUpDown, MonitorSmartphone, Pencil, Trash } from "lucide-react"
 import { toast } from "sonner"
 
 export type Student = {
@@ -16,7 +16,7 @@ export type Student = {
     __v:      number;
 }
  
-export const getColumns = ({onEdit, onDelete}): ColumnDef<Student>[] => [
+export const getColumns = ({onEdit, onDelete, onSessions}): ColumnDef<Student>[] => [
   {
     accessorKey: "name",
     header: ({column}) =>{
@@ -45,6 +45,7 @@ export const getColumns = ({onEdit, onDelete}): ColumnDef<Student>[] => [
       return (
         <div className="flex items-center gap-2">
           <Button onClick={()=>onEdit(row.original)} variant={'outline'}><Pencil></Pencil>Izmeni</Button>
+          <Button onClick={()=>onSessions(row.original)} variant={'outline'}><MonitorSmartphone></MonitorSmartphone>Prijavljeni uređaji</Button>
           <Button onClick={()=>onDelete(row.original)} variant={'destructive'}><Trash></Trash>Obrisi</Button>
         </div>
       )
