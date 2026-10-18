@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Alert, Badge, Button, Card, Group, Loader, Stack, Text, TextInput, Title } from '@mantine/core';
 import { toast } from 'sonner';
 import { MonitorSmartphone, Search, ShieldAlert, X } from 'lucide-react';
+import ActionButtonsBlock from './core_components/ActionButtonsBlock';
 
 type DeviceSession = { id: string; device: string; createdAt: string; expiresAt: string; current: boolean };
 type UserSessions = { user: { id: string; username: string; name: string; type: string }; sessions: DeviceSession[] };
@@ -62,10 +63,12 @@ export default function SessionsManagementPage({ currentUserId }: { currentUserI
       <Text c="dimmed" mt={4}>Pretražite korisničko ime, pregledajte aktivne sesije i opozovite pojedinačnu sesiju ili sve uređaje naloga.</Text>
     </div>
     <Alert color="blue" icon={<ShieldAlert size={18} />}>Opoziv sesije odmah prekida pristup tom uređaju. Opoziv svih uređaja tražiće od korisnika da se ponovo prijavi.</Alert>
-    <Group align="end">
+    <ActionButtonsBlock className='!w-full' title='Odabir korisnika'>
+      <Group className='w-full' align="end">
       <TextInput label="Korisničko ime" placeholder="npr. ime.prezime" value={username} onChange={(event) => setUsername(event.currentTarget.value)} onKeyDown={(event) => event.key === 'Enter' && void search()} style={{ flex: 1 }} />
       <Button leftSection={<Search size={16} />} onClick={() => void search()} loading={loading}>Pretraži</Button>
     </Group>
+    </ActionButtonsBlock>
     {loading && <Loader size="sm" />}
     {results.map(({ user, sessions }) => <Card key={user.id} withBorder radius="md" padding="md">
       <Group justify="space-between" align="flex-start">

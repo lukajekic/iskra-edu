@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import { Alert, Badge, Button, Card, Group, Loader, Modal, SegmentedControl, Select, Stack, Table, Text, TextInput, Textarea, Title } from '@mantine/core';
 import { Check, ClipboardCheck, Play, RefreshCw, ShieldCheck, Trash2, X } from 'lucide-react';
+import ActionButtonsBlock from './core_components/ActionButtonsBlock';
 
 const backend = import.meta.env.VITE_BACKEND;
 type Rating = 'satisfactory' | 'unsatisfactory';
@@ -94,7 +95,7 @@ export default function AISafetyPage() {
   return <Stack p="md" maw={1400} mx="auto" gap="lg">
     <Group justify="space-between" align="flex-start">
       <div><Group gap="xs"><ShieldCheck size={23} /><Title order={2}>AI bezbednost</Title></Group><Text c="dimmed" mt={5}>Pregledajte svaki odgovor i ručno ocenite da li zadovoljava očekivano ponašanje.</Text></div>
-      <Group><Select aria-label="Izbor modula" value={module} onChange={(value) => setModule(value || 'all')} data={[{ value: 'all', label: 'Sva tri modula' }, { value: 'planner', label: 'Planner' }, { value: 'mentor', label: 'AI Mentor' }, { value: 'canvas', label: 'Canvas' }]} w={180} /><Button leftSection={running ? <Loader size={15} /> : <Play size={16} />} onClick={() => void run()} disabled={running}>{running ? 'Testiranje…' : 'Pokreni testove'}</Button></Group>
+      <ActionButtonsBlock title='Akcije'><Group><Select aria-label="Izbor modula" value={module} onChange={(value) => setModule(value || 'all')} data={[{ value: 'all', label: 'Sva tri modula' }, { value: 'planner', label: 'Planner' }, { value: 'mentor', label: 'AI Mentor' }, { value: 'canvas', label: 'Canvas' }]} w={180} /><Button leftSection={running ? <Loader size={15} /> : <Play size={16} />} onClick={() => void run()} disabled={running}>{running ? 'Testiranje…' : 'Pokreni testove'}</Button></Group></ActionButtonsBlock>
     </Group>
     {error && <Alert color="red" title="Došlo je do greške">{error}</Alert>}
     {running && <Alert color="blue" title="Testovi su u toku">Svaki test šalje zahtev ka AI servisu. Pokretanje može trajati nekoliko minuta.</Alert>}

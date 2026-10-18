@@ -4,12 +4,13 @@ import React from 'react';
 interface ActionGroupProps {
     title?: string,
   children: React.ReactNode;
+  className?: string
 }
 
-const ActionButtonsBlock = ({title, children }: ActionGroupProps) => {
+const ActionButtonsBlock = ({title, children, className }: ActionGroupProps) => {
   return (
     <div>
-      <Paper withBorder shadow='sm' w={'fit-content'} p={'7px'} px={'10px'} pb={'10px'} radius={0}>
+      <Paper withBorder shadow='sm' className={className} w={'fit-content'} p={'7px'} px={'10px'} pb={'10px'} radius={0}>
         <Text>{title ?? "Dostupne akcije"}</Text>
         <Group gap="sm" align="center" mt={'xs'}>
         {children}
