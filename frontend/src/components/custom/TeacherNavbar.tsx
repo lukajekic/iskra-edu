@@ -444,6 +444,16 @@ if (userID) {
                 </Button>
               )}
 
+          
+
+                <Button 
+                variant="ghost" 
+                className="w-full justify-start gap-3 text-base h-12"
+               onClick={()=>{setIsMobileMenuOpen(false), setSessionsOpen(true)}}
+              >
+                <MonitorSmartphone className="size-5" /> Prijavljeni uređaji
+              </Button>
+
               <Button 
                 variant="ghost" 
                 className="w-full justify-start gap-3 text-base h-12"
