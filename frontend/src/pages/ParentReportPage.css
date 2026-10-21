@@ -1,0 +1,69 @@
+.parent-report-page {
+  --report-ink: #0f172a;
+}
+
+.parent-report-page .recharts-wrapper {
+  font-family: inherit;
+}
+
+@page {
+  size: A4;
+  margin: 11mm;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .planner-print-area,
+  .planner-print-area * {
+    visibility: visible;
+  }
+
+  .planner-print-area {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    max-width: none;
+    color: #111827;
+    background: #fff !important;
+    font-size: 9pt;
+  }
+
+  .planner-print-area h1 {
+    font-size: 18pt;
+  }
+
+  .planner-print-area h2 {
+    font-size: 12pt;
+  }
+
+  .planner-print-area h3 {
+    font-size: 10pt;
+  }
+
+  .planner-print-area article,
+  .planner-print-area section {
+    break-inside: auto;
+  }
+
+  .planner-print-area pre {
+    max-height: none;
+    overflow: visible;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .planner-print-area details > summary {
+    list-style: none;
+  }
+
+  .planner-print-area details > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .parent-report-page {
+    padding: 0;
+  }
+}
