@@ -37,13 +37,15 @@ import Loader from '@/components/custom/Loader'
 import posthog from '@/lib/posthog'
 import './onboarding.css'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { AlertTriangleIcon, Info } from 'lucide-react'
+import { AlertTriangleIcon, Info, Landmark, Users } from 'lucide-react'
 
 const Onboarding = () => {
 const [btnLoading, setBtnLoading] = useState(false)
 const usernameField = useRef<HTMLInputElement>(null)
 const passwordField = useRef<HTMLInputElement>(null)
 const nameField = useRef<HTMLInputElement>(null)
+const [credential_form_status, set_credential_form_status] = useState<'unknown'|'app'>('unknown')
+
 const codeField = useRef<HTMLInputElement>(null)
   const handleOnboarding = async()=>{
     try {
@@ -272,24 +274,41 @@ handleOnboarding()
                           <DialogContent className="sm:max-w-sm">
                             <DialogHeader>
                               <DialogTitle>Prijava kredencijalima</DialogTitle>
-                              <DialogDescription>
+                              {credential_form_status == 'app' && (
+                                <DialogDescription>
                                 Unesi svoje podatke za prijavu na <strong>portal za učenike i profesore</strong>.
                               </DialogDescription>
+                              )}
 
-                              <Alert className="max-w-md border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-50">
-      <Info />
-      <AlertTitle>Ostale opcije prijave</AlertTitle>
-      <AlertDescription>
-        Za prijavu na portal za Škole i lokalne samouprave, kliknite na dugme ispod.
-        <br />
-        <br />
-        <Button onClick={()=>{location.href = "/portal/login"}} variant={'outline'}>Prijava na portal</Button>
-      </AlertDescription>
+                              {credential_form_status == 'unknown' && (
+                                <>
+                                <div onClick={()=>{set_credential_form_status("app")}} className="w-full border-1 rounded-md p-3 flex gap-[10px] items-center hover:cursor-pointer mt-2">
+                                <div id="left">
+                                  <Users className='text-primary'></Users>
+                                </div>
 
-      
-    </Alert>
+                                <div id="right">
+                                  <p className="text-md font-bold">Prijava za učenike i profesore</p>
+                                  <p className="text-gray-700">Prijavite se kredencijalima na portal za učenike i profesore</p>
+                                </div>
+                              </div>
+                              
+                              <div onClick={()=>{set_credential_form_status("unknown"), location.href = "/portal/login"}} className="w-full border-1 rounded-md p-3 flex gap-[10px] items-center hover:cursor-pointer mt-2">
+                                <div id="left">
+                                  <Landmark className='text-primary'></Landmark>
+                                </div>
+
+                                <div id="right">
+                                  <p className="text-md font-bold">Prijava za administratore i direktore</p>
+                                  <p className="text-gray-700">Prijavite se kredencijalima na administrativni portal.</p>
+                                </div>
+                              </div>
+                              </>
+                              )}
+                              
                             </DialogHeader>
-                            <FieldGroup>
+                            {credential_form_status == "app" && (
+                              <FieldGroup>
                               <Field>
                                 <FieldLabel htmlFor="username">Korisničko ime</FieldLabel>
                                 <Input
@@ -309,13 +328,16 @@ handleOnboarding()
                                 />
                               </Field>
                             </FieldGroup>
+                            )}
                             <DialogFooter>
                               <DialogClose asChild>
-                                <Button variant="outline" onClick={()=>{setaccesscode("")}}>Odustani</Button>
+                                <Button variant="outline" onClick={()=>{set_credential_form_status("unknown"), setaccesscode("")}}>Odustani</Button>
                               </DialogClose>
-                              <Button disabled={btnLoading} onClick={()=>{handleCredentialLogin()}} type="submit">{btnLoading ? (
+                              {credential_form_status == 'app' && (
+                                <Button disabled={btnLoading} onClick={()=>{handleCredentialLogin()}} type="submit">{btnLoading ? (
                                 <Loader small></Loader>
                               ) : ("Prijavi se")}</Button>
+                              )}
                             </DialogFooter>
                           </DialogContent>
                         </form>
@@ -327,7 +349,7 @@ handleOnboarding()
           </div>
         </div>
 
-        {/* Footer je sada pravilno smešten na dno stranice */}
+        {/* Footer je sada pravilno smesten na dno stranice */}
         <Footer />
       </div>
     </div>

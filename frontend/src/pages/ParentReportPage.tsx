@@ -343,7 +343,7 @@ export default function ParentReportPage() {
 
         {report && (
           <p className="max-w-3xl mx-auto text-xs text-slate-400 mt-4 px-1 print:hidden sa-admin-theme">
-            Prijavljeno kao: {report.requestedBy.parentName} · Generisano: {fmt(report.generatedAt)}
+            Prijavljeno kao: {report.requestedBy.parentName}, generisano: {fmt(report.generatedAt)}
           </p>
         )}
       </main>
