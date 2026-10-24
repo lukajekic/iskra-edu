@@ -104,6 +104,11 @@ handleOnboarding()
     } catch (error) {
       console.error(error);
       setBtnLoading(false)
+      console.log(error.response.data.message)
+
+      if (error?.response?.data?.message === "PORTAL LOGIN REQUIRED") {
+        location.href = "/portal/login"
+      }
     }
   }
 

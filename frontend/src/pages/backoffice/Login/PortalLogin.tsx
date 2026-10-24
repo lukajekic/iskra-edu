@@ -15,6 +15,7 @@ import { useForm } from '@mantine/form';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { QRCodeSVG } from 'qrcode.react';
+import { toast } from 'sonner';
 
 type PortalOtpSetup = { secret: string; otpauthUrl: string };
 
@@ -98,6 +99,18 @@ export default function PortalLogin() {
           );
           return;
         }
+      }
+
+      if (err.response.data.message === "Access Denied.") {
+        const response = await axios.post(`${import.meta.env.VITE_BACKEND}/user/login`, {
+        username: username.trim(),
+        password: password
+      }, {withCredentials: true});
+
+      if (response.status === 200) {
+        const redirectresponse = await axios.get(`${import.meta.env.VITE_BACKEND}/user/me/redirect`);
+        location.href = redirectresponse.data.redirect;
+      }
       }
 
       const responseMessage = axios.isAxiosError(err)
