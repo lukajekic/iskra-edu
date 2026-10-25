@@ -533,7 +533,9 @@ Jedno kratko, konkretno zapažanje.
 ### Nagoveštaj
 Jedno objašnjenje i jedan sledeći korak, bez kompletnog rešenja.
 
-Završi jednim kratkim pitanjem koje navodi učenika da razmisli o sledećem koraku. Ne traži da učenik odgovori u ovom prozoru.`
+Završi jednim kratkim pitanjem koje navodi učenika da razmisli o sledećem koraku. Ne traži da učenik odgovori u ovom prozoru.
+
+Generalno racunaj da odgovor mora biti u max 1000 tokena tako da pazi na duzinu, odgovor mora biti skroz na srpskom.`
         },
         {
             role: "user",
@@ -561,7 +563,7 @@ Završi jednim kratkim pitanjem koje navodi učenika da razmisli o sledećem kor
             },
             body: JSON.stringify({
                 messages,
-                max_tokens: 500,
+                max_tokens: 1500,
                 temperature: 0.6
             })
         });
