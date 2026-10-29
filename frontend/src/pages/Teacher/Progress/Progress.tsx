@@ -22,12 +22,14 @@ type ProgressType = {
     accepted: number,
     revise: number,
     none: number
-  }
+  },
+  id: string
 }
 
 const Progress =   () => {
 const [data, setData] = useState<ProgressType[]>([])
 const [loading, setLoading] = useState(true)
+const [searchQuery, setSearchQuery] = useState('')
 const [studentIspectorID, setStudentIspectorID] = useState<string|null>(null);
 (window as any).setStudentIspectorID = setStudentIspectorID
 
@@ -61,7 +63,7 @@ const [studentIspectorID, setStudentIspectorID] = useState<string|null>(null);
   const getNestedValue = (obj, path) => 
   path.split('.').reduce((acc, key) => acc?.[key], obj);
 
-const tableRows = data.map(item =>
+const tableRows = sortedFilteredData.map(item =>
   columnsConfig.map(col => getNestedValue(item, col.dataKey))
 );
 
@@ -113,6 +115,10 @@ setLoading(false)
     fetchProgress()
   }, [])
 
+  const sortedFilteredData = [...data]
+    .filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => a.name.localeCompare(b.name, 'sr'));
+
   return (
     <>
     <PageTitle title='Napredak' subtitle='Pratite napredak Vaših učenika.'></PageTitle>
@@ -133,8 +139,51 @@ setLoading(false)
     <Button onClick={()=>{fetchProgress()}} className='mb-2'><RefreshCcw></RefreshCcw>Osveži podatke</Button>
     <Button className='ml-2' variant={'outline'} onClick={handleExport}><Download></Download>Izvoz podataka</Button>
 
-<DataTable  filter={{key: "name", input_label: "Pretraga..."}} data={data} columns={columns} studentIspectorID={studentIspectorID} setStudentIspectorID={setStudentIspectorID}></DataTable>
+  <div className="my-2">
+    <Field>
+      <Label>Pretraga učenika</Label>
+      <Input placeholder='Unesite ime ucenika...' value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}></Input>
+    </Field>
+  </div>
+<div className="flex flex-col md:flex-row md:flex-wrap gap-3 my-5">
+  {sortedFilteredData.map((item, index) => {
 
+  return (
+    <div 
+      key={index}
+      onClick={() => { setStudentIspectorID(item.id) }} 
+      className="group w-full md:w-[250px] md:h-[150px] bg-white border-b md:border border-slate-200 md:border-slate-100 shadow-none md:shadow-sm md:hover:shadow-xl rounded-none md:rounded-xl flex flex-row md:flex-col justify-between items-center md:items-stretch md:hover:-translate-y-1.5 transition-none md:transition-all duration-300 ease-in-out p-4 md:p-5 cursor-pointer select-none"
+    >
+      
+      <h3 className="w-auto md:w-full text-left md:text-center font-semibold text-slate-800 group-hover:text-primary transition-colors duration-300 text-base md:text-lg tracking-wide truncate">
+        {item.name}
+      </h3>
+
+      <div className="w-auto md:w-full flex justify-between items-center gap-2">
+        
+        <div className="px-3 py-1.5 md:flex-1 flex justify-center items-center bg-emerald-100 group-hover:bg-emerald-600 rounded-lg transition-colors duration-300">
+          <p className="text-emerald-700 group-hover:text-white font-medium text-xs md:text-sm transition-colors duration-300">
+            {item.progress.accepted}
+          </p>
+        </div>
+
+        <div className="px-3 py-1.5 md:flex-1 flex justify-center items-center bg-rose-100 group-hover:bg-rose-600 rounded-lg transition-colors duration-300">
+          <p className="text-rose-700 group-hover:text-white font-medium text-xs md:text-sm transition-colors duration-300">
+            {item.progress.revise}
+          </p>
+        </div>
+
+        <div className="px-3 py-1.5 md:flex-1 flex justify-center items-center bg-gray-100 group-hover:bg-gray-600 rounded-lg transition-colors duration-300">
+          <p className="text-gray-700 group-hover:text-white font-medium text-xs md:text-sm transition-colors duration-300">
+            {item.progress.none}
+          </p>
+        </div>
+
+      </div>
+    </div>
+  )
+})}
+</div>
 
 
 {/* edit */}
