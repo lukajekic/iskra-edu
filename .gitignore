@@ -1,1 +1,6 @@
 package-lock.json
+node_modules/
+backend/node_modules/
+repomix-output.xml
+.env
+.DS_Store
