@@ -224,7 +224,10 @@ const GradeExam = () => {
             const payload = {
                 solutionID: selectedSolutionID,
                 grade_value: Number(selectedGrade),
-                answers: singleCandidateData.answers
+                answers: singleCandidateData.answers.map(({ questionID, ...answer }) => ({
+                    ...answer,
+                    question_id: questionID,
+                }))
             }
 
             const response = await axios.post(`${import.meta.env.VITE_BACKEND}/studentexams/grade-candidate`, payload)

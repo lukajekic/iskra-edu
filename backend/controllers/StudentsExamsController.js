@@ -948,10 +948,10 @@ export const gradeCandidateExam = async (req, res) => {
         let calculatedTotalPoints = 0
 
         solution.answers = solution.answers.map((dbAnswer) => {
-            const dbQuestionIdStr = dbAnswer.question_id?.toString() || dbAnswer.questionID?.toString()
+            const dbQuestionIdStr = dbAnswer.question_id.toString()
 
             const clientUpdate = answers.find(ans => {
-                const clientQuestionIdStr = ans.questionID?.$oid || ans.questionID || ans.question_id || ans._id
+                const clientQuestionIdStr = ans.question_id?.$oid || ans.question_id
                 return clientQuestionIdStr?.toString() === dbQuestionIdStr
             })
 
@@ -1054,20 +1054,44 @@ export const getTestAnalyticsReport = async (req, res) => {
     {
         $group: {
             _id: "$answers.question_id",
-            taskTitle: { $first: { $ifNull: ["$answers.taskDetails.title", "Bez naslova"] } },
-            avgPointsAwarded: { $first: { $ifNull: ["$answers.points_awarded", 0] } },
-            
-            maxPointsPossible: { 
-                $first: { 
-                    $ifNull: [
-                        "$answers.points_max", 
-                        { $ifNull: ["$answers.taskDetails.points_max", 20] }
-                    ] 
-                } 
-            },
+            taskType: { $first: "$answers.task_type" },
+            avgPointsAwarded: { $avg: "$answers.points_awarded" },
+            maxPointsPossible: { $first: "$answers.max_points" },
             correctCount: {
                 $sum: { $cond: [ { $eq: ["$answers.status", "correct"] }, 1, 0 ] }
             }
+        }
+    },
+    {
+        $lookup: {
+            from: "tasks",
+            localField: "_id",
+            foreignField: "_id",
+            as: "task"
+        }
+    },
+    {
+        $lookup: {
+            from: "theorytasks",
+            localField: "_id",
+            foreignField: "_id",
+            as: "theoryTask"
+        }
+    },
+    {
+        $set: {
+            taskTitle: {
+                $ifNull: [
+                    { $arrayElemAt: ["$task.title", 0] },
+                    { $ifNull: [ { $arrayElemAt: ["$theoryTask.title", 0] }, "Obrisan zadatak" ] }
+                ]
+            }
+        }
+    },
+    {
+        $project: {
+            task: 0,
+            theoryTask: 0
         }
     }
 ],

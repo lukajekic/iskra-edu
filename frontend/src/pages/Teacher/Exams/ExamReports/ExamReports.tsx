@@ -69,7 +69,7 @@ const ExamReports = () => {
         const hasValidPoints = taskMax > 0
 
         return {
-            name: `Zadatak ${index + 1}`,
+            name: t.taskTitle || `Zadatak ${index + 1}`,
             procenat: hasValidPoints ? Math.min(100, Math.max(0, Math.round((taskAvg / taskMax) * 100))) : 0,
             avgPoints: taskAvg.toFixed(1),
             maxPoints: hasValidPoints ? taskMax : "--"
