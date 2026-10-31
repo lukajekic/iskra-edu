@@ -117,3 +117,72 @@ html {
     transform: translateY(-3px);
     background-color: color-mix(in srgb, var(--color-primary), transparent 88%);
 }
+
+
+
+/* ---------- Pill oko reči koja se kuca (u normalnom izgledu nevidljiv) ---------- */
+.typing-pill {
+  display: inline-block;
+  min-width: 0.6em;
+  padding: 0 0.25em;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  transition: background 1s ease, border-color 1s ease, box-shadow 1s ease;
+}
+.typing-pill .typing-text {
+  transition: color 1s ease, text-shadow 1s ease;
+}
+
+/* ---------- Zimska tema (31. okt – 15. jan) ---------- */
+[data-theme="winter"] {
+  --primary: oklch(0.62 0.13 235);
+  --color-primary: oklch(0.62 0.13 235);
+  --primary-foreground: oklch(0.98 0.01 235);
+  --ring: oklch(0.7 0.12 235);
+}
+
+/* Heksagoni → hladna pozadina sa sitnim pahuljicama */
+[data-theme="winter"] .pattern-bg {
+  background-image:
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'%3E%3Cg stroke='%23b9dcf5' stroke-width='1.5' stroke-linecap='round' fill='none'%3E%3Cg transform='translate(40 40)'%3E%3Cpath d='M0-14V14M-12-7 12 7M-12 7 12-7'/%3E%3C/g%3E%3Cg transform='translate(120 100)' opacity='.6'%3E%3Cpath d='M0-10V10M-9-5 9 5M-9 5 9-5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 50% 0%, #dff0ff 0%, #f1f9ff 45%, #ffffff 100%);
+  background-size: 160px 160px, cover;
+  background-repeat: repeat, no-repeat;
+}
+
+/* Ledeni tekst dok se kuca */
+.typing-pill {
+  display: inline-block;
+}
+.typing-pill .typing-text {
+  transition: color 1s ease, text-shadow 1s ease;
+}
+[data-theme="winter"] .typing-pill[data-typing="true"] .typing-text {
+  color: #3d9be9;
+  text-shadow: 0 0 14px rgba(120, 200, 255, 0.8);
+}
+/* kad typing završi, data-typing postaje false i sve se glatko vraća u normalu (text-primary) */
+
+/* Pahuljice */
+.snowfall {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.snowflake {
+  position: absolute;
+  top: -5%;
+  color: #9fd3ff;
+  text-shadow: 0 0 6px rgba(159, 211, 255, 0.8);
+  animation-name: snowfall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes snowfall {
+  to { transform: translate3d(var(--drift), 110vh, 0) rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .snowflake { animation: none; }
+}
