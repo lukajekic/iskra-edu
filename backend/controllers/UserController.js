@@ -888,6 +888,63 @@ export const ReGrade = async(req, res)=>{
     }
 }
 
+
+
+
+
+export const DeleteWarnings = async(req, res)=>{
+    try {
+        let {studentid, taskid} = req.body || {}
+
+        if (!studentid) {
+            return res.status(400).json(BuildValidationReturn('missing student id', 'error', 'Missing Student ID.'))
+        }
+
+        if (!taskid) {
+            return res.status(400).json(BuildValidationReturn('missing task id', 'error', 'Missing Task ID.'))
+        }
+
+
+
+        let user = await UserModel.findById(studentid)
+
+        if (!user) {
+            return res.status(400).json(BuildValidationReturn('user not found in DB.', 'error', 'User not found.'))
+        }
+
+        if (user.type === 'teacher') {
+            return res.status(400).json(BuildValidationReturn('target user is not a student', 'error', "You can modify only Students' solutions"))
+        }
+
+        // sad trazimo greske u solutionima
+
+        let solution = user.solutions.find(item => item.taskID.toString() === taskid.toString())
+
+        if (!solution) {
+            return res.status(400).json(BuildValidationReturn('solution not found.', 'error', "Solution not found."))
+        }
+        
+            await UserModel.updateOne(
+            { 
+                _id: studentid, 
+                "solutions.taskID": taskid 
+            },
+            { 
+                $set: { 
+                    "solutions.$.flags": []
+                } 
+            }
+        )
+       
+        
+
+        return res.status(200).json({"message": "ok"})
+
+    } catch (error) {
+        return res.status(500).json(BuildValidationReturn(error.message, 'error', 'Unexpected error occured.'))
+    }
+}
+
 export const ForbidWork = async(req, res)=>{
     try {
         const userid = req.user._id

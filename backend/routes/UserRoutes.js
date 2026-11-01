@@ -1,7 +1,7 @@
 import express from 'express'
 import rateLimit from 'express-rate-limit'
 import { deleteAISafetyReport, getAISafetySuite, getAISafetyReport, listAISafetyReports, runAISafetySuite, updateAISafetyReportEvaluation } from '../controllers/AISafetyController.js'
-import { CheckSuperAdminRole, createAccount, createWorkhourGroup, DeleteUserForGdpr, Documentation, endWorkhour, ForbidWork, getAllTeachers, GetUsersForGdprDeletion, getMessages, getSingleStudentProgress, getSingleTeacher, Login, Logout, MyProfile, MyWorkhourGroup, NewMessage, NewMessageToUser, readMessage, RedirectMe, ReGrade, UpdateUserBanStatus, WorkhourPorgress, WorkhourTimer, PortalLogin, PortalSession, SetupPortalOtp, PortalLogout } from '../controllers/UserController.js'
+import { CheckSuperAdminRole, createAccount, createWorkhourGroup, DeleteUserForGdpr, Documentation, endWorkhour, ForbidWork, getAllTeachers, GetUsersForGdprDeletion, getMessages, getSingleStudentProgress, getSingleTeacher, Login, Logout, MyProfile, MyWorkhourGroup, NewMessage, NewMessageToUser, readMessage, RedirectMe, ReGrade, UpdateUserBanStatus, WorkhourPorgress, WorkhourTimer, PortalLogin, PortalSession, SetupPortalOtp, PortalLogout, DeleteWarnings } from '../controllers/UserController.js'
 import { protect } from '../middleware/protect.js'
 import { protectPortal } from '../middleware/protectPortal.js'
 import { inject_req_data } from '../middleware/inject_req_data.js'
@@ -57,6 +57,8 @@ router.post('/me/workhour/forbid', protect, ForbidWork)
 
 router.get('/inspect/student/:id', protect, getSingleStudentProgress)
 router.put('/inspect/student/regrade', protect, ReGrade)
+router.put('/inspect/student/delete-warnings', protect, DeleteWarnings)
+
 
 router.get('/me/superadmin', protect, CheckSuperAdminRole)
 router.post('/me/messages', protect, NewMessage)
