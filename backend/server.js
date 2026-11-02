@@ -185,6 +185,10 @@ app.set('socketio', io)
 globalThis.__iskraSocketIO = io
 startSubmissionQueue()
 
+app.get('/ping', (req, res)=>{
+  return res.status(200).json({"status": "OK"})
+})
+
 server.listen(process.env.PORT || 3000, '0.0.0.0', ()=>{
     console.log("Server je pokrenut na portu", process.env.PORT || 7860)
 })

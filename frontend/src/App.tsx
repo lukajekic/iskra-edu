@@ -44,6 +44,7 @@ import ParentReportPage from './pages/ParentReportPage';
 import BackOfficeLayout from './pages/backoffice/BackOfficeLayout';
 import PortalLogin from './pages/backoffice/Login/PortalLogin';
 import { PortalAppShell } from './pages/backoffice/Portal/AppShell';
+import PingServerPage from './pages/static/Ping/Ping';
 export function App() {
 useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -63,6 +64,10 @@ useEffect(() => {
        {
 path: "*",
 element: <NotFound></NotFound>
+    },
+    {
+      "path": "/ping",
+      element: <PingServerPage></PingServerPage>
     },
     {
       path: "/",

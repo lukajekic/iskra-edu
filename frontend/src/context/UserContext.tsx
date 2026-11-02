@@ -17,7 +17,7 @@ export const UserProvider = ({children}:{children:ReactNode}) => {
 const [userID, setUserID] = useState<string|null>(null)
 
 useEffect(() => {
-  const PUBLIC_PATHS = ['/', '/about', '/legal/terms', '/legal/privacy', '/maintenance', '/not-available-on-mobile']
+  const PUBLIC_PATHS = ['/', '/about', '/legal/terms', '/legal/privacy', '/maintenance', '/not-available-on-mobile', '/ping']
   const currentPath = window.location.pathname
   if (PUBLIC_PATHS.includes(currentPath) || currentPath === '/portal' || currentPath.startsWith('/portal/')) return // portal koristi zasebnu sesiju
 
