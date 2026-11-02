@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: ./frontend
+    env_file:
+      - .env
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_BACKEND=${VITE_BACKEND}
+      - VITE_FIREBASE=${VITE_FIREBASE}
+      - VITE_METRICA=${VITE_METRICA}
+      - VITE_POSTHOG_KEY=${VITE_POSTHOG_KEY}
+      - VITE_POSTHOG_HOST=${VITE_POSTHOG_HOST}
+      - VITE_SANITY_PROJECT_ID=${VITE_SANITY_PROJECT_ID}
+      - VITE_SANITY_DATASET=${VITE_SANITY_DATASET}
+
+  backend:
+    build: ./backend
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    environment:
+      - AI_API_KEY=${AI_API_KEY}
+      - AI_ENDPOINT=${AI_ENDPOINT}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - MONGO_SECRET=${MONGO_SECRET}
+      - PORT=${PORT}
+      - JUDGE0_BASE_URL=${JUDGE0_BASE_URL}
+      - JUDGE0_AUTH_TOKEN=${JUDGE0_AUTH_TOKEN}
+      - JUDGE0_AUTH_TOKEN_HEADER=${JUDGE0_AUTH_TOKEN_HEADER}
+      - JUDGE0_AUTH_USER_HEADER=${JUDGE0_AUTH_USER_HEADER}
+      - JUDGE0_PYTHON_LANGUAGE_ID=${JUDGE0_PYTHON_LANGUAGE_ID}
+      - JUDGE0_RUBY_LANGUAGE_ID=${JUDGE0_RUBY_LANGUAGE_ID}
